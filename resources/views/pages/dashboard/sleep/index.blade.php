@@ -5,14 +5,65 @@
             <div class="card">
                 <header class=" card-header noborder">
                     <h4 class="card-title">{{ $pageTitle }}</h4>
-                    {{-- <a href={{ route('masters.users.create') }}
-                        class="btn btn-sm inline-flex justify-center btn-primary ">
+                    <button class="btn btn-sm inline-flex justify-center btn-outline-primary rounded-[25px]"
+                        data-bs-toggle="modal" data-bs-target="#primaryModal">
                         <span class="flex items-center">
-                            <span>Tambah Data</span>
-                            <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2"
-                                icon="mdi:database-plus-outline"></iconify-icon>
+                            <iconify-icon class="text-xl mr-2" icon="material-symbols-light:export-notes"></iconify-icon>
+                            <span>Export Data</span>
                         </span>
-                    </a> --}}
+                    </button>
+                    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
+                        id="primaryModal" tabindex="-1" aria-labelledby="primaryModalLabel" aria-hidden="true">
+                        <div class="modal-dialog relative w-auto pointer-events-none">
+                            <div
+                                class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding
+                                            rounded-md outline-none text-current">
+                                <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
+                                    <!-- Modal header -->
+                                    <div
+                                        class="flex items-center justify-between p-5 border-b rounded-t dark:border-slate-600 bg-primary-500">
+                                        <h3 class="text-base font-medium text-white dark:text-white capitalize">
+                                            Export Data
+                                        </h3>
+                                        <button type="button"
+                                            class="text-slate-400 bg-transparent hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+                                                        dark:hover:bg-slate-600 dark:hover:text-white"
+                                            data-bs-dismiss="modal">
+                                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path fill-rule="evenodd"
+                                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+                                                                11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="sr-only">Close modal</span>
+                                        </button>
+                                    </div>
+                                    <form action="{{ route('sleep.export') }}" target="_blank" id="form_export">
+                                        <div class="grid p-4 gap-y-3">
+                                            <div class="input-area">
+                                                <label for="tanggal" class="form-label">Tanggal</label>
+                                                <input class="form-control py-2 flatpickr flatpickr-input active"
+                                                    name="tanggal" id="export_date" value="" type="text"
+                                                    readonly="readonly" required>
+                                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
+                                                    style="display: none">This is
+                                                    invalid state.</div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex justify-end items-center p-6 space-x-2 border-t border-slate-200 rounded-b dark:border-slate-600">
+                                            <button type="submit" id="submit"
+                                                class="btn btn-sm inline-flex justify-center text-white bg-primary-500">Export
+                                                to
+                                                Excel</button>
+                                            <button type="submit" class="hidden" id="submit_forrm">sub</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </header>
                 <div class="card-body px-6 pb-6">
                     <div class="grid grid-cols-4 gap-3 ">
@@ -27,7 +78,8 @@
                                 <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
                                     Data</option>
                                 @foreach ($dept as $item)
-                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">{{ $item->division }}
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                        {{ $item->division }}
                                     </option>
                                 @endforeach
                             </select>
@@ -59,6 +111,9 @@
                                                 Jabatan
                                             </th>
                                             <th scope="col" class=" table-th ">
+                                                Shift
+                                            </th>
+                                            <th scope="col" class=" table-th ">
                                                 Total Jam Tidur
                                             </th>
                                             <th scope="col" class=" table-th ">
@@ -77,6 +132,8 @@
 
 
     @push('scripts')
+        @vite(['resources/js/plugins/flatpickr.js'])
+
         <script type="module">
             var table = $("#data-table, .data-table").DataTable({
                 processing: true,
@@ -110,11 +167,11 @@
                 },
                 "columnDefs": [{
                         "searchable": false,
-                        "targets": [3, 4]
+                        "targets": [1, 3]
                     },
                     {
                         "orderable": false,
-                        "targets": [3, 4]
+                        "targets": [3, 1]
                     },
                     {
                         'className': 'table-td',
@@ -134,9 +191,18 @@
                     },
                     {
                         render: (data, type, row, meta) => {
+                            if (row.absen.length > 0) {
+                                return row.absen[0]?.shift?.name
+                            } else {
+                                return '-'
+                            }
+                        }
+                    },
+                    {
+                        render: (data, type, row, meta) => {
                             let duration = 0;
-                            row.f_sleep.map((data) => {
-                                duration += parseInt(data.duration)
+                            row.sleep.map((data) => {
+                                duration += moment(data.end).diff(moment(data.start), 'minutes')
                             })
                             let hours = Math.floor(duration / 60)
                             return `${hours} jam ${duration % 60} menit`
@@ -145,25 +211,30 @@
                     {
                         render: (data, type, row, meta) => {
                             let duration = 0;
-                            row.f_sleep.map((data) => {
-                                duration += parseInt(data.duration)
+                            row.sleep.map((data) => {
+                                duration += moment(data.end).diff(moment(data.start), 'minutes')
                             })
                             if (duration <= 5 * 60) {
-                                return 'Tidak Boleh';
+                                return '<span class="badge bg-red-500 text-white capitalize">tidak boleh</span>';
                             } else if (duration <= 6 * 60) {
-                                return 'Butuh Pengawasan';
+                                return '<span class="badge bg-yellow-500 text-white capitalize">Butuh Pengawasan</span>';
                             } else {
-                                return 'Normal'
+                                return '<span class="badge bg-green-500 text-white capitalize">Fit to Works</span>'
                             }
                         }
                     },
                 ],
             });
             table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
-
             $('#name, #division_id').bind('change', function() {
                 table.draw()
             })
+
+            $("#export_date").flatpickr({
+                maxDate: "today",
+                dateFormat: "Y-m-d",
+                defaultDate: 'today'
+            });
         </script>
     @endpush
 </x-appLayout>

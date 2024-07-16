@@ -30,87 +30,94 @@
                     </span>
                 </a>
             </li>
-            <li>
-                <a href="{{ route('sleep') }}"
-                    class="navItem {{ \Request::route()->getName() == 'sleep' ? 'active' : '' }}">
-                    <span class="flex items-center">
-                        <iconify-icon class="nav-icon" icon="heroicons-outline:moon"></iconify-icon>
-                        <span>Sleep duration</span>
-                    </span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('employee') }}"
-                    class="navItem {{ stripos(\Request::route()->getName(), 'employee') !== false ? 'active' : '' }}">
-                    <span class="flex items-center">
-                        <iconify-icon class="nav-icon" icon="game-icons:mining-helmet"></iconify-icon>
-                        <span>Karyawan</span>
-                    </span>
-                </a>
-            </li>
-            {{-- <li class="sidebar-menu-title">{{ __('S') }}</li> --}}
-            <li class="{{ \Request::route()->getName() == 'absensi*' ? 'active' : '' }}">
-                <a href="#" class="navItem">
-                    <span class="flex items-center">
-                        <iconify-icon class=" nav-icon" icon="heroicons:finger-print-20-solid"></iconify-icon>
-                        <span>Attendance</span>
-                    </span>
-                    <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
-                </a>
-                <ul class="sidebar-submenu">
-                    <li>
-                        <a href={{ route('absensi.attendance') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'absensi.attendance') !== false ? 'active' : '' }}">Attendance</a>
-                    </li>
-                    <li>
-                        <a href={{ route('absensi.workhours') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'absensi.workhours') !== false ? 'active' : '' }}">Work
-                            Hours</a>
-                    </li>
-                    <li>
-                        <a href={{ route('absensi.shift') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'absensi.shift') !== false ? 'active' : '' }}">Shift</a>
-                    </li>
-                    <li>
-                        <a href={{ route('absensi.clocklocations') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'absensi.clocklocations') !== false ? 'active' : '' }}">Clock
-                            Location</a>
-                    </li>
-                </ul>
-            </li>
-            <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
-                <a href="#" class="navItem">
-                    <span class="flex items-center">
-                        <iconify-icon class=" nav-icon" icon="heroicons:cog-6-tooth"></iconify-icon>
-                        <span>Master</span>
-                    </span>
-                    <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
-                </a>
-                <ul class="sidebar-submenu">
-                    <li>
-                        <a href={{ route('masters.users') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'masters.users') !== false ? 'active' : '' }}">Users</a>
-                    </li>
-                    <li>
-                        <a href={{ route('masters.division') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'masters.division') !== false ? 'active' : '' }}">Departement</a>
-                    </li>
-                    <li>
-                        <a href={{ route('masters.position') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
-                    </li>
-                </ul>
-            </li>
+
+            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hse']))
+                <li>
+                    <a href="{{ route('sleep') }}"
+                        class="navItem {{ \Request::route()->getName() == 'sleep' ? 'active' : '' }}">
+                        <span class="flex items-center">
+                            <iconify-icon class="nav-icon" icon="heroicons-outline:moon"></iconify-icon>
+                            <span>Sleep duration</span>
+                        </span>
+                    </a>
+                </li>
+            @endif
+
+            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
+                <li>
+                    <a href="{{ route('employee') }}"
+                        class="navItem {{ stripos(\Request::route()->getName(), 'employee') !== false ? 'active' : '' }}">
+                        <span class="flex items-center">
+                            <iconify-icon class="nav-icon" icon="game-icons:mining-helmet"></iconify-icon>
+                            <span>Karyawan</span>
+                        </span>
+                    </a>
+                </li>
+                <li class="{{ \Request::route()->getName() == 'absensi*' ? 'active' : '' }}">
+                    <a href="#" class="navItem">
+                        <span class="flex items-center">
+                            <iconify-icon class=" nav-icon" icon="heroicons:finger-print-20-solid"></iconify-icon>
+                            <span>Attendance</span>
+                        </span>
+                        <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        <li>
+                            <a href={{ route('absensi.attendance') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.attendance') !== false ? 'active' : '' }}">Attendance</a>
+                        </li>
+                        <li>
+                            <a href={{ route('absensi.workhours') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.workhours') !== false ? 'active' : '' }}">Work
+                                Hours</a>
+                        </li>
+                        <li>
+                            <a href={{ route('absensi.shift') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.shift') !== false ? 'active' : '' }}">Shift</a>
+                        </li>
+                        <li>
+                            <a href={{ route('absensi.clocklocations') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.clocklocations') !== false ? 'active' : '' }}">Clock
+                                Location</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
+            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
+                <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
+                    <a href="#" class="navItem">
+                        <span class="flex items-center">
+                            <iconify-icon class=" nav-icon" icon="heroicons:cog-6-tooth"></iconify-icon>
+                            <span>Master</span>
+                        </span>
+                        <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        <li>
+                            <a href={{ route('masters.users') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.users') !== false ? 'active' : '' }}">Users</a>
+                        </li>
+                        <li>
+                            <a href={{ route('masters.division') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.division') !== false ? 'active' : '' }}">Departement</a>
+                        </li>
+                        <li>
+                            <a href={{ route('masters.position') }}
+                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
         </ul>
         <div class="bg-slate-700 mb-10 mt-36 p-4 relative text-center rounded-2xl text-white"
             id="sidebar_bottom_wizard">
             <img src="{{ asset('images/worker.png') }}" alt="" class="mx-auto relative -mt-[110px] h-48">
-            <div class="max-w-[160px] mx-auto mt-6">
+            {{-- <div class="max-w-[160px] mx-auto mt-6">
                 <div class="widget-title font-Inter mb-1">Unlimited Access</div>
                 <div class="text-xs font-light font-Inter">
                     Upgrade your system to business plan
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
 </div>

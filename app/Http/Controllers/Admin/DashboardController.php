@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Clock;
+use App\Models\Sleep;
 use App\Models\Profile;
 use App\Models\Employee;
 use App\Models\ViewClock;
@@ -119,5 +120,20 @@ class DashboardController extends Controller
 
         return [$data_double, $data_null];
 
+    }
+
+    public function update_jam(){
+        $data= Sleep::all();
+
+        foreach ($data as $key => $value) {
+            if ($value->date == null) {
+                $date= Carbon::parse($value->end)->format('Y-m-d');
+                $update = Sleep::find($value->id)->update([
+                    'date' => $date
+                ]);
+            }
+        }
+
+        return Sleep::all();
     }
 }

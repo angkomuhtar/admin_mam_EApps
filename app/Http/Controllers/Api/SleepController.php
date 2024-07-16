@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Carbon\Carbon;
 use App\Models\Sleep;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
@@ -23,11 +24,13 @@ class SleepController extends Controller
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
+            $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
 
             $insert = Sleep::insert([
                 'user_id'=> Auth::user()->id,
                 'start'=> $request->start,
                 'end' => $request->end,
+                'date' => $today,
                 'stage'=> $request->stage
             ]);
             if ($insert) {

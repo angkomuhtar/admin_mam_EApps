@@ -16,6 +16,7 @@ class Sleep extends Model
         'user_id',
         'start',
         'end',
+        'date',
         'stage'
     ];
 

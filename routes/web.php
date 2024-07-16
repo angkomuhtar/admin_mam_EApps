@@ -36,8 +36,9 @@ Route::controller(LoginController::class)->group(function() {
 
 Route::prefix('admin')->group(function()
 {
-    Route::middleware('Admin:admin,superadmin,hrd')->group(function () {
+    Route::middleware('Admin:admin,superadmin,hrd,hse')->group(function () {
         Route::get('/',[DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/update_jam',[DashboardController::class, 'update_jam'])->middleware('Admin:superadmin');
         Route::get('/rekap_hadir',[DashboardController::class, 'rekap_hadir'])->name('dashboard.rekap_hadir');
         Route::get('/import_data',[DashboardController::class, 'import_data'])->name('dashboard.import_data');
         Route::controller(EmployeeController::class)->prefix('employee')->group(function()
@@ -45,16 +46,16 @@ Route::prefix('admin')->group(function()
             Route::middleware('Admin:superadmin,hrd')->group(function(){
                 Route::get('/create','create')->name('employee.create');
                 Route::post('/','store')->name('employee.store');
+                Route::get('/','index')->name('employee');
+                Route::get('/{id}/profile','edit_profile')->name('employee.edit_profile');
+                Route::post('/{id}/profile','update_profile')->name('employee.update_profile');
+                Route::get('/{id}/employee','edit_employee')->name('employee.edit_employee');
+                Route::post('/{id}/employee','update_employee')->name('employee.update_employee');
+                Route::get('/test','destroy')->name('employee.test');
+                Route::DELETE('/delete/{id}','pass_reset')->name('employee.reset_pass');
+                Route::GET('/update_category/{id}','update_category')->name('employee.update_category');
+                Route::GET('/update_shift/{id}','update_shift')->name('employee.update_shift');
             });
-            Route::get('/','index')->name('employee');
-            Route::get('/{id}/profile','edit_profile')->name('employee.edit_profile');
-            Route::post('/{id}/profile','update_profile')->name('employee.update_profile');
-            Route::get('/{id}/employee','edit_employee')->name('employee.edit_employee');
-            Route::post('/{id}/employee','update_employee')->name('employee.update_employee');
-            Route::get('/test','destroy')->name('employee.test');
-            Route::DELETE('/delete/{id}','pass_reset')->name('employee.reset_pass');
-            Route::GET('/update_category/{id}','update_category')->name('employee.update_category');
-            Route::GET('/update_shift/{id}','update_shift')->name('employee.update_shift');
         });
         Route::controller(AjaxController::class)->prefix('ajax')->group(function()
         {
@@ -68,6 +69,7 @@ Route::prefix('admin')->group(function()
             Route::controller(SleepController::class)->prefix('sleep')->group(function()
             {
                 Route::get('/','index')->name('sleep');
+                Route::get('/export','export')->name('sleep.export');
             });
         });
 

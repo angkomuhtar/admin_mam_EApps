@@ -163,8 +163,9 @@ class ClockController extends Controller
                 'date'  => 'required',
                 'time' => 'required',
                 'location' => 'required',
-                // 'version' => 'required',
+                'version' => 'required',
             ]);
+
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
@@ -172,6 +173,10 @@ class ClockController extends Controller
             // dd($request);
 
             if ($request->type == 'in') {
+                $exist = Clock::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
+                if ($exist) {
+                    return ResponseHelper::jsonSuccess('Berhasil Absen Masuk');
+                }
                 $insert = Clock::insert([
                     'user_id'=> Auth::user()->id,
                     'clock_location_id'=> $request->location,
