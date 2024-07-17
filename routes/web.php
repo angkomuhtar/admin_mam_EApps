@@ -24,10 +24,8 @@ use App\Http\Controllers\Admin\ClocklocationsController;
 |
 */
 
-Route::middleware('Admin:superadmin')->get('/', function () {
-    return view('welcome');
-});
 
+Route::middleware('Admin:admin,superadmin,hrd,hse')->get('/',[DashboardController::class, 'index']);
 Route::controller(LoginController::class)->group(function() {
     Route::get('/login', 'login')->name('login');
     Route::post('/login', 'authenticate')->name('authenticate');
@@ -43,7 +41,7 @@ Route::prefix('admin')->group(function()
         Route::get('/import_data',[DashboardController::class, 'import_data'])->name('dashboard.import_data');
         Route::controller(EmployeeController::class)->prefix('employee')->group(function()
         {
-            Route::middleware('Admin:superadmin,hrd')->group(function(){
+            Route::middleware('Admin:superadmin,hrd,admin')->group(function(){
                 Route::get('/create','create')->name('employee.create');
                 Route::post('/','store')->name('employee.store');
                 Route::get('/','index')->name('employee');

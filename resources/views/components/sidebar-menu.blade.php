@@ -42,8 +42,7 @@
                     </a>
                 </li>
             @endif
-
-            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
+            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd', 'admin']))
                 <li>
                     <a href="{{ route('employee') }}"
                         class="navItem {{ stripos(\Request::route()->getName(), 'employee') !== false ? 'active' : '' }}">
@@ -53,6 +52,8 @@
                         </span>
                     </a>
                 </li>
+            @endif
+            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
                 <li class="{{ \Request::route()->getName() == 'absensi*' ? 'active' : '' }}">
                     <a href="#" class="navItem">
                         <span class="flex items-center">
