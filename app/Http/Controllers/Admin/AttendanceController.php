@@ -179,30 +179,31 @@ class AttendanceController extends Controller
 
         $activeWorksheet->setCellValue('A2', 'ABSENSI HARIAN EMPAPPS');
         $activeWorksheet->getStyle('A2')->applyFromArray($HeaderStyle);
-        $activeWorksheet->mergeCells('A2:J2');
+        $activeWorksheet->mergeCells('A2:K2');
 
         $num=3;
         $num++;
 
         $activeWorksheet->setCellValue('A'.$num, 'Tanggal')->getStyle('A'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('B'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('C'.$num, 'Project')->getStyle('C'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('D'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('E'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('F'.$num, 'Jam Masuk')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('G'.$num, 'Telat Masuk')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('H'.$num, 'Jam Pulang')->getStyle('H'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('I'.$num, 'Cepat Pulang')->getStyle('I'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->setCellValue('J'.$num, 'Jenis Shift')->getStyle('J'.$num)->applyFromArray($HeaderStyle);
-        $activeWorksheet->getStyle('A4:J2')->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('B'.$num, 'NRP')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('C'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('D'.$num, 'Project')->getStyle('C'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('E'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('F'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('G'.$num, 'Jam Masuk')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('H'.$num, 'Telat Masuk')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('I'.$num, 'Jam Pulang')->getStyle('H'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('J'.$num, 'Cepat Pulang')->getStyle('I'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('K'.$num, 'Jenis Shift')->getStyle('J'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->getStyle('A4:K4')->applyFromArray($HeaderStyle);
         $activeWorksheet->getRowDimension(4)->setRowHeight(40, 'pt');
 
 
-        foreach(range('A','J') as $columnID) {
+        foreach(range('A','K') as $columnID) {
             $activeWorksheet->getColumnDimension($columnID)
                 ->setAutoSize(true);
         }
-        $activeWorksheet->getStyle('A4'.':J'.$num)->applyFromArray([
+        $activeWorksheet->getStyle('A4'.':K'.$num)->applyFromArray([
             'font' => [
                 'size' => 12
             ],
@@ -239,47 +240,48 @@ class AttendanceController extends Controller
             foreach ($absen as $key => $value) {
                $num++;
                 $activeWorksheet->setCellValue('A'.$num, $value->absen[0]->date ?? $currentDate->toDateString());
-                $activeWorksheet->setCellValue('B'.$num, $value->profile->name);
-                $activeWorksheet->setCellValue('C'.$num, $value->employee->project->name);
-                $activeWorksheet->setCellValue('D'.$num, $value->employee->division->division);
-                $activeWorksheet->setCellValue('E'.$num, $value->employee->position->position);
-                $activeWorksheet->setCellValue('F'.$num, $value->absen[0]->clock_in ?? '');
+                $activeWorksheet->setCellValue('B'.$num, $value->employee->nip);
+                $activeWorksheet->setCellValue('C'.$num, $value->profile->name);
+                $activeWorksheet->setCellValue('D'.$num, $value->employee->project->name);
+                $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
+                $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
+                $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->clock_in ?? '');
                 if (count($value->absen) > 0) {
                     $startTime = Carbon::parse($value->absen[0]->shift->start);
                     $finishTime = Carbon::parse($value->absen[0]->clock_in);
                     if($startTime->lte($finishTime)){
                         $totalDuration = $finishTime->diffInSeconds($startTime);
-                        $activeWorksheet->setCellValue('G'.$num, gmdate('H:i',$totalDuration));
+                        $activeWorksheet->setCellValue('H'.$num, gmdate('H:i',$totalDuration));
                         if ($totalDuration / 60 >= 1) {
-                            $activeWorksheet->getStyle('F'.$num.':G'.$num)
+                            $activeWorksheet->getStyle('G'.$num.':H'.$num)
                             ->getFill()
                             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                             ->getStartColor()->setARGB('FFE3A6AA');
                         }
                     }else{
-                        $activeWorksheet->setCellValue('G'.$num, '');
+                        $activeWorksheet->setCellValue('H'.$num, '');
                     }
                 }
-                $activeWorksheet->setCellValue('H'.$num, $value->absen[0]->clock_out ?? '');
+                $activeWorksheet->setCellValue('I'.$num, $value->absen[0]->clock_out ?? '');
                 if (count($value->absen) > 0 && $value->absen[0]->clock_out) {
                     $startTime = Carbon::parse($value->absen[0]->clock_out);
                     $finishTime = Carbon::parse($value->absen[0]->shift->end);
                     if($startTime->lte($finishTime)){
                         $totalDuration = $finishTime->diffInSeconds($startTime);
-                        $activeWorksheet->setCellValue('I'.$num, gmdate('H:i',$totalDuration));
+                        $activeWorksheet->setCellValue('J'.$num, gmdate('H:i',$totalDuration));
                         if ($totalDuration / 60 >= 1) {
-                            $activeWorksheet->getStyle('H'.$num.':I'.$num)
+                            $activeWorksheet->getStyle('I'.$num.':J'.$num)
                             ->getFill()
                             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                             ->getStartColor()->setARGB('FFE3A6AA');
                         }
                     }else{
-                        $activeWorksheet->setCellValue('I'.$num, '');
+                        $activeWorksheet->setCellValue('J'.$num, '');
                     }
                 }
-                $activeWorksheet->setCellValue('J'.$num, count($value->absen) > 0 ? $value->absen[0]->shift->name ." (".$value->absen[0]->shift->start ." - ".$value->absen[0]->shift->end.")" : '');
+                $activeWorksheet->setCellValue('K'.$num, count($value->absen) > 0 ? $value->absen[0]->shift->name ." (".$value->absen[0]->shift->start ." - ".$value->absen[0]->shift->end.")" : '');
                 $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
-                $activeWorksheet->getStyle('B5'.':J'.$num)->applyFromArray([
+                $activeWorksheet->getStyle('B5'.':K'.$num)->applyFromArray([
                     'font' => [
                         'size' => 12
                     ],

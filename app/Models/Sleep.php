@@ -17,7 +17,9 @@ class Sleep extends Model
         'start',
         'end',
         'date',
-        'stage'
+        'stage',
+        'attachment',
+        'status'
     ];
 
     public function user(){

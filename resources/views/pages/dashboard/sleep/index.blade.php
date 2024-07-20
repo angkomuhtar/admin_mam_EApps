@@ -114,7 +114,13 @@
                                                 Shift
                                             </th>
                                             <th scope="col" class=" table-th ">
-                                                Total Jam Tidur
+                                                Jam Tidur
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                image
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                status
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 Kategori
@@ -205,7 +211,36 @@
                                 duration += moment(data.end).diff(moment(data.start), 'minutes')
                             })
                             let hours = Math.floor(duration / 60)
-                            return `${hours} jam ${duration % 60} menit`
+
+                            return duration > 0 ?
+                                `${hours.toString().padStart(2, "0")}:${(duration % 60).toString().padStart(2, "0")}` :
+                                '-';
+                        }
+                    },
+                    {
+                        render: (data, type, row, meta) => {
+                            if (row.sleep.length > 0 && row.sleep[0].attachment) {
+                                return row.sleep[0].attachment;
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                    {
+                        render: (data, type, row, meta) => {
+
+                            if (row.sleep.length > 0) {
+                                if (row.sleep[0].status == 'r') {
+                                    return '<span class="badge bg-red-500 text-white capitalize">ditolak</span>';
+                                } else if (row.sleep[0].status == 'p') {
+                                    return '<span class="badge bg-yellow-500 text-white capitalize">Pending</span>';
+                                } else {
+                                    return '<span class="badge bg-green-500 text-white capitalize">diterima</span>'
+                                }
+                            } else {
+                                return '-';
+                            }
+
                         }
                     },
                     {
@@ -222,13 +257,15 @@
                                 return '<span class="badge bg-green-500 text-white capitalize">Fit to Works</span>'
                             }
                         }
-                    },
+                    }
                 ],
             });
-            table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
-            $('#name, #division_id').bind('change', function() {
-                table.draw()
-            })
+            table.tables().body().to$().addClass(
+                'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
+            $('#name, #division_id')
+                .bind('change', function() {
+                    table.draw()
+                })
 
             $("#export_date").flatpickr({
                 maxDate: "today",

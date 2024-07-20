@@ -116,8 +116,7 @@ class ClockController extends Controller
 
     public function today(Request $request){
         try {
-            $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
-            $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00'); 
+            $date_today =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d'); 
             $work_hours = Shift::whereColumn('start', '>', 'end')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
@@ -133,8 +132,7 @@ class ClockController extends Controller
             ->first();
             // return Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
             $sleep = Sleep::where('user_id', Auth::user()->id)
-            ->where('start', '>', $start)
-            ->where('end', '<', $end)
+            ->where('date', $date_today)
             ->get();
             if ($today) {
                 $today['late'] = $today->late;
