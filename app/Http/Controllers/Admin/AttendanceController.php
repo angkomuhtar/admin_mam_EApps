@@ -226,15 +226,16 @@ class AttendanceController extends Controller
         $currentDate = $startDate;
         
         while ($currentDate->lte($endDate)) {
-            $data = User::where('username', '!=', 'Admin')
+            $data = User::where('username', '!=', 'Admin')->where('status', 'Y')
                 ->with('employee', 'employee.division', 'profile', 'employee.position' , 'employee.project' )
                 ->with('absen', function ($query) use ($currentDate) {
                     $query->where('date', $currentDate->toDateString());
                 });
     
             $data->whereHas('employee', function ($query) use ($request){
-
-                $query->whereIn('division_id', $request->dept)->where('project_id', $request->project)->with('shift');
+                $query->whereIn('division_id', $request->dept)
+                    ->where('project_id', $request->project)
+                    ->with('shift');
               });
             $absen = $data->orderby('username')->get();
             foreach ($absen as $key => $value) {
