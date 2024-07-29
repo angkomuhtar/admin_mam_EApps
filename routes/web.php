@@ -67,6 +67,9 @@ Route::prefix('admin')->group(function()
             Route::controller(SleepController::class)->prefix('sleep')->group(function()
             {
                 Route::get('/','index')->name('sleep');
+                Route::get('/{id}','edit')->name('sleep.edit');
+                Route::post('/{id}','update')->name('sleep.update');
+                Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::get('/export','export')->name('sleep.export');
             });
         });

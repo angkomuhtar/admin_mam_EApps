@@ -135,8 +135,80 @@
             </div>
         </div>
     </div>
-
-
+    <!-- Form Modal Area Start -->
+    <div id="form_modal" tabindex="-1" aria-labelledby="form_modal" aria-hidden="true"
+        class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto">
+        <div class="modal-dialog modal-md relative w-auto pointer-events-none">
+            <div
+                class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div class="relative w-full h-full max-w-xl md:h-auto">
+                    <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
+                        <!-- Modal header -->
+                        <div
+                            class="flex items-center justify-between p-5 border-b rounded-t dark:border-slate-600 bg-black-500">
+                            <h3 class="text-xl font-medium text-white dark:text-white capitalize">
+                                Details
+                            </h3>
+                            <button type="button"
+                                class="text-slate-400 bg-transparent hover:bg-slate-200 hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex
+                                items-center dark:hover:bg-slate-600 dark:hover:text-white"
+                                data-bs-dismiss="modal">
+                                <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+                                        11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div>
+                            <form>
+                                <div class="p-6 space-y-6">
+                                    <div class="input-group">
+                                        <label for="name"
+                                            class="text-sm font-Inter font-normal text-slate-900 block">Attachment</label>
+                                        <div class="flex justify-center items-center my-5">
+                                            <img id="img_preview" class="max-h-64"
+                                                src="{{ asset('storage/images/sleeps/angko024053.jpg') }}"
+                                                alt="" srcset="">
+                                        </div>
+                                        <p>User Input : <span id="user_input"> </span></p>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="name"
+                                            class="text-sm font-Inter font-normal text-slate-900 block">Jam
+                                            Tidur</label>
+                                        <div class="grid-cols-2 grid gap-4">
+                                            <input type="text" id="jam"
+                                                class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
+                                                    !border-slate-400 rounded-md mt-2"
+                                                placeholder="Jam">
+                                            <input type="text" id="menit"
+                                                class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
+                                                    !border-slate-400 rounded-md mt-2"
+                                                placeholder="Menit">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Modal footer -->
+                                <div
+                                    class="flex items-center justify-end p-6 space-x-2 border-t border-slate-200 rounded-b dark:border-slate-600">
+                                    <button id="accept_data" data-bs-dismiss="modal" type="button"
+                                        class="btn btn-success"
+                                        class="btn inline-flex justify-center btn-outline-dark">Accept</button>
+                                    <button data-bs-dismiss="modal" type="submit" class="btn btn-primary"
+                                        class="btn inline-flex justify-center text-white bg-black-500">Update</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Form Modal Area End -->
     @push('scripts')
         @vite(['resources/js/plugins/flatpickr.js'])
 
@@ -220,7 +292,8 @@
                     {
                         render: (data, type, row, meta) => {
                             if (row.sleep.length > 0 && row.sleep[0].attachment) {
-                                return row.sleep[0].attachment;
+                                // return row.sleep[0].attachment;
+                                return `<button id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}" data-bs-target="#form_modal" class="text-blue">lihat file</button>`;
                             } else {
                                 return '-';
                             }
@@ -272,6 +345,34 @@
                 dateFormat: "Y-m-d",
                 defaultDate: 'today'
             });
+
+            $(document).on("click", "#view_image", function() {
+                let id = $(this).data('id');
+                var url = '{!! route('sleep.edit', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    beforeSend: function() {
+                        // alert('sabar');
+                    },
+                    success: (res) => {
+                        $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
+                            .attachment);
+                        let duration = moment(res.data.end).diff(moment(res.data.start),
+                            'minutes')
+                        let hours = Math.floor(duration / 60)
+                        $("#user_input").html(duration > 0 ?
+                            `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit` :
+                            '-')
+                    },
+                    error: () => {
+                        $('select[name="division_id"]').html(dataOption)
+                    }
+                })
+            })
+
+            $
         </script>
     @endpush
 </x-appLayout>
