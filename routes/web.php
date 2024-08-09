@@ -71,6 +71,7 @@ Route::prefix('admin')->group(function()
                 Route::post('/{id}','update')->name('sleep.update');
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::get('/export','export')->name('sleep.export');
+                Route::post('/{id}/accept','accept')->name('sleep.accept');
             });
         });
 

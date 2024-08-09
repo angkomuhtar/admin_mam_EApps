@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Clock;
+use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Division;
 use Illuminate\Http\Request;
@@ -35,9 +36,7 @@ class SleepController extends Controller
           ->whereHas('employee', function ($query) use ($request){
             $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
-          ->with(['absen' => function ($query) use ($today) {
-            $query->where('date', $today);
-          }])
+          
           ->with(['sleep'=> function ($query) use ($today){
             $query->where('date', $today);
           }]);
@@ -45,6 +44,21 @@ class SleepController extends Controller
             $data->whereHas('employee', function ($query) use ($request){
               $query->where('division_id', $request->division);
             });
+          }
+          if ($request->shift) {
+            $shift = Shift::select('id')->where('name', 'LIKE', $request->shift.'%')->get();
+            $shiftArray = [];
+            $num=0;
+            foreach ($shift as $key => $value) {
+              $shiftArray[$num++] = $value->id;
+            }
+            $data->whereHas('absen', function ($query) use ($shiftArray, $today){
+              $query->where('date', $today)->whereIn('work_hours_id', $shiftArray);
+            });
+          }else{
+            $data->with(['absen' => function ($query) use ($today) {
+              $query->where('date', $today);
+            }]);
           }
         $dt = DataTables::of($data->get());
         return $dt->make(true);
@@ -236,6 +250,13 @@ class SleepController extends Controller
     }
     
     public function accept($id){
-      
+      $update = Sleep::find($id);
+      $update->status = 'v';
+      if($update->save()){
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil Update'
+        ]);
+      }
     }
 }

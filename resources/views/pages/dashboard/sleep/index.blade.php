@@ -86,6 +86,21 @@
                             <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
                                 This is invalid state.</div>
                         </div>
+                        <div class="input-area">
+                            <label for="division_id" class="form-label">Shift</label>
+                            <select id="shift" class="form-control" name="shift">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                <option value="day" class="dark:bg-slate-700">
+                                    Day Shift
+                                </option>
+                                <option value="night" class="dark:bg-slate-700">
+                                    Night Shift
+                                </option>
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body px-6 pb-6">
@@ -138,9 +153,20 @@
     <!-- Form Modal Area Start -->
     <div id="form_modal" tabindex="-1" aria-labelledby="form_modal" aria-hidden="true"
         class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto">
+        <div class="absolute top-0 left-0 h-full w-full bg-black-500/5" />
         <div class="modal-dialog modal-md relative w-auto pointer-events-none">
+
             <div
                 class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div id="loading"
+                    class="absolute top-0 left-0 bottom-0 right-0 bg-black-400/40 z-50 flex justify-center items-center hidden">
+                    <div class="flex flex-col justify-center items-center text-white">
+                        <iconify-icon icon="heroicons:cog-8-tooth-20-solid"
+                            class="animate-spin-slow text-3xl"></iconify-icon>
+                        <p class="font-Inter text-sm">Please wait</p>
+                    </div>
+                </div>
+
                 <div class="relative w-full h-full max-w-xl md:h-auto">
                     <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
                         <!-- Modal header -->
@@ -152,7 +178,7 @@
                             <button type="button"
                                 class="text-slate-400 bg-transparent hover:bg-slate-200 hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex
                                 items-center dark:hover:bg-slate-600 dark:hover:text-white"
-                                data-bs-dismiss="modal">
+                                data-bs-dismiss="modal" id="close_modal">
                                 <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
@@ -164,7 +190,7 @@
                         </div>
                         <!-- Modal body -->
                         <div>
-                            <form>
+                            <form id="update_sleep">
                                 <div class="p-6 space-y-6">
                                     <div class="input-group">
                                         <label for="name"
@@ -195,10 +221,8 @@
                                 <!-- Modal footer -->
                                 <div
                                     class="flex items-center justify-end p-6 space-x-2 border-t border-slate-200 rounded-b dark:border-slate-600">
-                                    <button id="accept_data" data-bs-dismiss="modal" type="button"
-                                        class="btn btn-success"
-                                        class="btn inline-flex justify-center btn-outline-dark">Accept</button>
-                                    <button data-bs-dismiss="modal" type="submit" class="btn btn-primary"
+                                    <button id="accept_data" type="button" class="btn btn-success">Accept</button>
+                                    <button type="submit" class="btn btn-primary"
                                         class="btn inline-flex justify-center text-white bg-black-500">Update</button>
                                 </div>
                             </form>
@@ -222,6 +246,7 @@
                         return $.extend({}, d, {
                             name: $('#name').val(),
                             division: $('#division_id').val(),
+                            shift: $('#shift').val(),
                         })
                     },
                 },
@@ -335,10 +360,10 @@
             });
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
-            $('#name, #division_id')
-                .bind('change', function() {
-                    table.draw()
-                })
+
+            $('#name, #division_id, #shift').bind('change', function() {
+                table.draw()
+            })
 
             $("#export_date").flatpickr({
                 maxDate: "today",
@@ -365,6 +390,8 @@
                         $("#user_input").html(duration > 0 ?
                             `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit` :
                             '-')
+                        $("#accept_data").data('id', id);
+                        $("#update_sleep").data('id', id);
                     },
                     error: () => {
                         $('select[name="division_id"]').html(dataOption)
@@ -372,7 +399,46 @@
                 })
             })
 
-            $
+            $(document).on('click', "#accept_data", function() {
+                let id = $(this).data('id');
+                var url = '{!! route('sleep.accept', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    beforeSend: function() {
+                        $("#loading").removeClass('hidden');
+                    },
+                    success: (res) => {
+                        if (res.success) {
+                            $("#loading").addClass('hidden');
+                            Swal.fire({
+                                title: 'success',
+                                text: res.message,
+                                icon: 'success',
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                table.draw()
+                                $("#close_modal").click();
+                            })
+                        }
+                    },
+                    error: () => {
+                        $("#loading").addClass('hidden');
+                        $("#close_modal").click();
+                    }
+                })
+            })
+
+            $(document).on('submit', "#update_sleep", function(e) {
+                e.preventDefault();
+
+            })
         </script>
     @endpush
 </x-appLayout>
