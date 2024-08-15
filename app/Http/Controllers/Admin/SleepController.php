@@ -8,10 +8,12 @@ use App\Models\Clock;
 use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Division;
+use App\Models\SleepHistory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -246,7 +248,40 @@ class SleepController extends Controller
     }
 
     public function update(Request $request, String $id){
-      
+      $validator = Validator::make($request->all(), [
+        'jam'     => 'numeric|max:23',
+        'menit'  => 'numeric|max:59',
+      ],[
+        'numeric' => 'hanya boleh diisi angka',
+        'max' => 'hanya boleh diisi maksimal :max'
+      ]);
+      if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => $validator->errors()
+        ]);
+      }
+
+      $data = Sleep::find($id);
+      $start = Carbon::parse($data->tgl.' 05:30:00')->subMinutes(($request->jam * 60) + $request->menit)->format('Y-m-d H:i:s');
+      $end = Carbon::parse($data->tgl.' 05:30:00')->format('Y-m-d H:i:s');
+      if($data->status != 'r'){
+        SleepHistory::create([
+          'sleep_id' => $data->id,
+          'start' => $data->start,
+          'end' => $data->end,
+          'stage' => $data->stage
+        ]);
+      }
+      $data->status = 'r';
+      $data->start = $start;
+      $data->end = $end;
+      if($data->save()){
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil Update'
+        ]);
+      }
     }
     
     public function accept($id){

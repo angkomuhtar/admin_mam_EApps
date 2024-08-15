@@ -207,14 +207,24 @@
                                             class="text-sm font-Inter font-normal text-slate-900 block">Jam
                                             Tidur</label>
                                         <div class="grid-cols-2 grid gap-4">
-                                            <input type="text" id="jam"
-                                                class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
-                                                    !border-slate-400 rounded-md mt-2"
-                                                placeholder="Jam">
-                                            <input type="text" id="menit"
-                                                class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
-                                                    !border-slate-400 rounded-md mt-2"
-                                                placeholder="Menit">
+                                            <div>
+                                                <input type="number" id="jam" name="jam"
+                                                    class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
+                                                        !border-slate-400 rounded-md mt-2"
+                                                    placeholder="Jam">
+                                                <div
+                                                    class="font-Inter text-xs text-danger-500 pt-2 error-message hidden">
+                                                    This is invalid state.</div>
+                                            </div>
+                                            <div>
+                                                <input type="number" id="menit" name="menit"
+                                                    class="text-xs font-Inter font-normal text-slate-600 block w-full py-3 px-4 focus:!outline-none focus:!ring-0 border
+                                                        !border-slate-400 rounded-md mt-2"
+                                                    placeholder="Menit">
+                                                <div
+                                                    class="font-Inter text-xs text-danger-500 pt-2 error-message hidden">
+                                                    This is invalid state.</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -293,6 +303,7 @@
                         data: 'employee.position.position'
                     },
                     {
+                        name: 'shiftName',
                         render: (data, type, row, meta) => {
                             if (row.absen.length > 0) {
                                 return row.absen[0]?.shift?.name
@@ -329,7 +340,7 @@
 
                             if (row.sleep.length > 0) {
                                 if (row.sleep[0].status == 'r') {
-                                    return '<span class="badge bg-red-500 text-white capitalize">ditolak</span>';
+                                    return '<span class="badge bg-red-500 text-white capitalize">direvisi</span>';
                                 } else if (row.sleep[0].status == 'p') {
                                     return '<span class="badge bg-yellow-500 text-white capitalize">Pending</span>';
                                 } else {
@@ -392,6 +403,8 @@
                             '-')
                         $("#accept_data").data('id', id);
                         $("#update_sleep").data('id', id);
+                        $("#jam").val('');
+                        $("#menit").val('');
                     },
                     error: () => {
                         $('select[name="division_id"]').html(dataOption)
@@ -437,6 +450,53 @@
 
             $(document).on('submit', "#update_sleep", function(e) {
                 e.preventDefault();
+                var id = $(this).data('id');
+                var url = '{!! route('sleep.update', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                console.log(url);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: $("#update_sleep").serialize(),
+                    beforeSend: function() {
+                        $("#loading").removeClass('hidden');
+                        $("input[name=jam]").next().addClass('hidden');
+                        $("input[name=menit]").next().addClass('hidden');
+                    },
+                    success: (res) => {
+                        if (res.success) {
+                            $("#loading").addClass('hidden');
+                            $("#close_modal").click();
+                            Swal.fire({
+                                title: 'success',
+                                text: res.message,
+                                icon: 'success',
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                table.draw()
+                            })
+                        } else {
+                            $("#loading").addClass('hidden');
+                            console.log(res.message.jam);
+                            if (res?.message?.jam) {
+                                $("input[name=jam]").next().removeClass('hidden').html(res?.message?.jam);
+                            }
+                            if (res?.message?.menit) {
+                                $("input[name=menit]").next().removeClass('hidden').html(res?.message
+                                    ?.menit);
+                            }
+                        }
+                    },
+                    error: () => {
+                        $("#loading").addClass('hidden');
+                        // $("#close_modal").click();
+                    }
+                })
 
             })
         </script>

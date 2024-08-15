@@ -26,6 +26,11 @@ class Sleep extends Model
         return $this->hasMany(User::class);
     }
 
+    public function history()
+    {
+        return $this->hasOne(SleepHistory::class, 'sleep_id', 'id');
+    }
+
     public static function boot(){
         parent::boot();
 
