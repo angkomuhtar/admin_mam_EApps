@@ -30,6 +30,7 @@ class SleepController extends Controller
       $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00'); 
 
       if ($request->ajax()) {
+
         $data = User::where('roles','<>', 'superadmin')
           ->with('employee','absen', 'absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
@@ -39,14 +40,16 @@ class SleepController extends Controller
             $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
           
-          ->with(['sleep'=> function ($query) use ($today){
-            $query->where('date', $today);
+          ->with(['sleep'=> function ($query) use ($request){
+            $query->where('date', $request->tanggal);
           }]);
+
           if ($request->division != null || $request->departement != '') {
             $data->whereHas('employee', function ($query) use ($request){
               $query->where('division_id', $request->division);
             });
           }
+          
           if ($request->shift) {
             $shift = Shift::select('id')->where('name', 'LIKE', $request->shift.'%')->get();
             $shiftArray = [];
@@ -54,12 +57,12 @@ class SleepController extends Controller
             foreach ($shift as $key => $value) {
               $shiftArray[$num++] = $value->id;
             }
-            $data->whereHas('absen', function ($query) use ($shiftArray, $today){
-              $query->where('date', $today)->whereIn('work_hours_id', $shiftArray);
+            $data->whereHas('absen', function ($query) use ($shiftArray, $request){
+              $query->where('date', $request->tanggal)->whereIn('work_hours_id', $shiftArray);
             });
           }else{
-            $data->with(['absen' => function ($query) use ($today) {
-              $query->where('date', $today);
+            $data->with(['absen' => function ($query) use ($request) {
+              $query->where('date', $request->tanggal);
             }]);
           }
         $dt = DataTables::of($data->get());

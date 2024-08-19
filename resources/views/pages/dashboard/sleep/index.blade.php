@@ -68,6 +68,15 @@
                 <div class="card-body px-6 pb-6">
                     <div class="grid grid-cols-4 gap-3 ">
                         <div class="input-area">
+                            <label for="tanggal" class="form-label">Tanggal</label>
+                            <input class="form-control py-2 flatpickr flatpickr-input active" name="tanggal_fil"
+                                id="tanggal_fil" value="" type="text" readonly="readonly">
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This
+                                is
+                                invalid state.</div>
+                        </div>
+                        <div class="input-area">
                             <label for="username" class="form-label">Nama Karyawan</label>
                             <input id="name" type="text" name="name" class="form-control" placeholder="Nama"
                                 required="required">
@@ -247,6 +256,10 @@
         @vite(['resources/js/plugins/flatpickr.js'])
 
         <script type="module">
+            $("#tanggal_fil").flatpickr({
+                dateFormat: "Y-m-d",
+                defaultDate: "today",
+            });
             var table = $("#data-table, .data-table").DataTable({
                 processing: true,
                 serverSide: true,
@@ -257,6 +270,7 @@
                             name: $('#name').val(),
                             division: $('#division_id').val(),
                             shift: $('#shift').val(),
+                            tanggal: $('#tanggal_fil').val(),
                         })
                     },
                 },
@@ -372,7 +386,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #shift').bind('change', function() {
+            $('#name, #division_id, #shift, #tanggal_fil').bind('change', function() {
                 table.draw()
             })
 
