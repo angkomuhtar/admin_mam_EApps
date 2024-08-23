@@ -538,4 +538,161 @@ class AttendanceController extends Controller
             'user' => $user_details,
         ]);
     }
+
+
+    public function export_dte(Request $request)
+    {
+        ini_set('max_execution_time', '300');
+        $start = $request->start;
+        $end = $request->end;
+
+        $HeaderStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 14
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+        ];
+
+        $SubStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 14
+            ]
+        ];
+
+        $data = '';
+        $spreadsheet = new Spreadsheet();
+        $activeWorksheet = $spreadsheet->getActiveSheet();
+
+        $activeWorksheet->setCellValue('A2', 'ABSENSI HARIAN EMPAPPS');
+        $activeWorksheet->getStyle('A2')->applyFromArray($HeaderStyle);
+        $activeWorksheet->mergeCells('A2:K2');
+
+        $num=3;
+        $num++;
+
+        $activeWorksheet->setCellValue('A'.$num, 'Tanggal')->getStyle('A'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('B'.$num, 'NRP')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('C'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('D'.$num, 'Project')->getStyle('C'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('E'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('F'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('G'.$num, 'Jam Masuk')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('H'.$num, 'Telat Masuk')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('I'.$num, 'Jam Pulang')->getStyle('H'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('J'.$num, 'Cepat Pulang')->getStyle('I'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('K'.$num, 'Jenis Shift')->getStyle('J'.$num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->getStyle('A4:K4')->applyFromArray($HeaderStyle);
+        $activeWorksheet->getRowDimension(4)->setRowHeight(40, 'pt');
+
+
+        foreach(range('A','K') as $columnID) {
+            $activeWorksheet->getColumnDimension($columnID)
+                ->setAutoSize(true);
+        }
+        $activeWorksheet->getStyle('A4'.':K'.$num)->applyFromArray([
+            'font' => [
+                'size' => 12
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'],
+                ],
+            ]
+        ]);
+
+        
+        $startDate = Carbon::parse($start);
+        $endDate = Carbon::parse($end);
+        $currentDate = $startDate;
+        
+        while ($currentDate->lte($endDate)) {
+            $data = User::where('username', '!=', 'Admin')->where('status', 'Y')
+                ->with('employee', 'employee.division', 'profile', 'employee.position' , 'employee.project' )
+                ->with('absen', function ($query) use ($currentDate) {
+                    $query->where('date', $currentDate->toDateString());
+                });
+    
+            $data->whereHas('employee', function ($query) use ($request){
+                $query->whereIn('division_id', $request->dept)
+                    // ->where('project_id', $request->project)
+                    ->with('shift');
+              });
+            $absen = $data->orderby('username')->get();
+            foreach ($absen as $key => $value) {
+               $num++;
+                $activeWorksheet->setCellValue('A'.$num, $value->absen[0]->date ?? $currentDate->toDateString());
+                $activeWorksheet->setCellValue('B'.$num, $value->employee->nip);
+                $activeWorksheet->setCellValue('C'.$num, $value->profile->name);
+                $activeWorksheet->setCellValue('D'.$num, $value->employee->project->name);
+                $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
+                $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
+                $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->clock_in ?? '');
+                if (count($value->absen) > 0) {
+                    $startTime = Carbon::parse($value->absen[0]->shift->start);
+                    $finishTime = Carbon::parse($value->absen[0]->clock_in);
+                    if($startTime->lte($finishTime)){
+                        $totalDuration = $finishTime->diffInSeconds($startTime);
+                        $activeWorksheet->setCellValue('H'.$num, gmdate('H:i',$totalDuration));
+                        if ($totalDuration / 60 >= 1) {
+                            $activeWorksheet->getStyle('G'.$num.':H'.$num)
+                            ->getFill()
+                            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                            ->getStartColor()->setARGB('FFE3A6AA');
+                        }
+                    }else{
+                        $activeWorksheet->setCellValue('H'.$num, '');
+                    }
+                }
+                $activeWorksheet->setCellValue('I'.$num, $value->absen[0]->clock_out ?? '');
+                if (count($value->absen) > 0 && $value->absen[0]->clock_out) {
+                    $startTime = Carbon::parse($value->absen[0]->clock_out);
+                    $finishTime = Carbon::parse($value->absen[0]->shift->end);
+                    if($startTime->lte($finishTime)){
+                        $totalDuration = $finishTime->diffInSeconds($startTime);
+                        $activeWorksheet->setCellValue('J'.$num, gmdate('H:i',$totalDuration));
+                        if ($totalDuration / 60 >= 1) {
+                            $activeWorksheet->getStyle('I'.$num.':J'.$num)
+                            ->getFill()
+                            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                            ->getStartColor()->setARGB('FFE3A6AA');
+                        }
+                    }else{
+                        $activeWorksheet->setCellValue('J'.$num, '');
+                    }
+                }
+                $activeWorksheet->setCellValue('K'.$num, count($value->absen) > 0 ? $value->absen[0]->shift->name ." (".$value->absen[0]->shift->start ." - ".$value->absen[0]->shift->end.")" : '');
+                $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
+                $activeWorksheet->getStyle('B5'.':K'.$num)->applyFromArray([
+                    'font' => [
+                        'size' => 12
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        'wrapText' => true,
+                    ],
+                ]);
+                // $num++;
+            };
+            $currentDate->addDay();
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Rekap Absensi.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+    }
 }

@@ -84,6 +84,7 @@ Route::prefix('admin')->group(function()
                 Route::post('/','store')->name('absensi.attendance.store');
                 Route::delete('/{id}','destroy')->name('absensi.attendance.destroy');
                 Route::get('/export','export')->name('absensi.attendance.export');
+                Route::get('/export_dte','export_dte')->name('absensi.attendance.export_dte');
                 Route::get('/{id}/export','export_details')->name('absensi.attendance.export_details');
                 Route::get('/{id}','edit')->name('absensi.attendance.edit');
                 Route::post('/{id}','update')->name('absensi.attendance.update');

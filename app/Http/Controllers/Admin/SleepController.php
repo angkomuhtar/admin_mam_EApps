@@ -27,19 +27,23 @@ class SleepController extends Controller
       $dept = Division::all();
       $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
       $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
-      $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00'); 
+      $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
+      $shift = Shift::select('name')->groupBy('name')->get();
+      // return $shift;
 
       if ($request->ajax()) {
 
         $data = User::where('roles','<>', 'superadmin')
-          ->with('employee','absen', 'absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+          ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
             $query->where('name', 'LIKE', '%'.$request->name.'%')->whereIn('user_id', ['24','3613','3622','3623','3625','3630','3637','3651','3659','3683','3688','3690','3710','3719','3720','3722','3740','3762','3789','3792','3796','3797','3809','3813','3817','3835','3863','3866','3872','3884','3888','3900','3922','3936','3944','3956','3960','3962','3985','3987','4014','4034','4035','4036','4048','4059','4061','4079','4083','4085','4113','4114','4117','4118','4123','4131','4166','4177','4183','4191','4227','4234','4248','4256','4260','4266','4283','4286','4298','4305','4310','4312','4353','4367','4376','4391','4394','4423','4437','4440','4444','4450','4451','4454','4480','4481','4496','4497','4501','4524','4544','4546','4559','4566','4567','4582','4586','4591','4631', '4514', '4798', '5132']);
           })
           ->whereHas('employee', function ($query) use ($request){
             $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
-          
+          ->with('absen', function ($query) use ($request) {
+            $query->where('date', $request->tanggal);
+          })
           ->with(['sleep'=> function ($query) use ($request){
             $query->where('date', $request->tanggal);
           }]);
@@ -49,29 +53,33 @@ class SleepController extends Controller
               $query->where('division_id', $request->division);
             });
           }
-          
+
           if ($request->shift) {
-            $shift = Shift::select('id')->where('name', 'LIKE', $request->shift.'%')->get();
+            $shift = Shift::select('id')->where('name', $request->shift)->get();
             $shiftArray = [];
             $num=0;
             foreach ($shift as $key => $value) {
               $shiftArray[$num++] = $value->id;
             }
-            $data->whereHas('absen', function ($query) use ($shiftArray, $request){
-              $query->where('date', $request->tanggal)->whereIn('work_hours_id', $shiftArray);
+            $datafilter = $data->get()->filter(function($item) use($shiftArray){
+              if ($item->absen->isNotEmpty()) {
+                if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
+                  return $item;
+                }
+              }
             });
+            $dt = DataTables::of($datafilter);
+            return $dt->make(true);
           }else{
-            $data->with(['absen' => function ($query) use ($request) {
-              $query->where('date', $request->tanggal);
-            }]);
+            $dt = DataTables::of($data->get());
+            return $dt->make(true);
           }
-        $dt = DataTables::of($data->get());
-        return $dt->make(true);
       }
 
       return view('pages.dashboard.sleep.index', [
         'pageTitle' => 'Data Tidur karyawan',
         'dept' => $dept,
+        'shift' => $shift,
       ]);
     }
 

@@ -17,11 +17,12 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Xls;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
 
-    public function index ()
+    public function index (Request $request)
     {
         $today = Carbon::now()->format('Y-m-d');
         $employee= Employee::select('division_id', DB::raw('count(*) as post_count'))->with('division')
@@ -51,12 +52,94 @@ class DashboardController extends Controller
         });
         $groupped= $data->groupBy('type');
 
+
+        $dataSleep = User::where('roles','<>', 'superadmin')
+          ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+          ->whereHas('profile', function ($query) use ($request){
+            $query->where('name', 'LIKE', '%'.$request->name.'%')->whereIn('user_id', ['24','3613','3622','3623','3625','3630','3637','3651','3659','3683','3688','3690','3710','3719','3720','3722','3740','3762','3789','3792','3796','3797','3809','3813','3817','3835','3863','3866','3872','3884','3888','3900','3922','3936','3944','3956','3960','3962','3985','3987','4014','4034','4035','4036','4048','4059','4061','4079','4083','4085','4113','4114','4117','4118','4123','4131','4166','4177','4183','4191','4227','4234','4248','4256','4260','4266','4283','4286','4298','4305','4310','4312','4353','4367','4376','4391','4394','4423','4437','4440','4444','4450','4451','4454','4480','4481','4496','4497','4501','4524','4544','4546','4559','4566','4567','4582','4586','4591','4631', '4514', '4798', '5132']);
+          })
+          ->whereHas('employee', function ($query) use ($request){
+            $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+          })
+          ->with('absen', function ($query) use ($today) {
+            $query->where('date', $today);
+          })
+          ->with(['sleep'=> function ($query) use ($today){
+            $query->where('date', $today);
+          }]);
+
+        $hadir = $dataSleep->get()->filter(function($item){
+            if ($item->absen->isNotEmpty()) {
+                return $item;
+            }
+        });
+
+        $groupSleep = $hadir->filter(function($item){
+            if ($item->sleep->isNotEmpty()) {
+                $start = Carbon::createFromFormat("Y-m-d H:i:s", $item->sleep[0]->start);
+                $end = Carbon::createFromFormat("Y-m-d H:i:s", $item->sleep[0]->end);
+                $duration = $start->diffInMinutes($end);
+                if (6 * 60 <= $duration) {
+                    $item->sleepType = 'baik';
+                }elseif(5 * 60 <= $duration){
+                    $item->sleepType = 'cukup';
+                }else{
+                    $item->sleepType = 'kurang';
+                }
+                return $item;
+            }
+        });
+
+
+        $groupSleepType = $groupSleep->groupBy('sleepType');
+        $totalHadir = $hadir->count();
+        $tidurBaik = isset($groupSleepType['baik']) ? $groupSleepType['baik']->count() : 0;
+        $tidurCukup = isset($groupSleepType['cukup']) ? $groupSleepType['cukup']->count() : 0;
+        $tidurKurang = isset($groupSleepType['kurang']) ? $groupSleepType['kurang']->count() : 0;
+        $tidakInput = $totalHadir - $tidurBaik + $tidurCukup + $tidurKurang;
+
+        $tidurBaikPercentage = $totalHadir > 0 ? round($tidurBaik / $totalHadir * 100) : 0;
+        $tidurCukupPercentage = $totalHadir > 0 ? round($tidurCukup / $totalHadir * 100) : 0;
+        $tidurKurangPercentage = $totalHadir > 0 ? round($tidurKurang / $totalHadir * 100) : 0;
+        $tidakInputPercentage = $totalHadir > 0 ? round($tidakInput / $totalHadir * 100) : 0;
+
+        
+        $sleepChart = [
+            'totalHadir'=> $totalHadir,
+            'baik' => $tidurBaik,
+            'cukup' => $tidurCukup,
+            'kurang' => $tidurKurang,
+            'radialValue' => [
+                    $tidurBaikPercentage,
+                    $tidurCukupPercentage,
+                    $tidurKurangPercentage,
+                    $tidakInputPercentage
+            ],
+            'barChart' => [
+                'series' => [
+                    'fit' => [
+                        'name' => "Fit to Works",
+                        'data' => [20, 55, 57, 56, 61, 58, 63]
+                    ],
+                    'supervision' => [
+                        'name' => "Dalam pengawasan",
+                        'data' => [76, 85, 101, 98, 87, 105, 91],
+                    ],
+                    'rest' =>[
+                        'name' => "Istirahat",
+                        'data' => [35, 41, 36, 26, 45, 48, 52],
+                    ]
+                ]
+            ]
+
+        ];
         return view('pages.dashboard.index', [
             'pageTitle' => 'Analytic Dashboard',
             'division_count' => $employee,
             'day_count' => $groupped['day'] ?? [],
             'night_count' => $groupped['night'] ?? [],
             'office_count' => $groupped['office'] ?? [],
+            'sleepChart' => collect($sleepChart)
         ]);
     }
 
