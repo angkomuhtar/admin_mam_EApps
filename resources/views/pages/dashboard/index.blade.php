@@ -361,8 +361,8 @@
                     </div>
                 </div>
             </div>
-            <div class="space-x-5 grid grid-cols-3 ">
-                <div class="lg:col-span-2 col-span-3">
+            <div class="gap-5 grid md:grid-cols-3 ">
+                <div class="md:col-span-2">
                     <div class="card">
                         <div class="card-body p-6">
                             <div class="legend-ring">
@@ -451,6 +451,7 @@
                         },
                     ],
                 });
+
                 table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
                 $('#tanggal,#shift,#project').bind('change', function() {

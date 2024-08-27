@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('watch_dist', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->string('serial_number');
-            $table->string('ket');
+            $table->date('tgl_terima');
+            $table->string('ket')->default('')->nullable();
             $table->timestamps();
         });
     }

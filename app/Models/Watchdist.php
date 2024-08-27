@@ -12,7 +12,7 @@ class Watchdist extends Model
 
     protected $fillable = [
         'user_id',
-        'serial_number',
+        'tgl_terima',
         'ket'
     ];
 }

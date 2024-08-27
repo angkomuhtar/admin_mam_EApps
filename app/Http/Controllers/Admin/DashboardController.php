@@ -55,8 +55,9 @@ class DashboardController extends Controller
 
         $dataSleep = User::where('roles','<>', 'superadmin')
           ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+          ->has('smartwatch')
           ->whereHas('profile', function ($query) use ($request){
-            $query->where('name', 'LIKE', '%'.$request->name.'%')->whereIn('user_id', ['24','3613','3622','3623','3625','3630','3637','3651','3659','3683','3688','3690','3710','3719','3720','3722','3740','3762','3789','3792','3796','3797','3809','3813','3817','3835','3863','3866','3872','3884','3888','3900','3922','3936','3944','3956','3960','3962','3985','3987','4014','4034','4035','4036','4048','4059','4061','4079','4083','4085','4113','4114','4117','4118','4123','4131','4166','4177','4183','4191','4227','4234','4248','4256','4260','4266','4283','4286','4298','4305','4310','4312','4353','4367','4376','4391','4394','4423','4437','4440','4444','4450','4451','4454','4480','4481','4496','4497','4501','4524','4544','4546','4559','4566','4567','4582','4586','4591','4631', '4514', '4798', '5132']);
+            $query->where('name', 'LIKE', '%'.$request->name.'%');
           })
           ->whereHas('employee', function ($query) use ($request){
             $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);

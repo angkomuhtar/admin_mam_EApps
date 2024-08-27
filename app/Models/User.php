@@ -107,6 +107,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Clock::class, 'user_id', 'id');
     }
 
+    public function smartwatch()
+    {
+        return $this->hasOne(Watchdist::class, 'user_id', 'id');
+    }
+
 
 }
 
