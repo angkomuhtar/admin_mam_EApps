@@ -13,7 +13,11 @@ class Clock extends Model
     protected $table = 'clocks';
 
     public function user(){
-        return $this->hasMany(User::class);
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
+
+    public function sleep(){
+        return $this->hasOne(Sleep::class, 'user_id', 'user_id');
     }
 
     public function location() {
@@ -64,4 +68,6 @@ class Clock extends Model
             return null;
         }
     }
+
+
 }

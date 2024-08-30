@@ -6,24 +6,6 @@
             <h4
                 class="font-medium lg:text-2xl text-xl capitalize text-slate-900 inline-block ltr:pr-4 rtl:pl-4 mb-1 sm:mb-0">
                 DASHBOARD</h4>
-            {{-- <div class="flex sm:space-x-4 space-x-2 sm:justify-end items-center rtl:space-x-reverse">
-                <button
-                    class="btn inline-flex justify-center bg-white text-slate-700 dark:bg-slate-700 !font-normal dark:text-white ">
-                    <span class="flex items-center">
-                        <iconify-icon class="text-xl ltr:mr-2 rtl:ml-2 font-light"
-                            icon="heroicons-outline:calendar"></iconify-icon>
-                        <span>Weekly</span>
-                    </span>
-                </button>
-                <button
-                    class="btn inline-flex justify-center bg-white text-slate-700 dark:bg-slate-700 !font-normal dark:text-white ">
-                    <span class="flex items-center">
-                        <iconify-icon class="text-xl ltr:mr-2 rtl:ml-2 font-light"
-                            icon="heroicons-outline:filter"></iconify-icon>
-                        <span>Select Date</span>
-                    </span>
-                </button>
-            </div> --}}
         </div>
         @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd', 'admin']))
             <div class="space-y-5 mb-5">
@@ -288,7 +270,7 @@
                                 Health Safety and Environment
                             </div>
                             <p class="text-sm text-slate-800">
-                                Pro plan for better results
+                                Monitoring Data Tidur
                             </p>
                         </div>
                         <div
@@ -364,16 +346,30 @@
             <div class="gap-5 grid md:grid-cols-3 ">
                 <div class="md:col-span-2">
                     <div class="card">
+                        <header class="card-header">
+                            <h4 class="card-title">Trend Jam Tidur</h4>
+                            <div class="input-area">
+                                <input class="form-control py-2 flatpickr flatpickr-input active" name="tanggal_fil"
+                                    id="tanggal_fil" value="" type="text" readonly="readonly">
+                            </div>
+                        </header>
                         <div class="card-body p-6">
-                            <div class="legend-ring">
-                                <div id="revenue-barchart"></div>
+                            <div class="legend-ring relative">
+                                <div id="sleep-barchart-div"
+                                    class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                    <div class="items-center justify-center flex flex-col gap-3">
+                                        <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
+                                        <p class="text-sm font-medium">please wait...</p>
+                                    </div>
+                                </div>
+                                <div id="sleep-barchart"></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card">
                     <header class="card-header">
-                        <h4 class="card-title">Jam Tidur Karyawan
+                        <h4 class="card-title">Jam Tidur Hari Ini
                         </h4>
                     </header>
                     <div class="card-body px-6 pb-6">
@@ -387,7 +383,7 @@
         @push('scripts')
             @vite(['resources/js/plugins/flatpickr.js'])
             <script type="module">
-                $("#tanggal").flatpickr({
+                $("#tanggal_fil").flatpickr({
                     dateFormat: "Y-m-d",
                     defaultDate: "today",
                 });
@@ -460,7 +456,7 @@
                 const isDark = localStorage.theme === "dark" ? true : false;
 
                 var chartOptions = [{
-                    id: "revenue-barchart",
+                    id: "sleep-barchart",
                     options: {
                         chart: {
                             height: 400,
@@ -470,19 +466,7 @@
                                 show: false,
                             },
                         },
-                        series: [{
-                                name: 'fit',
-                                data: [20, 55, 57, 56, 61, 58, 63],
-                            },
-                            {
-                                name: "Dalam pengawasan",
-                                data: [76, 85, 101, 98, 87, 105, 91],
-                            },
-                            {
-                                name: "Istirahat",
-                                data: [35, 41, 36, 26, 45, 48, 52],
-                            },
-                        ],
+                        series: [],
                         plotOptions: {
                             bar: {
                                 horizontal: false,
@@ -513,17 +497,17 @@
                             },
                         },
                         title: {
-                            text: "Tidur dalam 7 Hari",
+                            text: "data",
                             align: "left",
 
                             offsetX: 0,
-                            offsetY: 13,
+                            offsetY: 10,
                             floating: false,
                             style: {
-                                fontSize: "20px",
-                                fontWeight: "500",
+                                fontSize: "16px",
+                                fontWeight: "300",
                                 fontFamily: "Inter",
-                                color: isDark ? "#fff" : "#0f172a",
+                                color: isDark ? "#fff" : "",
                             },
                         },
                         dataLabels: {
@@ -544,15 +528,7 @@
                             },
                         },
                         xaxis: {
-                            categories: [
-                                "Sen",
-                                "Sel",
-                                "Rab",
-                                "Kam",
-                                "Jum",
-                                "Sab",
-                                "Min"
-                            ],
+                            categories: [],
                             labels: {
                                 style: {
                                     colors: isDark ? "#CBD5E1" : "#475569",
@@ -599,6 +575,7 @@
                                 },
                             },
                         }, ],
+
                     },
                 }, {
                     id: "radialbars",
@@ -641,13 +618,38 @@
                     }
                 }]
 
-                chartOptions.forEach(function(chart) {
-                    const ctx = document.getElementById(chart.id);
-                    if (ctx) {
-                        const chartObj = new ApexCharts(ctx, chart.options);
-                        chartObj.render();
-                    }
-                });
+                const radialChart = new ApexCharts(document.getElementById('radialbars'), chartOptions[1].options);
+                radialChart.render();
+
+                const SleepbarChart = new ApexCharts(document.getElementById('sleep-barchart'), chartOptions[0].options);
+                SleepbarChart.render();
+
+                const updateChart = async (date) => {
+                    $("#sleep-barchart-div").removeClass('hidden').addClass('flex');
+                    await axios({
+                        method: 'POST',
+                        url: '{!! route('ajax.ajaxBarchart') !!}',
+                        data: {
+                            'date': date
+                        }
+                    }).then(function({
+                        data
+                    }) {
+                        SleepbarChart.updateSeries(data.series);
+                        SleepbarChart.updateOptions({
+                            xaxis: {
+                                categories: data.legend
+                            }
+                        });
+                    })
+                    $("#sleep-barchart-div").removeClass('flex').addClass('hidden');
+                }
+
+                updateChart($('#tanggal_fil').val())
+
+                $(document).on("change", "#tanggal_fil", function(val) {
+                    updateChart($(this).val())
+                })
             </script>
         @endpush
 </x-appLayout>

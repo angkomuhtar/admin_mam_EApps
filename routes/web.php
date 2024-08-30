@@ -61,6 +61,7 @@ Route::prefix('admin')->group(function()
             Route::get('/position/{id}','getPosition')->name('ajax.position');
             Route::post('/userValidate','userValidate')->name('ajax.uservalidate');
             Route::post('/profilevalidate','profilevalidate')->name('ajax.profilevalidate');
+            Route::post('/ajaxBarchart','ajaxBarchart')->name('ajax.ajaxBarchart');
         });
 
         Route::middleware('Admin:superadmin,hse')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Clock;
 use App\Models\Sleep;
 use App\Models\Profile;
@@ -11,13 +12,13 @@ use App\Models\ViewClock;
 use Illuminate\Support\Str;
 use App\Imports\UsersImport;
 use Illuminate\Http\Request;
+use App\Models\ViewClockSleep;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Xls;
 use Yajra\DataTables\Facades\DataTables;
-use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -105,6 +106,25 @@ class DashboardController extends Controller
         $tidakInputPercentage = $totalHadir > 0 ? round($tidakInput / $totalHadir * 100) : 0;
 
         
+
+        $barchartData = [
+            'series' => [
+                'fit' => [
+                    'name' => "Fit to Works",
+                    'data' => [20, 55, 57, 56, 61, 58, 63]
+                ],
+                'supervision' => [
+                    'name' => "Dalam pengawasan",
+                    'data' => [76, 85, 101, 98, 87, 105, 91],
+                ],
+                'rest' =>[
+                    'name' => "Istirahat",
+                    'data' => [35, 41, 36, 26, 45, 48, 52],
+                ]
+            ],
+            'legend' =>[]
+        ];
+
         $sleepChart = [
             'totalHadir'=> $totalHadir,
             'baik' => $tidurBaik,
@@ -116,22 +136,6 @@ class DashboardController extends Controller
                     $tidurKurangPercentage,
                     $tidakInputPercentage
             ],
-            'barChart' => [
-                'series' => [
-                    'fit' => [
-                        'name' => "Fit to Works",
-                        'data' => [20, 55, 57, 56, 61, 58, 63]
-                    ],
-                    'supervision' => [
-                        'name' => "Dalam pengawasan",
-                        'data' => [76, 85, 101, 98, 87, 105, 91],
-                    ],
-                    'rest' =>[
-                        'name' => "Istirahat",
-                        'data' => [35, 41, 36, 26, 45, 48, 52],
-                    ]
-                ]
-            ]
 
         ];
         return view('pages.dashboard.index', [
@@ -143,6 +147,7 @@ class DashboardController extends Controller
             'sleepChart' => collect($sleepChart)
         ]);
     }
+
 
     public function rekap_hadir(Request $request){
         $hadir=  DB::table('v_clock')
