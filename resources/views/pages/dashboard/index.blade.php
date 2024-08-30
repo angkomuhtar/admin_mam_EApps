@@ -383,6 +383,10 @@
         @push('scripts')
             @vite(['resources/js/plugins/flatpickr.js'])
             <script type="module">
+                $("#tanggal").flatpickr({
+                    dateFormat: "Y-m-d",
+                    defaultDate: "today",
+                });
                 $("#tanggal_fil").flatpickr({
                     dateFormat: "Y-m-d",
                     defaultDate: "today",
