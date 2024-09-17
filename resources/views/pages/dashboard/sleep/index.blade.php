@@ -372,7 +372,7 @@
                                 duration += moment(data.end).diff(moment(data.start), 'minutes')
                             })
                             if (duration <= 5 * 60) {
-                                return '<span class="badge bg-red-500 text-white capitalize">tidak boleh</span>';
+                                return '<span class="badge bg-red-500 text-white capitalize">Istirahat</span>';
                             } else if (duration <= 6 * 60) {
                                 return '<span class="badge bg-yellow-500 text-white capitalize">Butuh Pengawasan</span>';
                             } else {

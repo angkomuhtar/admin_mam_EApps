@@ -62,6 +62,13 @@ class Employee extends Model
         return $this->belongsTo(Options::class, 'category_id', 'kode');
     }
 
+    public function getLokasiAttribute()
+    {
+        $locArray = explode(',',$this->absen_location);
+        $data = ClockLocation::whereIn('id', $locArray)->where('status', 'Y')->get();
+        return $data;
+    }
+
     // public static function boot(){
     //     parent::boot();
 

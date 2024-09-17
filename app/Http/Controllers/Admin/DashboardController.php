@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Clock;
 use App\Models\Sleep;
 use App\Models\Profile;
+use App\Models\Project;
 use App\Models\Employee;
 use App\Models\ViewClock;
 use Illuminate\Support\Str;
@@ -138,13 +139,16 @@ class DashboardController extends Controller
             ],
 
         ];
+
+        $project = Project::All();
         return view('pages.dashboard.index', [
             'pageTitle' => 'Analytic Dashboard',
             'division_count' => $employee,
             'day_count' => $groupped['day'] ?? [],
             'night_count' => $groupped['night'] ?? [],
             'office_count' => $groupped['office'] ?? [],
-            'sleepChart' => collect($sleepChart)
+            'sleepChart' => collect($sleepChart),
+            'project' => $project
         ]);
     }
 

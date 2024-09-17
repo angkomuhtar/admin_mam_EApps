@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Clock;
 use App\Models\Shift;
 use App\Models\Sleep;
+use App\Models\Employee;
 use App\Models\WorkSchedule;
 use Illuminate\Http\Request;
 use App\Models\ClockLocation;
@@ -147,8 +148,10 @@ class ClockController extends Controller
 
     public function location(){
         try {
-            $location = ClockLocation::All();
-            return ResponseHelper::jsonSuccess('success get location', $location);
+            // $location = ClockLocation::All();
+            // return ResponseHelper::jsonSuccess('success get location', $location);
+            $location = Employee::where('user_id', Auth::user()->id)->first();
+            return ResponseHelper::jsonSuccess('success get location', $location->lokasi);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }

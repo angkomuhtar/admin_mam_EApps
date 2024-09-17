@@ -86,10 +86,11 @@
                                             <div class="input-area col-span-2">
                                                 <label for="project" class="form-label">Site</label>
                                                 <select id="project" class="form-control" name="project">
-                                                    <option value="A9" class="dark:bg-slate-700" selected>A9
-                                                    </option>
-                                                    <option value="Jongkang" class="dark:bg-slate-700">Jongkang
-                                                    </option>
+                                                    @foreach ($project as $item)
+                                                        <option value="{{ $item->name }}" class="dark:bg-slate-700">
+                                                            {{ $item->name }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
                                             </div>
                                             <div class="input-area col-span-2">
