@@ -110,11 +110,16 @@
                                 This is invalid state.</div>
                         </div>
                     </div>
+                    <div class="space-x-5 pt-6">
+                        <span class="font-bold">Hadir : <span id="hadir">54</span></span>
+                        <span class="font-bold">Fit to Works : <span id="fit">54</span></span>
+                        <span class="font-bold">dalam Pengawasan : <span id="warn">54</span></span>
+                        <span class="font-bold">Istirahat : <span id="pulang">54</span></span>
+                    </div>
                 </div>
                 <div class="card-body px-6 pb-6">
                     <div class="overflow-x-auto -mx-6 dashcode-data-table">
-                        <span class=" col-span-8  hidden"></span>
-                        <span class="  col-span-4 hidden"></span>
+
                         <div class="inline-block min-w-full align-middle">
                             <div class="overflow-hidden ">
                                 <table

@@ -7,6 +7,7 @@ use App\Models\Clock;
 use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Employee;
+use App\Models\Watchdist;
 use App\Models\WorkSchedule;
 use Illuminate\Http\Request;
 use App\Models\ClockLocation;
@@ -165,7 +166,9 @@ class ClockController extends Controller
                 'time' => 'required',
                 'location' => 'required',
                 'version' => 'required',
-            ]);
+            ],[
+                'required' => ':attribute tidak boleh kosong'
+              ]);
 
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
@@ -174,6 +177,14 @@ class ClockController extends Controller
             // dd($request);
 
             if ($request->type == 'in') {
+                $inlist = Watchdist::where('user_id', Auth::user()->id)->exists();
+                $sleep = Sleep::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
+
+                if ($inlist && !$sleep) {
+                    $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
+                    return ResponseHelper::jsonError($validator->errors(), 422);
+                }
+
                 $exist = Clock::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
                 if ($exist) {
                     return ResponseHelper::jsonSuccess('Berhasil Absen Masuk');

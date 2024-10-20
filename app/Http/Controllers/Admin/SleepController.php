@@ -32,7 +32,6 @@ class SleepController extends Controller
       // return $shift;
 
       if ($request->ajax()) {
-
         $data = User::where('roles','<>', 'superadmin')
           ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
@@ -305,5 +304,9 @@ class SleepController extends Controller
             'message' => 'Data Berhasil Update'
         ]);
       }
+    }
+
+    public function hitung(Request $request){
+      
     }
 }
