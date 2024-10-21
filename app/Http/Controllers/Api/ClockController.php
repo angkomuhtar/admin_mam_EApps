@@ -180,10 +180,10 @@ class ClockController extends Controller
                 $inlist = Watchdist::where('user_id', Auth::user()->id)->exists();
                 $sleep = Sleep::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
 
-                // if ($inlist && !$sleep) {
-                //     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
-                //     return ResponseHelper::jsonError($validator->errors(), 422);
-                // }
+                if ($inlist && !$sleep) {
+                    $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
+                    return ResponseHelper::jsonError($validator->errors(), 422);
+                }
 
                 $exist = Clock::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
                 if ($exist) {
