@@ -277,6 +277,22 @@
                         <div
                             class="absolute top-1/2 -translate-y-1/2 ltr:right-6 rtl:left-6 mt-2 h-12 w-12 bg-white rounded-full text-xs font-medium
                             flex flex-col items-center justify-center">
+                            <div>
+                                <button id="change_shift"
+                                    class="h-[28px] w-[28px] lg:h-[32px] lg:w-[32px] lg:bg-gray-500-f7 bg-slate-50 dark:bg-slate-900 lg:dark:bg-slate-900 dark:text-white text-slate-900 cursor-pointer rounded-full text-[20px] flex flex-col items-center justify-center"
+                                    data-id="1">
+                                    <div class="flex" id="allday">
+                                        <iconify-icon class="text-slate-800 dark:text-white text-xs"
+                                            icon="line-md:sunny-outline-to-moon-alt-loop-transition"></iconify-icon>
+                                        <iconify-icon class="text-slate-800 dark:text-white text-xs"
+                                            icon="line-md:moon-filled-to-sunny-filled-loop-transition"></iconify-icon>
+                                    </div>
+                                    <iconify-icon class="text-slate-800 dark:text-white text-xl hidden" id="day"
+                                        icon="line-md:sunny-outline-to-moon-alt-loop-transition"></iconify-icon>
+                                    <iconify-icon class="text-slate-800 dark:text-white text-xl hidden" id="night"
+                                        icon="line-md:moon-filled-to-sunny-filled-loop-transition"></iconify-icon>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -349,9 +365,22 @@
                     <div class="card">
                         <header class="card-header">
                             <h4 class="card-title">Trend Jam Tidur</h4>
-                            <div class="input-area">
-                                <input class="form-control py-2 flatpickr flatpickr-input active" name="tanggal_fil"
-                                    id="tanggal_fil" value="" type="text" readonly="readonly">
+                            <div class="grid gap-2 grid-cols-2">
+                                <div class="input-area">
+                                    <input class="form-control py-2 flatpickr flatpickr-input active"
+                                        name="tanggal_fil" id="tanggal_fil" value="" type="text"
+                                        readonly="readonly">
+                                </div>
+                                <div class="input-area">
+                                    <select id="shift_fil" class="form-control" name="shift">
+                                        <option value="" class="dark:bg-slate-700" selected>all day
+                                        </option>
+                                        <option value="Day" class="dark:bg-slate-700">Day Shift
+                                        </option>
+                                        <option value="Night" class="dark:bg-slate-700">Night Shift
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </header>
                         <div class="card-body p-6">
@@ -384,6 +413,23 @@
         @push('scripts')
             @vite(['resources/js/plugins/flatpickr.js'])
             <script type="module">
+                $("#change_shift").on('click', function() {
+                    var now = $(this).data('id');
+                    if (now == 1) {
+                        $("#allday").removeClass('block').addClass('hidden');
+                        $("#day").removeClass('hidden').addClass('block');
+                        $(this).data('id', 2)
+                    } else if (now == 2) {
+                        $("#day").removeClass('block').addClass('hidden');
+                        $("#night").removeClass('hidden').addClass('block');
+                        $(this).data('id', 3)
+                    } else {
+                        $("#night").removeClass('block').addClass('hidden');
+                        $("#allday").removeClass('hidden').addClass('block');
+                        $(this).data('id', 1)
+                    }
+                })
+
                 $("#tanggal").flatpickr({
                     dateFormat: "Y-m-d",
                     defaultDate: "today",
@@ -629,13 +675,14 @@
                 const SleepbarChart = new ApexCharts(document.getElementById('sleep-barchart'), chartOptions[0].options);
                 SleepbarChart.render();
 
-                const updateChart = async (date) => {
+                const updateChart = async (date, shift = '') => {
                     $("#sleep-barchart-div").removeClass('hidden').addClass('flex');
                     await axios({
                         method: 'POST',
                         url: '{!! route('ajax.ajaxBarchart') !!}',
                         data: {
-                            'date': date
+                            'date': date,
+                            'shift': shift
                         }
                     }).then(function({
                         data
@@ -652,8 +699,8 @@
 
                 updateChart($('#tanggal_fil').val())
 
-                $(document).on("change", "#tanggal_fil", function(val) {
-                    updateChart($(this).val())
+                $(document).on("change", "#tanggal_fil, #shift_fil", function(val) {
+                    updateChart($("#tanggal_fil").val(), $("#shift_fil").val())
                 })
             </script>
         @endpush

@@ -71,6 +71,10 @@ class DashboardController extends Controller
             $query->where('date', $today);
           }]);
 
+        if ($request->ajax()) {
+            # code...
+        }
+
         $hadir = $dataSleep->get()->filter(function($item){
             if ($item->absen->isNotEmpty()) {
                 return $item;
@@ -93,13 +97,12 @@ class DashboardController extends Controller
             }
         });
 
-
         $groupSleepType = $groupSleep->groupBy('sleepType');
         $totalHadir = $hadir->count();
         $tidurBaik = isset($groupSleepType['baik']) ? $groupSleepType['baik']->count() : 0;
         $tidurCukup = isset($groupSleepType['cukup']) ? $groupSleepType['cukup']->count() : 0;
         $tidurKurang = isset($groupSleepType['kurang']) ? $groupSleepType['kurang']->count() : 0;
-        $tidakInput = $totalHadir - $tidurBaik + $tidurCukup + $tidurKurang;
+        $tidakInput = $totalHadir - $tidurBaik - $tidurCukup - $tidurKurang;
 
         $tidurBaikPercentage = $totalHadir > 0 ? round($tidurBaik / $totalHadir * 100) : 0;
         $tidurCukupPercentage = $totalHadir > 0 ? round($tidurCukup / $totalHadir * 100) : 0;
@@ -139,6 +142,10 @@ class DashboardController extends Controller
             ],
 
         ];
+
+        if ($request->ajax()) {
+            
+        }
 
         $project = Project::All();
         return view('pages.dashboard.index', [

@@ -9,6 +9,7 @@ use App\Models\Position;
 use Illuminate\Http\Request;
 use App\Models\ViewClockSleep;
 use App\Helpers\ResponseHelper;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -102,13 +103,17 @@ class AjaxController extends Controller
 
     public function ajaxBarchart (Request $request){
         $date = $request->date;
-        $endweek = Carbon::createFromFormat('Y-m-d', $date)->format('Y-m-d');
-        $startweek = Carbon::createFromFormat('Y-m-d', $date)->subDays(6)->format('Y-m-d');
+        // $endweek = Carbon::createFromFormat('Y-m-d', $date)->format('Y-m-d');
+        // $startweek = Carbon::createFromFormat('Y-m-d', $date)->subDays(6)->format('Y-m-d');
 
-        $dataSleepWeek = ViewClockSleep::with('user')->whereBetween('sleep_date',[$startweek, $endweek])
-        ->whereHas('user', function($query){
-            $query->has('smartwatch');
-        })->get()->filter()->groupBy('date');
+        // return $request->shift;
+        // $dataSleepWeek = ViewClockSleep::where('shift','like','%'.$request->shift.'%')
+        //     ->whereNotNull('watch_dist')
+        //     // ->whereBetween('sleep_date',[$startweek, $endweek]);
+        //     ->where('sleep_date',$startweek);
+
+        // // $dataSleepWeek->get()->filter()->groupBy('date');
+        // return $dataSleepWeek->get();
 
         $endDate = Carbon::parse($date);
         $startDate = Carbon::parse($date)->subDays(6);
@@ -117,17 +122,50 @@ class AjaxController extends Controller
         $bad = array();
         $legend = array();
         $no = 0;
+
+
+        $dataSleep = DB::table('v_clock_sleep')
+                 ->select('sleep_cat', DB::raw('count(*) as total'))
+                 ->where('shift','like','%'.$request->shift.'%')
+                 ->whereNotNull('watch_dist')
+                 ->where('sleep_date',$startDate)
+                 ->groupBy('sleep_cat')
+                 ->get();
+
+        // return $dataSleep;
         while ($startDate->lte($endDate)){
-            if (isset($dataSleepWeek[$startDate->format('Y-m-d')])) {
-                $total = $dataSleepWeek[$startDate->format('Y-m-d')]->filter()->groupBy('sleep_cat');
-                $fit[$no] = isset($total['FIT'])? $total['FIT']->count() : 0;
-                $enough[$no] = isset($total['ENOUGH'])? $total['ENOUGH']->count() : 0;
-                $bad[$no] = isset($total['BAD'])? $total['BAD']->count() : 0;
-            }else{
-                $fit[$no] = 0;
-                $enough[$no] = 0;
-                $bad[$no] = 0;
+            $dataSleep = DB::table('v_clock_sleep')
+                ->select('sleep_cat', DB::raw('count(*) as total'))
+                ->where('shift','like','%'.$request->shift.'%')
+                ->whereNotNull('watch_dist')
+                ->where('sleep_date',$startDate)
+                ->groupBy('sleep_cat')
+                ->get();
+            $fit[$no] = 0;
+            $enough[$no] = 0;
+            $bad[$no] = 0;
+
+            foreach ($dataSleep as $ds) {
+                if ($ds->sleep_cat == 'BAD') {
+                    $bad[$no] = $ds->total;
+                }elseif ($ds->sleep_cat == 'ENOUGH') {
+                    $enough[$no] = $ds->total;
+                }elseif ($ds->sleep_cat == 'FIT') {
+                    $fit[$no] = $ds->total;
+                }
             }
+            
+
+            // if (isset($dataSleepWeek[$startDate->format('Y-m-d')])) {
+            //     $total = $dataSleepWeek[$startDate->format('Y-m-d')]->filter()->groupBy('sleep_cat');
+            //     $fit[$no] = isset($total['FIT'])? $total['FIT']->count() : 0;
+            //     $enough[$no] = isset($total['ENOUGH'])? $total['ENOUGH']->count() : 0;
+            //     $bad[$no] = isset($total['BAD'])? $total['BAD']->count() : 0;
+            // }else{
+            //     $fit[$no] = 0;
+            //     $enough[$no] = 0;
+            //     $bad[$no] = 0;
+            // }
             $legend[$no] = $startDate->format('d M');
             $startDate->addDay();
             $no++;
