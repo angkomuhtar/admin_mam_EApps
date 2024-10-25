@@ -73,6 +73,7 @@ Route::prefix('admin')->group(function()
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::get('/export','export')->name('sleep.export');
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
+                Route::get('/{id}/watchdist','update_watchdist')->name('sleep.watchdist');
             });
         });
 

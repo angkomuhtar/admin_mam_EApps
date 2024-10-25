@@ -65,6 +65,9 @@
                                                 Roles
                                             </th>
                                             <th scope="col" class=" table-th ">
+                                                Jam Tangan
+                                            </th>
+                                            <th scope="col" class=" table-th ">
                                                 Action
                                             </th>
                                         </tr>
@@ -154,10 +157,31 @@
                         data: 'roles',
                     },
                     {
+                        render: function(data, type, row, meta) {
+                            // return ;
+                            var dataDiv =
+                                `<div class="dropdown relative">
+                                <button class="btn inline-flex justify-center text-dark-500 items-center" type="button" id="darkFlatDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    ${!row.smartwatch?.status ? 'Tidak ada' : row.smartwatch?.status == 'Y' ? 'Aktif' : 'Non-aktif'}
+                                    <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2" icon="ic:round-keyboard-arrow-down"></iconify-icon>
+                                </button>
+                                <ul data-id="${row.id}" class=" dropdown-menu min-w-max absolute text-sm text-slate-700 dark:text-white hidden bg-white dark:bg-slate-700 shadow
+                                        z-[2] float-left overflow-hidden list-none text-left rounded-lg mt-1 m-0 bg-clip-padding border-none dropdown-jam">
+                                    <li>
+                                        <a href="#" data-value="Y" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Aktif</a>
+                                    </li>
+                                    <li>
+                                        <a href="#" data-value="N" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Non Aktif</a>
+                                    </li>`
+
+                            return dataDiv + `</ul></div>`
+                        }
+                    },
+                    {
                         data: 'id',
                         name: 'action',
                         render: (data) => {
-                            return `<div class="grid md:grid-cols-2 gap-0.5 md:gap-2">
+                            return `<div class="grid md:grid-cols-2 gap-0.5 md:gap-2 min-w-[50px]">
                                   <a href={!! route('employee') !!} class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2">
                                     <iconify-icon icon="heroicons:eye"></iconify-icon>
                                   </a>
@@ -283,6 +307,34 @@
                         })
                     }
                 })
+            })
+
+            $(document).on('click', '.dropdown-jam li a', e => {
+                e.preventDefault()
+                var id = $(e.currentTarget).parent().parent().data('id');
+                var val = $(e.currentTarget).data('value');
+                var url = '{!! route('sleep.watchdist', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    data: {
+                        "_token": "{{ csrf_token() }}",
+                        "value": val
+                    },
+                    success: (msg) => {
+                        if (msg.success) {
+                            Swal.fire(
+                                'Oke ',
+                                'Updated watchdist',
+                                'success'
+                            ).then(() => {
+                                table.ajax.reload(null, false)
+                            })
+                        }
+                    }
+                })
+
             })
         </script>
     @endpush

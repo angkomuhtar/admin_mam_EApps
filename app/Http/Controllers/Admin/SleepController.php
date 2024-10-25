@@ -8,6 +8,7 @@ use App\Models\Clock;
 use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Division;
+use App\Models\Watchdist;
 use App\Models\SleepHistory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -308,5 +309,34 @@ class SleepController extends Controller
 
     public function hitung(Request $request){
       
+    }
+
+    public function update_watchdist(Request $request, String $id){
+
+      $watchdist = Watchdist::where('user_id', $id)->exists();
+      $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
+
+      if ($watchdist) {
+        Watchdist::where('user_id', $id)->update([
+          'status' => $request->value
+        ]);
+          return response()->json([
+            'success' => true,
+            'data' => 'sucess'
+          ]);
+      }else{
+        $insert = Watchdist::insert([
+          'user_id' => $id,
+          'tgl_terima' => $today,
+          'ket' => 'smartwatch',
+          'status' => 'Y',
+        ]);
+        if ($insert) {
+          return response()->json([
+            'success' => true,
+            'data' => 'sucess'
+          ]);
+        }
+      }
     }
 }

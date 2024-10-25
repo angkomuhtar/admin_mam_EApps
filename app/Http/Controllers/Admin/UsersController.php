@@ -17,7 +17,7 @@ class UsersController extends Controller
         $departemen = Division::all();
 
         if ($request->ajax()) {
-            $data = User::with('employee', 'employee.division', 'employee.position', 'profile')
+            $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch')
             ->whereHas('profile', function($query) use($request) {
                     $query->where('name','LIKE','%'.$request->name.'%');
             });

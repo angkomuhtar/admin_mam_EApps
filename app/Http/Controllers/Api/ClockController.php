@@ -177,7 +177,7 @@ class ClockController extends Controller
             // dd($request);
 
             if ($request->type == 'in') {
-                $inlist = Watchdist::where('user_id', Auth::user()->id)->exists();
+                $inlist = Watchdist::where('user_id', Auth::user()->id)->where('status', 'Y')->exists();
                 $sleep = Sleep::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
 
                 if ($inlist && !$sleep) {
