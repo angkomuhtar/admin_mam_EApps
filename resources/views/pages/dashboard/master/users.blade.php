@@ -1,4 +1,71 @@
 <x-appLayout>
+
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
+        id="disabled_backdrop" tabindex="-1" aria-labelledby="disabled_backdrop" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog relative w-auto pointer-events-none">
+            <div
+                class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding
+                    rounded-md outline-none text-current">
+                <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
+                    <!-- Modal header -->
+                    <div
+                        class="flex items-center justify-between p-5 border-b rounded-t dark:border-slate-600 bg-black-500">
+                        <h3 class="text-xl font-medium text-white dark:text-white capitalize">
+                            Absen Location
+                        </h3>
+                        <button type="button" id="close_modal"
+                            class="text-slate-400 bg-transparent hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+                                dark:hover:bg-slate-600 dark:hover:text-white"
+                            data-bs-dismiss="modal">
+                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+                                        11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-6 space-y-4">
+                        <h6 class="text-base text-slate-900 dark:text-white leading-6">
+                            Pilih Lokasi Absen Untuk User
+                        </h6>
+                        <form action="" id="location_form">
+                            <div class="card-text h-full space-y-4">
+                                <div class="flex gap-5 flex-wrap">
+                                    <input type="hidden" id="location_id">
+                                    @foreach ($loc as $item)
+                                        <div class="checkbox-area">
+                                            <label class="inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="hidden" value="{{ $item->id }}"
+                                                    name="arrayLocation[]">
+                                                <span
+                                                    class="h-4 w-4 border flex-none border-slate-100 dark:border-slate-800 rounded inline-flex ltr:mr-3 rtl:ml-3 relative transition-all duration-150 bg-slate-100 dark:bg-slate-900">
+                                                    <img src="{{ asset('images/ck_white.svg') }}" alt=""
+                                                        class="h-[10px] w-[10px] block m-auto opacity-0"></span>
+                                                <span
+                                                    class="text-slate-500 dark:text-slate-400 text-sm leading-6">{{ $item->name }}</span>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                </p>
+                            </div>
+                    </div>
+                    <!-- Modal footer -->
+                    <div
+                        class="flex items-center justify-end p-6 space-x-2 border-t border-slate-200 rounded-b dark:border-slate-600">
+                        <button type="submit" id="send_location"
+                            class="btn inline-flex justify-center text-white bg-black-500">OKE</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="space-y-8">
 
         <div class=" space-y-5">
@@ -63,6 +130,9 @@
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 Roles
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                Lokasi Absen
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 Jam Tangan
@@ -158,21 +228,34 @@
                     },
                     {
                         render: function(data, type, row, meta) {
-                            // return ;
+                            var dataDiv =
+                                `<div class="card-text h-full w-[220px] flex flex-wrap gap-2">`;
+
+                            $.each(row.lokasi, function(index, value) {
+
+                                dataDiv +=
+                                    `<span class="badge bg-secondary-500 text-white capitalize">${value.name}</span>`;
+                            })
+
+                            return dataDiv;
+                        }
+                    },
+                    {
+                        render: function(data, type, row, meta) {
                             var dataDiv =
                                 `<div class="dropdown relative">
-                                <button class="btn inline-flex justify-center text-dark-500 items-center" type="button" id="darkFlatDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    ${!row.smartwatch?.status ? 'Tidak ada' : row.smartwatch?.status == 'Y' ? 'Aktif' : 'Non-aktif'}
-                                    <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2" icon="ic:round-keyboard-arrow-down"></iconify-icon>
-                                </button>
-                                <ul data-id="${row.id}" class=" dropdown-menu min-w-max absolute text-sm text-slate-700 dark:text-white hidden bg-white dark:bg-slate-700 shadow
-                                        z-[2] float-left overflow-hidden list-none text-left rounded-lg mt-1 m-0 bg-clip-padding border-none dropdown-jam">
-                                    <li>
-                                        <a href="#" data-value="Y" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Aktif</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" data-value="N" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Non Aktif</a>
-                                    </li>`
+                                        <button class="btn inline-flex justify-center text-dark-500 items-center" type="button" id="darkFlatDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                            ${!row.smartwatch?.status ? 'Tidak ada' : row.smartwatch?.status == 'Y' ? 'Aktif' : 'Non-aktif'}
+                                            <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2" icon="ic:round-keyboard-arrow-down"></iconify-icon>
+                                        </button>
+                                        <ul data-id="${row.id}" class=" dropdown-menu min-w-max absolute text-sm text-slate-700 dark:text-white hidden bg-white dark:bg-slate-700 shadow
+                                                z-[2] float-left overflow-hidden list-none text-left rounded-lg mt-1 m-0 bg-clip-padding border-none dropdown-jam">
+                                            <li>
+                                                <a href="#" data-value="Y" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Aktif</a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-value="N" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Non Aktif</a>
+                                            </li>`
 
                             return dataDiv + `</ul></div>`
                         }
@@ -180,29 +263,92 @@
                     {
                         data: 'id',
                         name: 'action',
-                        render: (data) => {
+                        render: (data, type, row, meta) => {
+
                             return `<div class="grid md:grid-cols-2 gap-0.5 md:gap-2 min-w-[50px]">
-                                  <a href={!! route('employee') !!} class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2">
-                                    <iconify-icon icon="heroicons:eye"></iconify-icon>
-                                  </a>
-                                  <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2">
-                                    <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
-                                  </a>
-                                  <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2n" id="change_sts" data-id=${data}>
-                                    <iconify-icon icon="heroicons:trash"></iconify-icon>
-                                  </a>
-                                  <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2" id="reset_phone" data-id=${data}>
-                                    <iconify-icon icon="fluent:phone-key-20-regular"></iconify-icon>
-                                  </a>
-                                </div>`
+                                          <a href={!! route('employee') !!} class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2">
+                                            <iconify-icon icon="heroicons:eye"></iconify-icon>
+                                          </a>
+                                          <button class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2" data-bs-toggle="modal" data-bs-target="#disabled_backdrop" id="change_loc"  data-id=${data} data-loc=${row.employee.absen_location}>
+                                            <iconify-icon icon="ion:location-outline"></iconify-icon>
+                                          </button>
+                                          <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2n" id="change_sts" data-id=${data}>
+                                            <iconify-icon icon="heroicons:trash"></iconify-icon>
+                                          </a>
+                                          <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2" id="reset_phone" data-id=${data}>
+                                            <iconify-icon icon="fluent:phone-key-20-regular"></iconify-icon>
+                                          </a>
+                                        </div>`
                         }
                     },
                 ],
             });
-            table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
+            table.tables().body().to$().addClass(
+                'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
             $('#name, #division_id').bind('change', function() {
                 table.draw()
+            })
+
+            $(document).on('click', '#change_loc', (e) => {
+                e.preventDefault()
+                var id = $(e.currentTarget).data('id');
+                var data = $(e.currentTarget).data('loc');
+                $("input#location_id").val(id);
+                $("input[type=checkbox]").prop('checked', false);
+                $.each(data.split(","), function(index, value) {
+                    $("input[type=checkbox][value=" + value + "]").prop('checked', true);
+                })
+            })
+
+            $(document).on('submit', '#location_form', (e) => {
+                e.preventDefault();
+                var id = $("#location_id").val();
+                var url = '{!! route('masters.users.update_location', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                console.log(url);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: $("#location_form").serialize(),
+                    beforeSend: function() {
+                        $("#loading").removeClass('hidden');
+                    },
+                    success: (res) => {
+                        if (res.success) {
+                            $("#loading").addClass('hidden');
+                            $("#close_modal").click();
+                            Swal.fire({
+                                title: 'success',
+                                text: res.message,
+                                icon: 'success',
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                table.draw()
+                                $('#close_modal').click();
+                            })
+                        } else {
+                            $("#loading").addClass('hidden');
+                            console.log(res.message.jam);
+                            if (res?.message?.jam) {
+                                $("input[name=jam]").next().removeClass('hidden').html(res?.message?.jam);
+                            }
+                            if (res?.message?.menit) {
+                                $("input[name=menit]").next().removeClass('hidden').html(res?.message
+                                    ?.menit);
+                            }
+                        }
+                    },
+                    error: () => {
+                        $("#loading").addClass('hidden');
+                    }
+                })
+
             })
 
             $(document).on('click', '#change_sts', (e) => {
@@ -212,15 +358,15 @@
                     text: "You won't be able to revert this!",
                     icon: 'warning',
                     html: `
-                        <div class="w-full grid md:grid-cols-2 gap-2">
-                            <input class="p-2 border border-slate-200 rounded-sm" type="text" id="tgl_exp" placeholder="Tanggal (yyyy-mm-dd)">
-                            <select class="p-2 border border-slate-200 rounded-sm" id="type_exp" placeholder="Pilih Salah Satu">
-                                <option value="RESIGN">Resign</option>
-                                <option value="EXPIRED">Habis Kontrak</option>
-                                <option value="FIRED">PHK</option>
-                            </select>
-                        </div>
-                    `,
+                                <div class="w-full grid md:grid-cols-2 gap-2">
+                                    <input class="p-2 border border-slate-200 rounded-sm" type="text" id="tgl_exp" placeholder="Tanggal (yyyy-mm-dd)">
+                                    <select class="p-2 border border-slate-200 rounded-sm" id="type_exp" placeholder="Pilih Salah Satu">
+                                        <option value="RESIGN">Resign</option>
+                                        <option value="EXPIRED">Habis Kontrak</option>
+                                        <option value="FIRED">PHK</option>
+                                    </select>
+                                </div>
+                            `,
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',

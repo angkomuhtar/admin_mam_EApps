@@ -99,6 +99,7 @@ Route::prefix('admin')->group(function()
                     Route::post('/{id}/status','status')->name('masters.users.status');
                     Route::patch('/{id}/reset_phone','reset_phone')->name('masters.users.reset_phone');
                     Route::get('/create','create')->name('masters.users.create');
+                    Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
                 });
                 Route::controller(DivisionsController::class)->prefix('division')->group(function()
                 {
