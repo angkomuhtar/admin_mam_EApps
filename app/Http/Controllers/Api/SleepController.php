@@ -31,14 +31,14 @@ class SleepController extends Controller
             if ($request->hasFile('attachment')) {
                 $directory = 'images/sleeps/';
                 $file = $request->file('attachment');
-                $fileName = Auth::user()->username.now()->format('His').'.'.$file->getClientOriginalExtension();
+                $fileName = Auth::guard('api')->user()->username.now()->format('His').'.'.$file->getClientOriginalExtension();
                 $fileFullPath = 'images/sleeps/'.$fileName; 
                 Storage::disk('public')->put($fileFullPath, file_get_contents($file));
                 $filename_db = $fileFullPath;   
             }
             $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
             $insert = Sleep::insert([
-                'user_id'=> Auth::user()->id,
+                'user_id'=> Auth::guard('api')->user()->id,
                 'start'=> $request->start,
                 'end' => $request->end,
                 'date' => $today,

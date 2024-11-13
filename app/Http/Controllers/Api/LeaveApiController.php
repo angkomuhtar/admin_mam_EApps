@@ -20,7 +20,7 @@ class LeaveApiController extends Controller
     public function index()
     {
         try {
-            $data = Leave::where('user_id', Auth::user()->id)->orderBy('created_at', 'desc')->get();
+            $data = Leave::where('user_id', Auth::guard('api')->user()->id)->orderBy('created_at', 'desc')->get();
             $data->map(function($d){
                 // dd($d->caretaker->profile);
                 $d->approver_name = $d->approver->profile->name ?? '';
@@ -63,21 +63,21 @@ class LeaveApiController extends Controller
     public function store(Request $request)
     {
         try {
-            // $data = Leave::where('user_id', Auth::user()->id)->orderBy('created_at', 'desc')->get();
+            // $data = Leave::where('user_id', Auth::guard('api')->user()->id)->orderBy('created_at', 'desc')->get();
             // return ResponseHelper::jsonSuccess('success get data', $data);
             $filename_db = '';
-            // return Auth::user()->employee;
+            // return Auth::guard('api')->user()->employee;
             if ($request->hasFile('attachment')) {
                 $directory = 'images/leave/';
                 $file = $request->file('attachment');
-                $fileName = Auth::user()->username.now()->format('His').'.'.$file->getClientOriginalExtension();
+                $fileName = Auth::guard('api')->user()->username.now()->format('His').'.'.$file->getClientOriginalExtension();
                 $fileFullPath = 'images/leave/'.$fileName; 
                 Storage::disk('public')->put($fileFullPath, file_get_contents($file));
                 $filename_db = $fileFullPath;   
             }
 
             $insert = Leave::insert([
-                'user_id'=> Auth::user()->id,
+                'user_id'=> Auth::guard('api')->user()->id,
                 'caretaker_id'=> $request->caretaker,
                 's_date' => $request->s_date,
                 'e_date'=>$request->e_date,
@@ -87,7 +87,7 @@ class LeaveApiController extends Controller
                 'note' => $request->note,
                 'approver_note' => '',
                 'status' => '0',
-                'approver_id' => Auth::user()->employee->atasan_id,
+                'approver_id' => Auth::guard('api')->user()->employee->atasan_id,
                 'created_at' => now(),
             ]);
             if ($insert) {
@@ -104,9 +104,9 @@ class LeaveApiController extends Controller
     {
         try {
             if ($type == 'request') {
-                $data= Leave::where('approver_id', Auth::user()->id)->where('status', '0')->orderBy('created_at', 'desc')->get();
+                $data= Leave::where('approver_id', Auth::guard('api')->user()->id)->where('status', '0')->orderBy('created_at', 'desc')->get();
             }elseif($type == 'history'){
-                $data= Leave::where('approver_id', Auth::user()->id)->where('status', '<>', '0')->orderBy('created_at', 'desc')->get();
+                $data= Leave::where('approver_id', Auth::guard('api')->user()->id)->where('status', '<>', '0')->orderBy('created_at', 'desc')->get();
             }
             $data->map(function($d){
                 // dd($d->caretaker->profile);

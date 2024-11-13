@@ -30,7 +30,7 @@ class ClockController extends Controller
             $day = $this->today->format('d');
             $startDay = $this->today->format('d') > 25 ? $this->today->format('Y-m-26') : $this->today->subMonths(1)->format('Y-m-26');
             $endDay = Carbon::createFromFormat('Y-m-d', $startDay)->addMonths(1)->format('Y-m-25');
-            $clock = Clock::with('shift')->whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::user()->id)->orderBy('date', 'desc')->get();
+            $clock = Clock::with('shift')->whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->get();
             $clock = $clock->map(function ($clock) {
                 $clock['late'] = $clock->late;
                 $clock['early'] = $clock->early;
@@ -48,7 +48,7 @@ class ClockController extends Controller
             $day = $selectedDay->format('d');
             $startDay = $selectedDay->format('Y-m-26');
             $endDay = Carbon::createFromFormat('Y-m-d', $startDay)->addMonths(1)->format('Y-m-25');
-            $clock = Clock::with('shift')->whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::user()->id)->orderBy('date', 'desc')->get();
+            $clock = Clock::with('shift')->whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->get();
             $clock = $clock->map(function ($clock) {
                 $clock['late'] = $clock->late;
                 $clock['early'] = $clock->early;
@@ -66,7 +66,7 @@ class ClockController extends Controller
             $startDay = $this->today->format('d') > 25 ? $this->today->format('Y-m-26') : $this->today->subMonths(1)->format('Y-m-26');
             $endDay = Carbon::createFromFormat('Y-m-d', $startDay)->addMonths(1)->format('Y-m-25');
             // return $startDay.' '. $endDay;
-            $absen = Clock::whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::user()->id);
+            $absen = Clock::whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::guard('api')->user()->id);
             $hadir = $absen->where('status', 'H')->count();
             $rekap = [
                 'hadir'=>$hadir,
@@ -77,11 +77,11 @@ class ClockController extends Controller
             $work_hours = Shift::whereColumn('start', '>', 'end')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
-                $query->where('user_id',Auth::user()->id)
+                $query->where('user_id',Auth::guard('api')->user()->id)
                 ->where('date', date('Y-m-d'));
             })
             ->orWhere(function($query) use($request, $wh_id) {
-                $query->where('user_id',Auth::user()->id)
+                $query->where('user_id',Auth::guard('api')->user()->id)
                 ->where('date', date('Y-m-d', strtotime('-1 day')))
                 ->whereNull('clock_out')
                 ->whereIn('work_hours_id', $wh_id);
@@ -99,7 +99,7 @@ class ClockController extends Controller
             $day = $this->today->format('d');
             $startDay = $this->today->format('d') > 25 ? $this->today->format('Y-m-26') : $this->today->subMonths(1)->format('Y-m-26');
             $endDay = Carbon::createFromFormat('Y-m-d', $startDay)->addMonths(1)->format('Y-m-25');
-            $absen = Clock::whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::user()->id);
+            $absen = Clock::whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::guard('api')->user()->id);
             $hadir = $absen->where('status', 'H')->count();
             $alpha = $absen->where('status', 'A')->count();
             $izin = $absen->where('status', 'I')->count();
@@ -122,18 +122,18 @@ class ClockController extends Controller
             $work_hours = Shift::whereColumn('start', '>', 'end')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
-                $query->where('user_id',Auth::user()->id)
+                $query->where('user_id',Auth::guard('api')->user()->id)
                 ->where('date', $this->today->format('Y-m-d'));
             })
             ->orWhere(function($query) use($request, $wh_id) {
-                $query->where('user_id',Auth::user()->id)
+                $query->where('user_id',Auth::guard('api')->user()->id)
                 ->where('date', $this->today->subDays(1)->format('Y-m-d'))
                 ->whereNull('clock_out')
                 ->whereIn('work_hours_id', $wh_id);
             })
             ->first();
             // return Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
-            $sleep = Sleep::where('user_id', Auth::user()->id)
+            $sleep = Sleep::where('user_id', Auth::guard('api')->user()->id)
             ->where('date', $date_today)
             ->get();
             if ($today) {
@@ -151,7 +151,7 @@ class ClockController extends Controller
         try {
             // $location = ClockLocation::All();
             // return ResponseHelper::jsonSuccess('success get location', $location);
-            $location = Employee::where('user_id', Auth::user()->id)->first();
+            $location = Employee::where('user_id', Auth::guard('api')->user()->id)->first();
             return ResponseHelper::jsonSuccess('success get location', $location->lokasi);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
@@ -177,20 +177,20 @@ class ClockController extends Controller
             // dd($request);
 
             if ($request->type == 'in') {
-                $inlist = Watchdist::where('user_id', Auth::user()->id)->where('status', 'Y')->exists();
-                $sleep = Sleep::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
+                $inlist = Watchdist::where('user_id', Auth::guard('api')->user()->id)->where('status', 'Y')->exists();
+                $sleep = Sleep::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
 
                 if ($inlist && !$sleep) {
                     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
                     return ResponseHelper::jsonError($validator->errors(), 422);
                 }
 
-                $exist = Clock::where('user_id', Auth::user()->id)->where('date', $request->date)->exists();
+                $exist = Clock::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
                 if ($exist) {
                     return ResponseHelper::jsonSuccess('Berhasil Absen Masuk');
                 }
                 $insert = Clock::insert([
-                    'user_id'=> Auth::user()->id,
+                    'user_id'=> Auth::guard('api')->user()->id,
                     'clock_location_id'=> $request->location,
                     'date' => $this->today->format('Y-m-d'),
                     'clock_in'=>$this->today->format('H:i:s'),
@@ -203,7 +203,7 @@ class ClockController extends Controller
                     return ResponseHelper::jsonError('error absen', 400);
                 }
             }elseif ($request->type == 'out'){
-                $clock = Clock::where('user_id', Auth::user()->id)
+                $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
                     ->where('date', $request->date)
                     ->update(['clock_out' => $this->today->format('H:i:s')]);
                 if ($clock) {
@@ -220,7 +220,7 @@ class ClockController extends Controller
     public function shift(){
         try {
             $today = $this->today->format('N');
-            $work_hours = Shift::where('wh_code', Auth::user()->employee->wh_code)->where('days', 'like', '%'.$today.'%')->get();
+            $work_hours = Shift::where('wh_code', Auth::guard('api')->user()->employee->wh_code)->where('days', 'like', '%'.$today.'%')->get();
             return ResponseHelper::jsonSuccess('success get location', $work_hours);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
