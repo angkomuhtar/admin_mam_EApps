@@ -17,7 +17,7 @@ class isAdmin
     public function handle(Request $request, Closure $next, ...$role): Response
     {
 
-        $user_roles = Auth::guard('web')->user()->roles ?? '';
+        $user_roles = Auth::guard('web')->user()->user_roles ?? '';
         // return response()->json($user_roles, 200);
         if (in_array($user_roles, $role)) {
             return $next($request);

@@ -108,14 +108,11 @@
                         <span class=" col-span-8  hidden"></span>
                         <span class="  col-span-4 hidden"></span>
                         <div class="inline-block min-w-full align-middle">
-                            <div class="overflow-hidden ">
+                            <div class="overflow-hidden">
                                 <table
                                     class="min-w-full divide-y divide-slate-100 table-fixed dark:divide-slate-700 data-table">
                                     <thead class=" bg-slate-200 dark:bg-slate-700">
                                         <tr>
-                                            <th scope="col" class=" table-th ">
-                                                Username
-                                            </th>
                                             <th scope="col" class=" table-th ">
                                                 Nama
                                             </th>
@@ -126,16 +123,10 @@
                                                 Jabatan
                                             </th>
                                             <th scope="col" class=" table-th ">
-                                                Status
-                                            </th>
-                                            <th scope="col" class=" table-th ">
                                                 Roles
                                             </th>
                                             <th scope="col" class=" table-th ">
-                                                Lokasi Absen
-                                            </th>
-                                            <th scope="col" class=" table-th ">
-                                                Jam Tangan
+                                                Permission
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 Action
@@ -158,7 +149,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{!! route('masters.users') !!}',
+                    url: '{!! route('masters.users.permission') !!}',
                     data: function(d) {
                         return $.extend({}, d, {
                             name: $('#name').val(),
@@ -198,40 +189,42 @@
                     }
                 ],
                 columns: [{
-                        data: 'username',
-                        name: 'username',
                         render: (data, type, row, meta) => {
-                            return `<span class="flex items-center">
-                                  <span class="w-7 h-7 rounded-full ltr:mr-3 rtl:ml-3 flex-none">
-                                    <img src={!! asset('images/avatar.png') !!} alt="" class="object-cover w-full h-full rounded-full">
-                                  </span>
-                                  <span class="text-sm text-slate-600 dark:text-slate-300 capitalize">${data}</span>
-                                </span>`;
+                            if (row.profile?.name) {
+                                return row.profile.name
+                            } else {
+                                return row.username
+                            }
                         }
                     },
                     {
-                        data: 'profile.name',
-                    },
-                    {
-                        data: 'employee.division.division'
+                        render: (data, type, row, meta) => {
+                            return row?.employee?.division?.division ?? ''
+                        }
                     }, {
-                        data: 'employee.position.position'
-                    },
-                    {
-                        data: 'employee.contract_status',
-                        // render: function(data) {
-                        //     return data == 'Y' ? 'Active' : 'Non-Active';
-                        // }
-                    },
-                    {
-                        data: 'user_roles',
+                        render: (data, type, row, meta) => {
+                            return row?.employee?.position?.position ?? ''
+                        }
                     },
                     {
                         render: function(data, type, row, meta) {
                             var dataDiv =
                                 `<div class="card-text h-full w-[220px] flex flex-wrap gap-2">`;
 
-                            $.each(row.lokasi, function(index, value) {
+                            $.each(row.roles, function(index, value) {
+
+                                dataDiv +=
+                                    `<span class="badge bg-secondary-500 text-white capitalize">${value.name}</span>`;
+                            })
+
+                            return dataDiv;
+                        }
+                    }, {
+                        render: function(data, type, row, meta) {
+                            var dataDiv =
+                                `<div class="card-text h-full w-[220px] flex flex-wrap gap-2">`;
+
+                            $.each(row.permissions, function(index, value) {
 
                                 dataDiv +=
                                     `<span class="badge bg-secondary-500 text-white capitalize">${value.name}</span>`;
@@ -241,44 +234,14 @@
                         }
                     },
                     {
-                        render: function(data, type, row, meta) {
-                            var dataDiv =
-                                `<div class="dropdown relative">
-                                        <button class="btn inline-flex justify-center text-dark-500 items-center" type="button" id="darkFlatDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                            ${!row.smartwatch?.status ? 'Tidak ada' : row.smartwatch?.status == 'Y' ? 'Aktif' : 'Non-aktif'}
-                                            <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2" icon="ic:round-keyboard-arrow-down"></iconify-icon>
-                                        </button>
-                                        <ul data-id="${row.id}" class=" dropdown-menu min-w-max absolute text-sm text-slate-700 dark:text-white hidden bg-white dark:bg-slate-700 shadow
-                                                z-[2] float-left overflow-hidden list-none text-left rounded-lg mt-1 m-0 bg-clip-padding border-none dropdown-jam">
-                                            <li>
-                                                <a href="#" data-value="Y" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Aktif</a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-value="N" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">Non Aktif</a>
-                                            </li>`
-
-                            return dataDiv + `</ul></div>`
-                        }
-                    },
-                    {
-                        data: 'id',
-                        name: 'action',
                         render: (data, type, row, meta) => {
 
-                            return `<div class="grid md:grid-cols-2 gap-0.5 md:gap-2 min-w-[50px]">
-                                          <a href={!! route('employee') !!} class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2">
-                                            <iconify-icon icon="heroicons:eye"></iconify-icon>
-                                          </a>
-                                          <button class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2" data-bs-toggle="modal" data-bs-target="#disabled_backdrop" id="change_loc"  data-id=${data} data-loc=${row.employee.absen_location}>
-                                            <iconify-icon icon="ion:location-outline"></iconify-icon>
-                                          </button>
-                                          <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2n" id="change_sts" data-id=${data}>
-                                            <iconify-icon icon="heroicons:trash"></iconify-icon>
-                                          </a>
-                                          <a class="action-btn btn-secondary cursor-pointer btn-sm text-md p-2" id="reset_phone" data-id=${data}>
-                                            <iconify-icon icon="fluent:phone-key-20-regular"></iconify-icon>
-                                          </a>
-                                        </div>`
+                            return `<div class="">
+                                        <a href="permission/${row.id}" class="btn inline-flex justify-center btn-outline-primary rounded-[25px]" data-id="${row.id}" id="edit_permission"> <span class="flex items-center">
+                                            <iconify-icon class="text-xl ltr:mr-2 rtl:ml-2" icon="heroicons-outline:newspaper"></iconify-icon>
+                                            <span>Edit</span> </span>
+                                        </a>
+                                    </div>`
                         }
                     },
                 ],
@@ -419,69 +382,11 @@
                 })
             })
 
-            $(document).on('click', '#reset_phone', (e) => {
-                var id = $(e.currentTarget).data('id');
-                Swal.fire({
-                    title: 'Reset Device Connect.?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Oke, Gasss.!!!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        var url = '{!! route('masters.users.reset_phone', ['id' => ':id']) !!}';
-                        url = url.replace(':id', id);
-                        $.ajax({
-                            url: url,
-                            type: 'PATCH',
-                            data: {
-                                "_token": "{{ csrf_token() }}"
-                            },
-                            success: (msg) => {
-                                if (msg.success) {
-                                    Swal.fire(
-                                        'Resetted!',
-                                        'Phone Resetted',
-                                        'success'
-                                    ).then(() => {
-                                        table.ajax.reload(null, false)
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            })
+            // $(document).on('click', '#edit_permission', (e) => {
+            //     console.log(this);
 
-            $(document).on('click', '.dropdown-jam li a', e => {
-                e.preventDefault()
-                var id = $(e.currentTarget).parent().parent().data('id');
-                var val = $(e.currentTarget).data('value');
-                var url = '{!! route('sleep.watchdist', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    data: {
-                        "_token": "{{ csrf_token() }}",
-                        "value": val
-                    },
-                    success: (msg) => {
-                        if (msg.success) {
-                            Swal.fire(
-                                'Oke ',
-                                'Updated watchdist',
-                                'success'
-                            ).then(() => {
-                                table.ajax.reload(null, false)
-                            })
-                        }
-                    }
-                })
-
-            })
+            //     alert($(e.currentTarget).data('id'))
+            // })
         </script>
     @endpush
 </x-appLayout>

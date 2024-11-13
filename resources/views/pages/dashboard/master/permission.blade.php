@@ -7,7 +7,7 @@
             class="offcanvas-header flex items-center justify-between p-4 pt-3 border-b border-b-slate-300 dark:border-b-slate-900">
             <div>
                 <h3 class="block text-xl font-Inter text-slate-900 font-medium dark:text-[#eee]">
-                    Data Departement
+                    Data Permission
                 </h3>
             </div>
             <button type="button"
@@ -23,25 +23,12 @@
                     <form class="space-y-4" id="sending_form">
                         <input type="hidden" name="id" id="id" value="">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-                        <div class="input-area">
-                            <label for="company_id" class="form-label">Perusahaan</label>
-                            <select id="company_id" class="form-control" name="company">
-                                <option value="" selected disabled class="dark:bg-slate-700 !text-slate-300">Pilih
-                                    Data</option>
-                                @foreach ($company as $item)
-                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">
-                                        {{ $item->company }}</option>
-                                @endforeach
-                            </select>
-                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
-                                This is invalid state.</div>
-                        </div>
                         <div class="input-area relative">
-                            <label for="largeInput" class="form-label">Departement</label>
+                            <label for="largeInput" class="form-label">Permission</label>
                             <div class="relative">
-                                <input type="text" name="division" class="form-control !pl-9"
-                                    placeholder="Nama Divisi">
-                                <iconify-icon icon="heroicons-outline:building-office-2"
+                                <input type="text" name="name" class="form-control !pl-9"
+                                    placeholder="Permission">
+                                <iconify-icon icon="heroicons:globe-alt"
                                     class="absolute left-2 top-1/2 -translate-y-1/2 text-base text-slate-500"></iconify-icon>
                             </div>
                         </div>
@@ -63,7 +50,7 @@
         <div class="space-y-5">
             <div class="card">
                 <header class="card-header noborder">
-                    <h4 class="card-title">Departement</h4>
+                    <h4 class="card-title">Permission</h4>
                     <button data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas"
                         class="btn btn-sm inline-flex justify-center btn-primary" id="btn-add">
                         <span class="flex items-center">
@@ -84,10 +71,7 @@
                                     <thead class="bg-slate-200 dark:bg-slate-700">
                                         <tr>
                                             <th scope="col" class="table-th">
-                                                Departement
-                                            </th>
-                                            <th scope="col" class="table-th">
-                                                Perusahaan
+                                                Roles
                                             </th>
                                             <th scope="col" class="table-th">
                                                 Action
@@ -110,10 +94,11 @@
 
     @push('scripts')
         <script type="module">
+            // table
             var table = $("#data-table, .data-table").DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{!! route('masters.division') !!}',
+                ajax: '{!! route('masters.permission') !!}',
                 dom: "<'grid grid-cols-12 gap-5 px-6 mt-6'<'col-span-4'l><'col-span-8 flex justify-end'f><'#pagination.flex items-center'>><'min-w-full't><'flex justify-end items-center'p>",
                 paging: true,
                 ordering: true,
@@ -134,11 +119,11 @@
                 },
                 "columnDefs": [{
                         "searchable": false,
-                        "targets": [1, 2]
+                        // "targets": [1, 2, 3]
                     },
                     {
                         "orderable": false,
-                        "targets": [1, 2]
+                        // "targets": [1, 2, 3]
                     },
                     {
                         'className': 'table-td',
@@ -146,12 +131,8 @@
                     }
                 ],
                 columns: [{
-                        data: 'division',
-                        name: 'division'
-                    },
-                    {
-                        name: 'company',
-                        data: 'company.company',
+                        name: 'name',
+                        data: 'name',
                     },
                     {
                         data: 'id',
@@ -170,12 +151,13 @@
                 ],
             });
 
+            // submit data
             $(document).on('submit', '#sending_form', (e) => {
                 e.preventDefault();
                 var type = $("#sending_form").data('type');
                 var data = $('#sending_form').serializeArray();
                 var id = $("#sending_form").find("input[name='id']").val()
-                var url = type == 'submit' ? '{!! route('masters.division.store') !!}' : '{!! route('masters.division.update', ['id' => ':id']) !!}';
+                var url = type == 'submit' ? '{!! route('masters.permission.store') !!}' : '{!! route('masters.permission.update', ['id' => ':id']) !!}';
 
                 $.post(url.replace(':id', id), data)
                     .done(function(msg) {
@@ -208,13 +190,12 @@
                     });
             })
 
+
             $(document).on('click', '#btn-add', () => {
+                $("select[name='company']").val("").change();
+                $("#sending_form")[0].reset();
                 $("#sending_form").data("type", "submit");
             })
-
-            $('#data-table').on('draw.dt', function() {
-                $('[data-toggle="tooltip"]').tooltip();
-            });
 
             table.on('draw', function() {
                 tippy(".onTop", {
@@ -226,15 +207,14 @@
             $(document).on('click', '#btn-edit', (e) => {
                 $("#sending_form").data("type", "update");
                 var id = $(e.currentTarget).data('id');
-                var url = '{!! route('masters.division.edit', ['id' => ':id']) !!}';
+                var url = '{!! route('masters.permission.edit', ['id' => ':id']) !!}';
                 url = url.replace(':id', id);
 
                 $.ajax({
                     type: 'GET',
                     url: url,
                     success: (msg) => {
-                        // $('#default_modal').modal();
-                        $("#sending_form").find("input[name='division']").val(msg.data.division)
+                        $("#sending_form").find("input[name='role']").val(msg.data.name);
                         $("#sending_form").find("input[name='id']").val(id)
                     }
                 })
@@ -252,7 +232,7 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        var url = '{!! route('masters.division.destroy', ['id' => ':id']) !!}';
+                        var url = '{!! route('masters.permission.destroy', ['id' => ':id']) !!}';
                         url = url.replace(':id', id);
                         $.ajax({
                             url: url,

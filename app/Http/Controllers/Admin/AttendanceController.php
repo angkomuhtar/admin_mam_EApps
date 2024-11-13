@@ -25,7 +25,7 @@ class AttendanceController extends Controller
         $user = Auth::guard('web')->user();
         $dept;
 
-        if ($user->roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
+        if ($user->user_roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
           $dept = Division::where('id', '<>' , 11)->get();
         }else{
           $dept = Division::where('id', $user->employee->division_id)->get(); 
@@ -69,83 +69,7 @@ class AttendanceController extends Controller
             'project' => Project::all()
         ]);
     }
-    
-    public function store(Request $request)
-    {   
-        $validator = Validator::make($request->all(), [
-            'company'     => 'required',
-            'division'     => 'required',
-            'position'     => 'required'
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()
-            ]);
-        }
-        $data = Position::create([
-            'company_id' => $request->company,
-            'division_id' => $request->division,
-            'position' => $request->position,
-        ]);
 
-        return response()->json([
-                'success' => true,
-                'message' => 'Data Divisi Berhasil Disimpan'
-            ]);
-
-    }
-
-    public function destroy($id) 
-    {
-        $delete = Position::destroy($id);
-        if ($delete){
-            return response()->json([
-                'success' => true,
-                'message' => 'Data divisi berhasil disimpan'
-            ]);
-        }else{
-            return response()->json([
-                'success' => false,
-                'message' => "error saat menghapus data"
-            ]);
-        }
-    }
-
-    public function edit($id)
-    {
-        $data = Position::find($id);
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Divisi Berhasil Disimpan',
-            'data' => $data
-        ]);
-    }
-    
-    public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'company'     => 'required',
-            'division'     => 'required',
-            'position'     => 'required'
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()
-            ]);
-        }
-        $update = Position::find($id);
-        $update->division_id = $request->division;
-        $update->position = $request->position;
-        if($update->save()){
-            return response()->json([
-                'success' => true,
-                'message' => 'Data Divisi Berhasil Update',
-                'data' => $update
-            ]);
-        }
-    }
 
 
     public function export(Request $request)
@@ -305,7 +229,6 @@ class AttendanceController extends Controller
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');
     }
-
 
     public function export_details(Request $request, $id)
     {

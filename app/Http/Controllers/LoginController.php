@@ -37,7 +37,7 @@ class LoginController extends Controller
         {
             $user = Auth::guard('web')->getLastAttempted();
             // dd($user);
-            if (in_array($user->roles, array('admin', 'superadmin', 'hrd', 'hse'))) {
+            if (in_array($user->user_roles, array('admin', 'superadmin', 'hrd', 'hse'))) {
                 $request->session()->regenerate();
                 return redirect()->route('dashboard')
                     ->withSuccess('You have successfully logged in!');

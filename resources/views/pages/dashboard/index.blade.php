@@ -7,7 +7,7 @@
                 class="font-medium lg:text-2xl text-xl capitalize text-slate-900 inline-block ltr:pr-4 rtl:pl-4 mb-1 sm:mb-0">
                 DASHBOARD</h4>
         </div>
-        @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd', 'admin']))
+        @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd', 'admin']))
             <div class="space-y-5 mb-5">
                 <div class="grid grid-cols-12 gap-5">
                     <div class="lg:col-span-4 col-span-12 space-y-5">
@@ -261,7 +261,7 @@
 
             </div>
         @endif
-        @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hse']))
+        @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hse']))
             <div class="grid grid-cols-12 gap-5 mb-5">
                 <div class="2xl:col-span-3 lg:col-span-4 col-span-12">
                     <div class="bg-no-repeat bg-cover bg-center p-4 rounded-[6px] relative"

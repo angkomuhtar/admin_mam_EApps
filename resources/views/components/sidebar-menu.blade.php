@@ -31,7 +31,7 @@
                 </a>
             </li>
 
-            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hse']))
+            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hse']))
                 <li>
                     <a href="{{ route('sleep') }}"
                         class="navItem {{ \Request::route()->getName() == 'sleep' ? 'active' : '' }}">
@@ -42,7 +42,7 @@
                     </a>
                 </li>
             @endif
-            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd', 'admin']))
+            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd', 'admin']))
                 <li>
                     <a href="{{ route('employee') }}"
                         class="navItem {{ stripos(\Request::route()->getName(), 'employee') !== false ? 'active' : '' }}">
@@ -53,7 +53,7 @@
                     </a>
                 </li>
             @endif
-            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
+            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd']))
                 <li class="{{ \Request::route()->getName() == 'absensi*' ? 'active' : '' }}">
                     <a href="#" class="navItem">
                         <span class="flex items-center">
@@ -84,7 +84,7 @@
                     </ul>
                 </li>
             @endif
-            @if (in_array(auth()->guard('web')->user()->roles, ['superadmin', 'hrd']))
+            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd']))
                 <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
                     <a href="#" class="navItem">
                         <span class="flex items-center">
@@ -106,6 +106,21 @@
                             <a href={{ route('masters.position') }}
                                 class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
                         </li>
+                        @haspermission('role_permission')
+                            <li>
+                                <a href={{ route('masters.roles') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.roles') !== false ? 'active' : '' }}">Roles</a>
+                            </li>
+                            <li>
+                                <a href={{ route('masters.permission') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.permission') !== false ? 'active' : '' }}">Permission</a>
+                            </li>
+                            <li>
+                                <a href={{ route('masters.users.permission') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.users.permission') !== false ? 'active' : '' }}">User
+                                    Permission</a>
+                            </li>
+                        @endhaspermission
                     </ul>
                 </li>
             @endif

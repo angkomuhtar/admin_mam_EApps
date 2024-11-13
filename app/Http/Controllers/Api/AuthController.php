@@ -45,12 +45,12 @@ class AuthController extends Controller
         }else{
             $user = Auth::guard('api')->user()->load(['employee','profile', 'employee.division', 'employee.position']);
             $phoneID = User::where('phone_id', $request->phone_id)->where('id','!=', $user->id)->get();
-            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->roles == 'superadmin') {
+            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin') {
                 
                 if ($user->status != 'Y') {
                     return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
                 }
-                if ($user->roles != 'superadmin') {
+                if ($user->user_roles != 'superadmin') {
                     $db = User::find($user->id);               
                     $db->phone_id = $request->phone_id;
                     $db->save();

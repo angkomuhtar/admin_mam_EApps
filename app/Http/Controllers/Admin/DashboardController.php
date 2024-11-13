@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\ViewClockSleep;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Xls;
@@ -26,8 +27,10 @@ class DashboardController extends Controller
 
     public function index (Request $request)
     {
+        $user = Auth::guard('web')->user()->employee->company_id;
         $today = Carbon::now()->format('Y-m-d');
         $employee= Employee::select('division_id', DB::raw('count(*) as post_count'))->with('division')
+        ->where('company_id', $user)
         ->whereNotIn('division_id', [11, 11001])
         ->whereHas('user', function($query){
             $query->where('status','Y');
@@ -52,10 +55,11 @@ class DashboardController extends Controller
             }
             return $item;
         });
+
         $groupped= $data->groupBy('type');
 
 
-        $dataSleep = User::where('roles','<>', 'superadmin')
+        $dataSleep = User::where('user_roles','<>', 'superadmin')
           ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->has('smartwatch')
           ->whereHas('profile', function ($query) use ($request){

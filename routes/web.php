@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\PositionsController;
 use App\Http\Controllers\Admin\WorkhoursController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClocklocationsController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RolesController;
+use Illuminate\Routing\RouteGroup;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,29 +81,10 @@ Route::prefix('admin')->group(function()
         });
 
         Route::middleware('Admin:superadmin,hrd')->group(function () {
-            Route::controller(AttendanceController::class)->prefix('attendance')->group(function()
-            {
-                Route::get('/','index')->name('absensi.attendance');
-                Route::get('/{id}/details','details')->name('absensi.attendance.details');
-                Route::get('/create','create')->name('absensi.attendance.create');
-                Route::post('/','store')->name('absensi.attendance.store');
-                Route::delete('/{id}','destroy')->name('absensi.attendance.destroy');
-                Route::get('/export','export')->name('absensi.attendance.export');
-                Route::get('/export_dte','export_dte')->name('absensi.attendance.export_dte');
-                Route::get('/{id}/export','export_details')->name('absensi.attendance.export_details');
-                Route::get('/{id}','edit')->name('absensi.attendance.edit');
-                Route::post('/{id}','update')->name('absensi.attendance.update');
-            });
+            
 
             Route::middleware('Admin:superadmin')->group(function () {
-                Route::controller(usersController::class)->prefix('users')->group(function()
-                {
-                    Route::get('/','index')->name('masters.users');
-                    Route::post('/{id}/status','status')->name('masters.users.status');
-                    Route::patch('/{id}/reset_phone','reset_phone')->name('masters.users.reset_phone');
-                    Route::get('/create','create')->name('masters.users.create');
-                    Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
-                });
+                
                 Route::controller(DivisionsController::class)->prefix('division')->group(function()
                 {
                     Route::get('/','index')->name('masters.division');
@@ -149,6 +133,59 @@ Route::prefix('admin')->group(function()
                     Route::get('/{id}','edit')->name('absensi.clocklocations.edit');
                     Route::post('/{id}','update')->name('absensi.clocklocations.update');
                 });
+            });
+        });
+
+
+        Route::controller(AttendanceController::class)->prefix('attendance')->group(function()
+        {
+            Route::middleware('role_or_permission:developer|attd_view')->group(function () { 
+                Route::get('/','index')->name('absensi.attendance');
+                Route::get('/{id}/details','details')->name('absensi.attendance.details');
+                Route::get('/export','export')->name('absensi.attendance.export');
+                Route::get('/export_dte','export_dte')->name('absensi.attendance.export_dte');
+                Route::get('/{id}/export','export_details')->name('absensi.attendance.export_details');
+                Route::get('/{id}','edit')->name('absensi.attendance.edit');
+                Route::post('/{id}','update')->name('absensi.attendance.update');
+            });
+        });
+
+        Route::middleware('role_or_permission:developer|role_permission')->group(function () {
+            Route::controller(RolesController::class)->prefix('roles')->group(function()
+                {
+                    Route::get('/','index')->name('masters.roles');
+                    Route::post('/','store')->name('masters.roles.store');
+                    Route::get('/{id}','edit')->name('masters.roles.edit');
+                    Route::post('/{id}','update')->name('masters.roles.update');
+                    Route::delete('/{id}','destroy')->name('masters.roles.destroy');
+                    Route::get('/{id}/permission','get_permission')->name('masters.roles.get_permission');
+                    Route::post('/{id}/permission','set_permission')->name('masters.roles.set_permission');
+                });
+
+                Route::controller(PermissionController::class)->prefix('permission')->group(function()
+                {
+                    Route::get('/','index')->name('masters.permission');
+                    Route::post('/','store')->name('masters.permission.store');
+                    Route::get('/{id}','edit')->name('masters.permission.edit');
+                    Route::post('/{id}','update')->name('masters.permission.update');
+                    Route::delete('/{id}','destroy')->name('masters.permission.destroy');
+                });
+        });
+
+
+        Route::controller(usersController::class)->prefix('users')->group(function()
+        {
+            Route::get('/','index')->name('masters.users')->middleware('role_or_permission:developer|user_view');
+            Route::group(['middleware'=> 'role_or_permission:developer|user_update'], function (){
+                Route::post('/{id}/status','status')->name('masters.users.status');
+                Route::patch('/{id}/reset_phone','reset_phone')->name('masters.users.reset_phone');
+                Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
+            });
+            
+            Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
+                Route::get('/permission','permission')->name('masters.users.permission');
+                Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
+                Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
             });
         });
     });

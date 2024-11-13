@@ -2,25 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Division;
 use App\Models\User;
+use App\Models\Company;
+use App\Models\Division;
 use Illuminate\Http\Request;
+use App\Helpers\ResponseHelper;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\ResponseHelper;
 
 class DivisionsController extends Controller
 {
+
     public function index(Request $request)
     {
-        
+        $company = Company::all();
+        $users = Auth::guard('web')->user();
+
         if ($request->ajax()) {
-            $data = Division::with('company')->select('divisions.*');
+            $data = Division::with('company')->where('company_id', $users->employee->company_id)->select('divisions.*');
             return DataTables::eloquent($data)->toJson();
         }
         return view('pages.dashboard.master.division', [
             'pageTitle' => 'Users',
+            'company' => $company
         ]);
     }
 
@@ -33,7 +39,8 @@ class DivisionsController extends Controller
     {   
 
         $validator = Validator::make($request->all(), [
-            'division'     => 'required'
+            'division'     => 'required',
+            'company'     => 'required'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -42,7 +49,7 @@ class DivisionsController extends Controller
             ]);
         }
         $data = Division::create([
-            'company_id' => 1,
+            'company_id' => $request->company,
             'division' => $request->division
         ]);
 

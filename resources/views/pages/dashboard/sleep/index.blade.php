@@ -1,6 +1,5 @@
 <x-appLayout>
     <div class="space-y-8">
-
         <div class=" space-y-5">
             <div class="card">
                 <header class=" card-header noborder">

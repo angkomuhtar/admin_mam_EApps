@@ -33,8 +33,7 @@ class SleepController extends Controller
       // return $shift;
 
       if ($request->ajax()) {
-        $data = User::where('roles','<>', 'superadmin')
-          ->with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+        $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
             $query->where('name', 'LIKE', '%'.$request->name.'%');
           })
@@ -88,7 +87,7 @@ class SleepController extends Controller
     {
       ini_set('max_execution_time', '300');
       $date = $request->tanggal;
-      $data = User::where('roles','<>', 'superadmin')
+      $data = User::where('user_roles','<>', 'superadmin')
         ->with('employee','absen', 'absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
         ->whereHas('employee', function ($query) use ($request){
           $query->where('category_id',  'HAU')->where('contract_status', 'ACTIVE');

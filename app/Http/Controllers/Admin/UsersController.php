@@ -8,15 +8,16 @@ use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Models\ClockLocation;
 use App\Http\Controllers\Controller;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
 class UsersController extends Controller
 {
     public function index(Request $request)
     {
-        $data =  User::all();
         $departemen = Division::all();
-        $locaation = ClockLocation::where('status', 'Y')->get();
+        $location = ClockLocation::where('status', 'Y')->get();
 
         if ($request->ajax()) {
             $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch')
@@ -38,9 +39,8 @@ class UsersController extends Controller
 
         return view('pages.dashboard.master.users', [   
             'pageTitle' => 'Users',
-            'tableData' => $data,
             'dept'=>$departemen,
-            'loc'=>$locaation
+            'loc'=>$location
         ]);
     }
 
@@ -119,4 +119,56 @@ class UsersController extends Controller
             ]);
           }
     }
+
+    public function permission(Request $request)
+    {
+        $departemen = Division::all();
+        $location = ClockLocation::where('status', 'Y')->get();
+
+        if ($request->ajax()) {
+            $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch', 'roles', 'permissions');
+            // ->whereHas('profile', function($query) use($request) {
+            //         $query->where('name','LIKE','%'.$request->name.'%');
+            // });
+            // if ($request->division) {
+            //     $data->whereHas('employee', function($query) use($request) {
+            //         $query->where('division_id', $request->division);
+            //     });
+            // }
+            return DataTables::of($data->get())->toJson();
+        }
+
+        return view('pages.dashboard.master.users-permission', [   
+            'pageTitle' => 'Users Permission',
+            'dept'=>$departemen,
+            'loc' => $location
+        ]);
+    }
+
+    public function permission_edit(Request $request, String $id){
+       $role = Role::all();
+       $permission = Permission::all();
+       $users = User::with('profile', 'employee', 'roles', 'permissions')->where('id', $id)->first();
+
+       $users->roles_array = $users->roles->pluck('name')->toArray();
+       $users->permissions_array = $users->permissions->pluck('name')->toArray();
+
+      return view('pages.dashboard.master.permission_edit', [
+        'pageTitle' => 'Tambah Karyawan',
+        'role'=> $role,
+        'permission'=> $permission,
+        'user'=> $users
+      ]);
+    }
+
+    public function permission_update(Request $request, String $id){
+        $users = User::findOrFail($id);
+        $roles = $request->input('arrayRole');
+        $roles = is_array($roles) ? $roles : [$roles];
+        $users->syncRoles($roles);
+        $permissions = $request->input('arrayPermission');
+        $permissions = is_array($permissions) ? $permissions : [$permissions];
+        $users->syncPermissions($permissions);
+        return back()->with('success', "Role has been assigned to user {$users->profile->name}");
+     }
 }

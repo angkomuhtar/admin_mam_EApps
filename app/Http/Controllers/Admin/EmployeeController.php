@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Options;
 use App\Models\User;
-use App\Models\Employee;
-use App\Models\Profile;
-use App\Models\Division;
-use App\Models\Project;
 use App\Models\Shift;
+use App\Models\Company;
+use App\Models\Options;
+use App\Models\Profile;
+use App\Models\Project;
+use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Position;
 use App\Models\WorkSchedule;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 
 class EmployeeController extends Controller
@@ -32,20 +33,19 @@ class EmployeeController extends Controller
         $category= Options::select('kode', 'value')->where('type', 'category')->get();
         $shift= WorkSchedule::select('code', 'name')->orderBy('name')->get();
 
-        if ($user->roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
+        if ($user->user_roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
           $dept = Division::all();
         }else{
           $dept = Division::where('id', $user->employee->division_id)->get(); 
         }
 
         if ($request->ajax()) {
-          $data = User::where('roles','<>', 'superadmin')
-            ->with('employee','profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule')
+          $data = User::with('employee','profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule')
             ->whereHas('profile', function ($query) use ($request){
               $query->where('name', 'LIKE', '%'.$request->name.'%');
             });
           
-          if ($user->roles != 'superadmin' ) {
+          if ($user->user_roles != 'superadmin' ) {
             $data->where('status', 'Y');
           }
 
@@ -68,7 +68,7 @@ class EmployeeController extends Controller
           }
 
 
-          if ($user->roles != 'superadmin' ) {
+          if ($user->user_roles != 'superadmin' ) {
             if (!in_array($user->employee->division_id, [2,7])) {
               $data->whereHas('employee', function ($query) use ($user){
                 $query->where('division_id', $user->employee->division_id);
@@ -101,6 +101,7 @@ class EmployeeController extends Controller
       $education =  Options::where("type","education")->get();
       $religion =  Options::where("type","religion")->get();
       $marriage =  Options::where("type","marriage")->get();
+      $company =  Company::all();
       $workhours =  WorkSchedule::all();
       $project =  Project::all();
 
@@ -111,6 +112,7 @@ class EmployeeController extends Controller
         'marriage'=> $marriage,
         'project'=> $project,
         'workhours'=> $workhours,
+        'company'=> $company,
     ]);
     }
 
