@@ -126,15 +126,15 @@ class UsersController extends Controller
         $location = ClockLocation::where('status', 'Y')->get();
 
         if ($request->ajax()) {
-            $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch', 'roles', 'permissions');
-            // ->whereHas('profile', function($query) use($request) {
-            //         $query->where('name','LIKE','%'.$request->name.'%');
-            // });
-            // if ($request->division) {
-            //     $data->whereHas('employee', function($query) use($request) {
-            //         $query->where('division_id', $request->division);
-            //     });
-            // }
+            $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch', 'roles', 'permissions')
+            ->whereHas('profile', function($query) use($request) {
+                    $query->where('name','LIKE','%'.$request->name.'%');
+            });
+            if ($request->division) {
+                $data->whereHas('employee', function($query) use($request) {
+                    $query->where('division_id', $request->division);
+                });
+            }
             return DataTables::of($data->get())->toJson();
         }
 
