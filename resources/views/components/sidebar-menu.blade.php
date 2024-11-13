@@ -106,20 +106,20 @@
                             <a href={{ route('masters.position') }}
                                 class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
                         </li>
-                        <li>
-                            <a href={{ route('masters.roles') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.roles') !== false ? 'active' : '' }}">Roles</a>
-                        </li>
-                        <li>
-                            <a href={{ route('masters.permission') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.permission') !== false ? 'active' : '' }}">Permission</a>
-                        </li>
-                        <li>
-                            <a href={{ route('masters.users.permission') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.users.permission') !== false ? 'active' : '' }}">User
-                                Permission</a>
-                        </li>
                         @haspermission('role_permission')
+                            <li>
+                                <a href={{ route('masters.roles') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.roles') !== false ? 'active' : '' }}">Roles</a>
+                            </li>
+                            <li>
+                                <a href={{ route('masters.permission') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.permission') !== false ? 'active' : '' }}">Permission</a>
+                            </li>
+                            <li>
+                                <a href={{ route('masters.users.permission') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.users.permission') !== false ? 'active' : '' }}">User
+                                    Permission</a>
+                            </li>
                         @endhaspermission
                     </ul>
                 </li>

@@ -150,7 +150,7 @@ Route::prefix('admin')->group(function()
             });
         });
 
-        // Route::middleware('role_or_permission:developer|role_permission')->group(function () {
+        Route::middleware('role_or_permission:developer|role_permission')->group(function () {
             Route::controller(RolesController::class)->prefix('roles')->group(function()
                 {
                     Route::get('/','index')->name('masters.roles');
@@ -170,7 +170,7 @@ Route::prefix('admin')->group(function()
                     Route::post('/{id}','update')->name('masters.permission.update');
                     Route::delete('/{id}','destroy')->name('masters.permission.destroy');
                 });
-        // });
+        });
 
 
         Route::controller(usersController::class)->prefix('users')->group(function()
@@ -182,11 +182,11 @@ Route::prefix('admin')->group(function()
                 Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
             });
             
-            Route::get('/permission','permission')->name('masters.users.permission');
-            Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
-            Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
-            // Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
-            // });
+            Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
+                Route::get('/permission','permission')->name('masters.users.permission');
+                Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
+                Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
+            });
         });
     });
 }
