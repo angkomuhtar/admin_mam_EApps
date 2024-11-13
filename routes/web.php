@@ -150,7 +150,7 @@ Route::prefix('admin')->group(function()
             });
         });
 
-        Route::middleware('role_or_permission:developer|role_permission')->group(function () {
+        // Route::middleware('role_or_permission:developer|role_permission')->group(function () {
             Route::controller(RolesController::class)->prefix('roles')->group(function()
                 {
                     Route::get('/','index')->name('masters.roles');
@@ -170,7 +170,7 @@ Route::prefix('admin')->group(function()
                     Route::post('/{id}','update')->name('masters.permission.update');
                     Route::delete('/{id}','destroy')->name('masters.permission.destroy');
                 });
-        });
+        // });
 
 
         Route::controller(usersController::class)->prefix('users')->group(function()
