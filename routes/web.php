@@ -182,11 +182,11 @@ Route::prefix('admin')->group(function()
                 Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
             });
             
-            Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
-                Route::get('/permission','permission')->name('masters.users.permission');
-                Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
-                Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
-            });
+            Route::get('/permission','permission')->name('masters.users.permission');
+            Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
+            Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
+            // Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
+            // });
         });
     });
 }
