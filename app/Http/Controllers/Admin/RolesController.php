@@ -15,7 +15,7 @@ class RolesController extends Controller
     public function index(Request $request)
     {
         
-        $permission = Permission::all();
+        $permission = Permission::orderBy('name', 'asc')->get();
         if ($request->ajax()) {
             $data = Role::with('permissions')->get();
             return DataTables::of($data)->toJson();

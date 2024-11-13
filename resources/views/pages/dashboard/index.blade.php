@@ -7,7 +7,7 @@
                 class="font-medium lg:text-2xl text-xl capitalize text-slate-900 inline-block ltr:pr-4 rtl:pl-4 mb-1 sm:mb-0">
                 DASHBOARD</h4>
         </div>
-        @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd', 'admin']))
+        @can('attd_view')
             <div class="space-y-5 mb-5">
                 <div class="grid grid-cols-12 gap-5">
                     <div class="lg:col-span-4 col-span-12 space-y-5">
@@ -260,8 +260,8 @@
 
 
             </div>
-        @endif
-        @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hse']))
+        @endcan
+        @can('sleep_view')
             <div class="grid grid-cols-12 gap-5 mb-5">
                 <div class="2xl:col-span-3 lg:col-span-4 col-span-12">
                     <div class="bg-no-repeat bg-cover bg-center p-4 rounded-[6px] relative"
@@ -367,9 +367,8 @@
                             <h4 class="card-title">Trend Jam Tidur</h4>
                             <div class="grid gap-2 grid-cols-2">
                                 <div class="input-area">
-                                    <input class="form-control py-2 flatpickr flatpickr-input active"
-                                        name="tanggal_fil" id="tanggal_fil" value="" type="text"
-                                        readonly="readonly">
+                                    <input class="form-control py-2 flatpickr flatpickr-input active" name="tanggal_fil"
+                                        id="tanggal_fil" value="" type="text" readonly="readonly">
                                 </div>
                                 <div class="input-area">
                                     <select id="shift_fil" class="form-control" name="shift">
@@ -407,7 +406,7 @@
                     </div>
                 </div>
             </div>
-        @endif
+        @endcan
 
 
         @push('scripts')

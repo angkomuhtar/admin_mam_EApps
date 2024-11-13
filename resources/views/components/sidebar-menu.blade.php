@@ -31,7 +31,7 @@
                 </a>
             </li>
 
-            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hse']))
+            @can('sleep_view')
                 <li>
                     <a href="{{ route('sleep') }}"
                         class="navItem {{ \Request::route()->getName() == 'sleep' ? 'active' : '' }}">
@@ -41,8 +41,8 @@
                         </span>
                     </a>
                 </li>
-            @endif
-            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd', 'admin']))
+            @endcan
+            @can('employee_view')
                 <li>
                     <a href="{{ route('employee') }}"
                         class="navItem {{ stripos(\Request::route()->getName(), 'employee') !== false ? 'active' : '' }}">
@@ -52,8 +52,8 @@
                         </span>
                     </a>
                 </li>
-            @endif
-            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd']))
+            @endcan
+            @canany(['attd_view', 'attd_option'])
                 <li class="{{ \Request::route()->getName() == 'absensi*' ? 'active' : '' }}">
                     <a href="#" class="navItem">
                         <span class="flex items-center">
@@ -63,28 +63,32 @@
                         <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
                     </a>
                     <ul class="sidebar-submenu">
-                        <li>
-                            <a href={{ route('absensi.attendance') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.attendance') !== false ? 'active' : '' }}">Attendance</a>
-                        </li>
-                        <li>
-                            <a href={{ route('absensi.workhours') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.workhours') !== false ? 'active' : '' }}">Work
-                                Hours</a>
-                        </li>
-                        <li>
-                            <a href={{ route('absensi.shift') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.shift') !== false ? 'active' : '' }}">Shift</a>
-                        </li>
-                        <li>
-                            <a href={{ route('absensi.clocklocations') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'absensi.clocklocations') !== false ? 'active' : '' }}">Clock
-                                Location</a>
-                        </li>
+                        @can('attd_view')
+                            <li>
+                                <a href={{ route('absensi.attendance') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'absensi.attendance') !== false ? 'active' : '' }}">Attendance</a>
+                            </li>
+                        @endcan
+                        @can('attd_option')
+                            <li>
+                                <a href={{ route('absensi.workhours') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'absensi.workhours') !== false ? 'active' : '' }}">Work
+                                    Hours</a>
+                            </li>
+                            <li>
+                                <a href={{ route('absensi.shift') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'absensi.shift') !== false ? 'active' : '' }}">Shift</a>
+                            </li>
+                            <li>
+                                <a href={{ route('absensi.clocklocations') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'absensi.clocklocations') !== false ? 'active' : '' }}">Clock
+                                    Location</a>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
-            @endif
-            @if (in_array(auth()->guard('web')->user()->user_roles, ['superadmin', 'hrd']))
+            @endcanany
+            @canany(['user_view', 'role_permission', 'master_option'])
                 <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
                     <a href="#" class="navItem">
                         <span class="flex items-center">
@@ -94,18 +98,22 @@
                         <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
                     </a>
                     <ul class="sidebar-submenu">
-                        <li>
-                            <a href={{ route('masters.users') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.users') !== false ? 'active' : '' }}">Users</a>
-                        </li>
-                        <li>
-                            <a href={{ route('masters.division') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.division') !== false ? 'active' : '' }}">Departement</a>
-                        </li>
-                        <li>
-                            <a href={{ route('masters.position') }}
-                                class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
-                        </li>
+                        @can('user_view')
+                            <li>
+                                <a href={{ route('masters.users') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.users') !== false ? 'active' : '' }}">Users</a>
+                            </li>
+                        @endcan
+                        @can('master_option')
+                            <li>
+                                <a href={{ route('masters.division') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.division') !== false ? 'active' : '' }}">Departement</a>
+                            </li>
+                            <li>
+                                <a href={{ route('masters.position') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.position') !== false ? 'active' : '' }}">Jabatan</a>
+                            </li>
+                        @endcan
                         @haspermission('role_permission')
                             <li>
                                 <a href={{ route('masters.roles') }}
@@ -123,7 +131,7 @@
                         @endhaspermission
                     </ul>
                 </li>
-            @endif
+            @endcanany
         </ul>
         <div class="bg-slate-700 mb-10 mt-36 p-4 relative text-center rounded-2xl text-white"
             id="sidebar_bottom_wizard">
