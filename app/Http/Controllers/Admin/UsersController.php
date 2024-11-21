@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\ClockLocation;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use PhpParser\Node\Stmt\TryCatch;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
@@ -174,4 +175,23 @@ class UsersController extends Controller
         $users->syncPermissions($permissions);
         return back()->with('success', "Role has been assigned to user {$users->profile->name}");
      }
+
+    public function scope_update(Request $request,String $id){
+
+        try {
+            //code...
+            User::find($id)->update([
+                'user_roles' => $request->value
+              ]);
+              return response()->json([
+                  'success' => true,
+                  'data' => 'sucess'
+              ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'data' => 'error'
+            ]);
+        }
+    }
 }

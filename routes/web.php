@@ -202,6 +202,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::get('/permission','permission')->name('masters.users.permission');
             Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');
             Route::post('/permission/{id}','permission_update')->name('masters.users.permission_update');
+            Route::post('/scope/{id}','scope_update')->name('masters.users.scope');
         });
     });
 
