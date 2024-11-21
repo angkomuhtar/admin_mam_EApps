@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PositionsController;
 use App\Http\Controllers\Admin\WorkhoursController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClocklocationsController;
+use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolesController;
 use Illuminate\Routing\RouteGroup;
@@ -88,6 +89,25 @@ Route::middleware('auth')->prefix('admin')->group(function()
             
 
     Route::middleware('role_or_permission:developer|master_option')->group(function () {
+        
+        Route::controller(CompanyController::class)->group(function(){
+            Route::prefix('company')->group(function () {
+                Route::get('/','index')->name('masters.company');
+                Route::post('/','store')->name('masters.company.store');
+                Route::delete('/{id}','destroy')->name('masters.company.destroy');
+                Route::get('/{id}','edit')->name('masters.company.edit');
+                Route::post('/{id}','update')->name('masters.company.update');
+            });
+            Route::prefix('project')->group(function () {
+                Route::get('/','index_proj')->name('masters.project');
+                Route::post('/','store_proj')->name('masters.project.store');
+                Route::delete('/{id}','destroy_proj')->name('masters.project.destroy');
+                Route::get('/{id}','edit_proj')->name('masters.project.edit');
+                Route::post('/{id}','update_proj')->name('masters.project.update');
+            });
+        });
+
+
         Route::controller(DivisionsController::class)->prefix('division')->group(function()
         {
             Route::get('/','index')->name('masters.division');

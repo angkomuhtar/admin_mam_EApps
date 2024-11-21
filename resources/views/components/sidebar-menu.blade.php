@@ -104,7 +104,17 @@
                                     class="navItem {{ stripos(\Request::route()->getName(), 'masters.users') !== false ? 'active' : '' }}">Users</a>
                             </li>
                         @endcan
+                        @role('developer')
+                            <li>
+                                <a href={{ route('masters.company') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.company') !== false ? 'active' : '' }}">Company</a>
+                            </li>
+                        @endrole
                         @can('master_option')
+                            <li>
+                                <a href={{ route('masters.project') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.project') !== false ? 'active' : '' }}">Project</a>
+                            </li>
                             <li>
                                 <a href={{ route('masters.division') }}
                                     class="navItem {{ stripos(\Request::route()->getName(), 'masters.division') !== false ? 'active' : '' }}">Departement</a>

@@ -17,11 +17,15 @@ class DivisionsController extends Controller
 
     public function index(Request $request)
     {
-        $company = Company::all();
         $users = Auth::guard('web')->user();
+        $company = $users->user_roles == 'ALL' ? Company::all() : Company::where('id', $users->employee->company_id)->get();
 
         if ($request->ajax()) {
-            $data = Division::with('company')->where('company_id', $users->employee->company_id)->select('divisions.*');
+            $data = Division::with('company')->whereHas('company',function($query) use($users){
+                if ($users->user_roles != 'ALL') {
+                    $query->where('id', $users->employee->company_id); 
+                }
+            });
             return DataTables::eloquent($data)->toJson();
         }
         return view('pages.dashboard.master.division', [

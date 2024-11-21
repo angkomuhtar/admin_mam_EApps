@@ -12,6 +12,10 @@ class Company extends Model
     
     protected $table = 'companies';
 
+    protected $fillable = [
+        'company'
+    ];
+
     public function division() : HasMany {
         return $this->hasMany(Division::class);
     }

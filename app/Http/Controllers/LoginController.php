@@ -35,20 +35,20 @@ class LoginController extends Controller
 
         if(Auth::guard('web')->attempt($credentials))
         {
-            $user = Auth::guard('web')->getLastAttempted();
+            $request->session()->regenerate();
+            return redirect()->route('dashboard')
+                ->withSuccess('You have successfully logged in!');
+            // $user = Auth::guard('web')->getLastAttempted();
             // dd($user);
-            if (in_array($user->user_roles, array('admin', 'superadmin', 'hrd', 'hse'))) {
-                $request->session()->regenerate();
-                return redirect()->route('dashboard')
-                    ->withSuccess('You have successfully logged in!');
-            }else {
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'email' => 'Your Roles not Permission',
-                ])->onlyInput('email', 'password');
-            }
+            // if (in_array($user->user_roles, array('admin', 'superadmin', 'hrd', 'hse'))) {
+            // }else {
+            //     Auth::guard('web')->logout();
+            //     $request->session()->invalidate();
+            //     $request->session()->regenerateToken();
+            //     return back()->withErrors([
+            //         'email' => 'Your Roles not Permission',
+            //     ])->onlyInput('email', 'password');
+            // }
         }else {
             return back()->withErrors([
                 'email' => 'Username not found in crendential',

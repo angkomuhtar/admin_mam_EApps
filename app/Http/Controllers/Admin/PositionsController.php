@@ -5,23 +5,31 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Division;
 use App\Models\Position;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\ResponseHelper;
+use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
 
 class PositionsController extends Controller
 {
     public function index(Request $request)
     {
+        $users = Auth::guard('web')->user();
         if ($request->ajax()) {
-            $data = Position::with('division','company');
+            $data = Position::with('division','company')->whereHas('company',function($query) use($users){
+                if ($users->user_roles != 'ALL') {
+                    $query->where('id', $users->employee->company_id); 
+                }
+            });
             return DataTables::eloquent($data)->toJson();
         }
+
         $division = Division::all();
+        $company =  $users->user_roles == 'ALL' ? Company::all() : Company::where('id', $users->employee->company_id)->get();
         return view('pages.dashboard.master.position', [
             'division' => $division,
+            'company'=> $company
         ]);
     }
     

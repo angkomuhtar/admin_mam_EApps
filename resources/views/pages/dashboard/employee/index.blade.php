@@ -87,6 +87,9 @@
                                                 NRP
                                             </th>
                                             <th scope="col" class=" table-th ">
+                                                Project
+                                            </th>
+                                            <th scope="col" class=" table-th ">
                                                 Departement
                                             </th>
                                             <th scope="col" class=" table-th ">
@@ -187,6 +190,9 @@
                     },
                     {
                         data: 'employee.nip'
+                    },
+                    {
+                        data: 'employee.project.name'
                     },
                     {
                         data: 'employee.division.division'

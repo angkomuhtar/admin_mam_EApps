@@ -16,12 +16,12 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         //
-        Permission::create(['name'=> 'role_permission']);
-        $role = Role::create(['name'=> 'developer']);
+        // Permission::create(['name'=> 'role_permission']);
+        // $role = Role::create(['name'=> 'developer']);
 
-        $role->syncPermissions(['role_permission']);
+        // $role->syncPermissions(['role_permission']);
 
         $user = User::find(1);
-        $user->assignRole('developer');
+        $user->syncRoles('developer');
     }
 }

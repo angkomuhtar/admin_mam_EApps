@@ -25,7 +25,7 @@ class SleepController extends Controller
     {
 
       $user = Auth::guard('web')->user();
-      $dept = Division::all();
+      $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
       $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
       $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
       $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
@@ -37,8 +37,8 @@ class SleepController extends Controller
           ->whereHas('profile', function ($query) use ($request){
             $query->where('name', 'LIKE', '%'.$request->name.'%');
           })
-          ->whereHas('employee', function ($query) use ($request){
-            $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+          ->whereHas('employee', function ($query){
+            $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
           ->has('smartwatch')
           ->with('absen', function ($query) use ($request) {

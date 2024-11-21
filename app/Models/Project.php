@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Project extends Model
 {
@@ -11,19 +12,14 @@ class Project extends Model
     
     protected $table = 'projects';
 
-    // protected $fillable = [
-    //     'name', 
-    //     'card_id', 
-    //     'kk', 
-    //     'education', 
-    //     'tmp_lahir', 
-    //     'tgl_lahir',
-    //     'gender',
-    //     'religion',
-    //     'marriage',
-    //     'id_addr',
-    //     'live_addr',
-    //     'phone',
-    //     'user_id'
-    // ];
+    protected $fillable = [
+        'name', 
+        'code', 
+        'company_id'
+    ];
+
+    public function company(): HasOne
+    {
+        return $this->hasOne(Company::class, 'id', 'company_id');
+    }
 }

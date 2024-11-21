@@ -23,50 +23,49 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $user = Auth::guard('web')->user();
-        $dept;
-
-        if ($user->user_roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
-          $dept = Division::where('id', '<>' , 11)->get();
-        }else{
-          $dept = Division::where('id', $user->employee->division_id)->get(); 
-        }
+        if ($user->user_roles == 'ALL') {
+            $dept = Division::where('id', '<>', '');
+            $project = Project::where('id', '<>', '');
+          }else{
+            $dept = Division::where('company_id', $user->employee->company_id);
+            $project = Project::where('company_id', $user->employee->company_id);
+            if ($user->user_roles == 'PROJ') {
+              $project->where('id', $user->employee->project_id);
+            } elseif($user->user_roles != 'COMP' && $user->user_roles != 'ALL') {
+              $project->where('id', $user->employee->project_id);
+              $dept->where('id', $user->employee->division_id);
+            }
+          }
 
         $shift = Shift::where('wh_code', '<>', 'HO')->get();
 
         if ($request->ajax()) {
             $data = User::where('username', '!=', 'Admin')->with('employee', 'employee.division', 'profile')
-                ->whereHas('employee', function($query) {
-                    $query->where('division_id', '<>', 11);
+                ->whereHas('employee', function($query) use($request) {
+                    $query->where('division_id', '<>', 11)->ofLevel();
+                    if ($request->division != '') {
+                        $query->where('division_id', $request->division);
+                    }
                 });
             $data->with('absen', function ($query) use ($request) {
                 $query->where('date', '=', $request->tanggal)->with('shift');
-            });
-
-            if ($request->shift != '') {
-                $data->whereHas('absen', function($query) use ($request) {
+                if ($request->shift != '') {
                     $query->where('work_hours_id', $request->shift)->where('date', '=', $request->tanggal);
-                });
-            }
+                }
+            });
             
-
             if ($request->name != '') {
                 $data->whereHas('profile', function($query) use ($request) {
                     $query->where('name', 'LIKE', '%'. $request->name.'%');
                 });
             }
-            if ($request->division != '') {
-                $data->whereHas('employee', function($query) use ($request) {
-                    $query->where('division_id', $request->division);
-                });
-            }
-
 
             return DataTables::eloquent($data)->toJson();
         }
         return view('pages.dashboard.absensi.attendance', [
-            'departement' => $dept,
+            'departement' => $dept->get(),
             'shift' => $shift,
-            'project' => Project::all()
+            'project' => $project->get()
         ]);
     }
 

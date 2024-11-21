@@ -8,6 +8,7 @@ use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Models\ClockLocation;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
@@ -16,19 +17,21 @@ class UsersController extends Controller
 {
     public function index(Request $request)
     {
-        $departemen = Division::all();
+        $user = Auth::guard('web')->user();
+        $departemen = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
         $location = ClockLocation::where('status', 'Y')->get();
 
         if ($request->ajax()) {
             $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch')
             ->whereHas('profile', function($query) use($request) {
                     $query->where('name','LIKE','%'.$request->name.'%');
+            })
+            ->whereHas('employee', function($query) use($request){
+                $query->ofLevel();
+                if ($request->division) {
+                        $query->where('division_id', $request->division);
+                }
             });
-            if ($request->division) {
-                $data->whereHas('employee', function($query) use($request) {
-                    $query->where('division_id', $request->division);
-                });
-            }
             return DataTables::of($data)
                 ->addColumn('lokasi', function($model){
                     return $model->employee ? json_decode($model->employee->lokasi) : null;

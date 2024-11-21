@@ -28,53 +28,44 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $user = Auth::guard('web')->user();
-        $dept;
-
         $category= Options::select('kode', 'value')->where('type', 'category')->get();
         $shift= WorkSchedule::select('code', 'name')->orderBy('name')->get();
 
-        if ($user->user_roles == 'superadmin' || $user->employee->division_id == 2 || $user->employee->division_id == 7 ) {
-          $dept = Division::all();
+        if ($user->user_roles == 'ALL') {
+          $dept = Division::where('id', '<>', '');
+          $project = Project::where('id', '<>', '');
         }else{
-          $dept = Division::where('id', $user->employee->division_id)->get(); 
+          $dept = Division::where('company_id', $user->employee->company_id);
+          $project = Project::where('company_id', $user->employee->company_id);
+          if ($user->user_roles == 'PROJ') {
+            $project->where('id', $user->employee->project_id);
+          } elseif($user->user_roles != 'COMP' && $user->user_roles != 'ALL') {
+            $project->where('id', $user->employee->project_id);
+            $dept->where('id', $user->employee->division_id);
+          }
         }
 
         if ($request->ajax()) {
-          $data = User::with('employee','profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule')
+          $data = User::with('employee','profile','employee.project', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule')
             ->whereHas('profile', function ($query) use ($request){
               $query->where('name', 'LIKE', '%'.$request->name.'%');
+            })
+            ->whereHas('employee', function($q) use($request){
+              $q->ofLevel();
+              if ($request->division != null || $request->departement != '') {
+                $q->where('division_id', $request->division);
+              }
+
+              if ($request->nrp != null) {
+                $q->where('nip', '');
+              }
+
+              if ($request->project != null) {
+               $q->where('project_id', $request->project); 
+              }
             });
-          
-          if ($user->user_roles != 'superadmin' ) {
-            $data->where('status', 'Y');
-          }
-
-          if ($request->division != null || $request->departement != '') {
-            $data->whereHas('employee', function ($query) use ($request){
-              $query->where('division_id', $request->division);
-            });
-          }
-
-          if ($request->nrp != null) {
-            $data->whereHas('employee', function ($query) use ($request){
-                $query->where('nip', '');
-            });
-          }
-
-          if ($request->project != null) {
-            $data->whereHas('employee', function ($query) use ($request){
-                $query->where('project_id', $request->project);
-            });
-          }
 
 
-          if ($user->user_roles != 'superadmin' ) {
-            if (!in_array($user->employee->division_id, [2,7])) {
-              $data->whereHas('employee', function ($query) use ($user){
-                $query->where('division_id', $user->employee->division_id);
-              });
-            }
-          }
           $dt = DataTables::of($data->get())
           ->addColumn('category', function ($row) use($category) {
             return $category->toArray();
@@ -84,26 +75,26 @@ class EmployeeController extends Controller
           });
           return $dt->make(true);
         }
-        // dd($data->get());
 
         return view('pages.dashboard.employee.index', [
             'pageTitle' => 'Data Karyawan',
             'category' => $category,
             'shift' => $shift,
-            'departement' => $dept,
-            'project' => Project::all()
+            'departement' => $dept->get(),
+            'project' => $project->get()
         ]);
     }
 
     public function create()
     {
 
+      $user = Auth::guard('web')->user();
       $education =  Options::where("type","education")->get();
       $religion =  Options::where("type","religion")->get();
       $marriage =  Options::where("type","marriage")->get();
-      $company =  Company::all();
+      $company =  $user->user_roles == 'ALL' ? Company::all() : Company::where('id', $user->employee->company_id)->get();
       $workhours =  WorkSchedule::all();
-      $project =  Project::all();
+      $project =  $user->user_roles == 'ALL' ? Project::all() : Project::where('company_id', $user->employee->company_id)->get();
 
       return view('pages.dashboard.employee.create', [
         'pageTitle' => 'Tambah Karyawan',

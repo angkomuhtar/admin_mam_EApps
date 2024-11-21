@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class Employee extends Model
 {
@@ -69,15 +71,25 @@ class Employee extends Model
         return $data;
     }
 
-    // public static function boot(){
-    //     parent::boot();
+    public function scopeOfLevel(Builder $query): void
+    {
+        $user = Auth::guard('web')->user();
+        if ($user->user_roles == 'ALL') {
+            
+        }elseif ($user->user_roles == 'COMP') {
+            $query->where('company_id', $user->employee->company_id);
+        }elseif ($user->user_roles == 'PROJ') {
+            $query->where('company_id', $user->employee->company_id)->where('project_id', $user->employee->project_id);
+        }elseif ($user->user_roles == 'DEPT') {
+            $query->where('company_id', $user->employee->company_id)
+            ->where('division_id', $user->employee->division_id);
+        }elseif ($user->user_roles == 'TEAM') {
+            $query->where('company_id', $user->employee->company_id)
+            ->where('project_id', $user->employee->project_id);
+        }else{
+            $query->where('company_id', $user->employee->company_id)
+            ->where('id', $user->employee->id);
+        }
+    }
 
-    //     static::creating(function($model){
-    //         $prefix = $model->company_id == 1 ? 'MAM' : 'AT';
-    //         $number = Employee::where('nip','like', $prefix.'%')->max('number')+1;
-    //         $model->number = $number;
-    //         $date= Carbon::parse($model->doh);
-    //         $model->nip = $prefix.'.'.$date->format('ym').'.'.str_pad($number,4, '0',STR_PAD_LEFT);
-    //     });
-    // }
 }
