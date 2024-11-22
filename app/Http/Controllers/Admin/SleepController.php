@@ -40,7 +40,9 @@ class SleepController extends Controller
           ->whereHas('employee', function ($query){
             $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
-          ->has('smartwatch')
+          ->whereHas('smartwatch', function($query){
+            $query->where('status', 'Y');
+          })
           ->with('absen', function ($query) use ($request) {
             $query->where('date', $request->tanggal);
           })
@@ -87,23 +89,49 @@ class SleepController extends Controller
     {
       ini_set('max_execution_time', '300');
       $date = $request->tanggal;
-      $data = User::where('user_roles','<>', 'superadmin')
-        ->with('employee','absen', 'absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
-        ->whereHas('employee', function ($query) use ($request){
-          $query->where('category_id',  'HAU')->where('contract_status', 'ACTIVE');
-        })
-        // ->whereHas('profile', function ($query) use ($request){
-        //   $query->where('name', 'LIKE', '%alwi%');
-        // })
-        ->with(['absen' => function ($query) use ($date) {
-          $query->where('date', $date);
-        }])
-        ->with(['sleep'=> function ($query) use ($date){
-          $query->where('date', $date);
-        }])->get();
-      
+      $dt = '';
+      $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+          ->whereHas('profile', function ($query) use ($request){
+            $query->where('name', 'LIKE', '%'.$request->name.'%');
+          })
+          ->whereHas('employee', function ($query){
+            $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+          })
+          ->whereHas('smartwatch', function($query){
+            $query->where('status', 'Y');
+          })
+          ->with('absen', function ($query) use ($request) {
+            $query->where('date', $request->tanggal);
+          })
+          ->with(['sleep'=> function ($query) use ($request){
+            $query->where('date', $request->tanggal);
+          }]);
 
-        // return $data;
+          if ($request->division != null || $request->departement != '') {
+            $data->whereHas('employee', function ($query) use ($request){
+              $query->where('division_id', $request->division);
+            });
+          }
+      if ($request->shift_filter != 'All Shift') {
+        $shift = Shift::select('id')->where('name', $request->shift)->get();
+        $shiftArray = [];
+        $num=0;
+        foreach ($shift as $key => $value) {
+          $shiftArray[$num++] = $value->id;
+        }
+        $datafilter = $data->get()->filter(function($item) use($shiftArray){
+          if ($item->absen->isNotEmpty()) {
+            if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
+              return $item;
+            }
+          }
+        });
+        $dt = $datafilter;
+      }else{
+        $dt = $data->get();
+      }
+
+      // return $dt;
       $HeaderStyle = [
         'font' => [
             'bold' => true,
@@ -130,14 +158,14 @@ class SleepController extends Controller
       $activeWorksheet->mergeCells('A2:G2');
 
 
-      $activeWorksheet->setCellValue('A4', 'Shift : ');
-      $activeWorksheet->setCellValue('B4', 'Semua Shift');
-      $activeWorksheet->setCellValue('C4', 'Tanggal : ');
-      $activeWorksheet->setCellValue('D4', $date);
-      $activeWorksheet->getStyle('A4:D4')->applyFromArray($SubStyle);
+      $activeWorksheet->setCellValue('B4', 'Tanggal : ' .$date);
+      $activeWorksheet->setCellValue('B5', 'Dokumen : Data Tidur Karyawan');
+      $activeWorksheet->setCellValue('B6', 'Shift : ' .$request->shift_filter);
+      $activeWorksheet->getStyle('B4:B6')->applyFromArray($SubStyle);
 
-      $num=5;
+      $num=7;
       $num++;
+      $rowStart = $num;
 
       $activeWorksheet->setCellValue('A'.$num, 'No')->getStyle('A'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('B'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
@@ -147,11 +175,11 @@ class SleepController extends Controller
       $activeWorksheet->setCellValue('F'.$num, 'Shift')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('G'.$num, 'Jumlah Jam Tidur')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('H'.$num, 'Kesiapan Kerja')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->getStyle('A6:H6')->applyFromArray($HeaderStyle);
-      $activeWorksheet->getRowDimension(6)->setRowHeight(40, 'pt');
+      $activeWorksheet->getStyle('A'.$num.':H'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
 
       
-      $activeWorksheet->getStyle('A6'.':H'.$num)->applyFromArray([
+      $activeWorksheet->getStyle('A'.$num.':H'.$num)->applyFromArray([
           'font' => [
               'size' => 12
           ],
@@ -171,9 +199,9 @@ class SleepController extends Controller
 
       // Data
 
-      foreach ($data as $key => $value) {
+      foreach ($dt as $key => $value) {
         $num++;
-        $activeWorksheet->setCellValue('A'.$num, $num - 6);
+        $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
         $activeWorksheet->setCellValue('B'.$num, $value->profile->name);
         $activeWorksheet->setCellValue('C'.$num, $value->employee->nip);
         $activeWorksheet->setCellValue('D'.$num, $value->employee->division->division);
@@ -218,7 +246,7 @@ class SleepController extends Controller
         }
 
         $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
-         $activeWorksheet->getStyle('A7'.':H'.$num)->applyFromArray([
+         $activeWorksheet->getStyle('A'.$rowStart.':H'.$num)->applyFromArray([
              'font' => [
                  'size' => 12
              ],
@@ -309,7 +337,6 @@ class SleepController extends Controller
     public function hitung(Request $request){
       
     }
-
     public function update_watchdist(Request $request, String $id){
 
       $watchdist = Watchdist::where('user_id', $id)->exists();

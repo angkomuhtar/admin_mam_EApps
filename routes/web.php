@@ -77,10 +77,10 @@ Route::middleware('auth')->prefix('admin')->group(function()
         {
             Route::get('/','index')->name('sleep');
             Route::middleware('permission:sleep_update')->group(function () {
+                Route::get('/export','export')->name('sleep.export');
                 Route::get('/{id}','edit')->name('sleep.edit');
                 Route::post('/{id}','update')->name('sleep.update');
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
-                Route::get('/export','export')->name('sleep.export');
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::get('/{id}/watchdist','update_watchdist')->name('sleep.watchdist');
             });
