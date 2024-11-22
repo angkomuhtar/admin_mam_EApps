@@ -25,7 +25,8 @@ class Employee extends Model
         'user_id',
         'atasan_id',
         'project_id',
-        'wh_code'
+        'wh_code',
+        'absen_location'
     ];
 
     public function user()

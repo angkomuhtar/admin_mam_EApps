@@ -162,6 +162,7 @@ class EmployeeController extends Controller
           'project_id' => $request->project_id,
           'doh' => $request->doh,
           'status' => $request->status,
+          'absen_location' => $request->project_id == '7' ? '11,14' : '2,3'
         ]);
         DB::commit();
       } catch (Exception $th) {
