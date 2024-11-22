@@ -113,7 +113,7 @@ class SleepController extends Controller
             });
           }
       if ($request->shift_filter != 'All Shift') {
-        $shift = Shift::select('id')->where('name', $request->shift)->get();
+        $shift = Shift::select('id')->where('name', $request->shift_filter)->get();
         $shiftArray = [];
         $num=0;
         foreach ($shift as $key => $value) {
