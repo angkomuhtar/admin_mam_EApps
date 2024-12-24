@@ -40,27 +40,38 @@ class AttendanceController extends Controller
         $shift = Shift::where('wh_code', '<>', 'HO')->get();
 
         if ($request->ajax()) {
-            $data = User::where('username', '!=', 'Admin')->with('employee', 'employee.division', 'profile')
+            $data = User::where('username', '!=', 'Admin')->with('employee', 'employee.division', 'profile','absen.shift')
                 ->whereHas('employee', function($query) use($request) {
                     $query->where('division_id', '<>', 11)->ofLevel();
                     if ($request->division != '') {
                         $query->where('division_id', $request->division);
                     }
                 });
-            $data->with('absen', function ($query) use ($request) {
-                $query->where('date', '=', $request->tanggal)->with('shift');
-                if ($request->shift != '') {
-                    $query->where('work_hours_id', $request->shift)->where('date', '=', $request->tanggal);
+            $data->with([
+                'absen' => function ($query) use ($request) {
+                    $query->whereDate('date', $request->tanggal); // Filter by today's date
+                    if ($request->shift) {
+                        $query->where('work_hours_id', $request->shift); // Filter by shift type if provided
+                    }
                 }
-            });
-            
+            ]);
             if ($request->name != '') {
                 $data->whereHas('profile', function($query) use ($request) {
                     $query->where('name', 'LIKE', '%'. $request->name.'%');
                 });
             }
 
-            return DataTables::eloquent($data)->toJson();
+            if ($request->shift) {
+                $datafilter = $data->get()->filter(function($item){
+                    if ($item->absen->isNotEmpty()) {
+                        return $item;
+                    }
+                  });
+                  $dt = DataTables::of($datafilter);
+                  return $dt->make(true);
+            }else{
+                return DataTables::eloquent($data)->toJson();
+            }
         }
         return view('pages.dashboard.absensi.attendance', [
             'departement' => $dept->get(),
@@ -68,7 +79,6 @@ class AttendanceController extends Controller
             'project' => $project->get()
         ]);
     }
-
 
 
     public function export(Request $request)
@@ -171,7 +181,7 @@ class AttendanceController extends Controller
                 $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
                 $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->clock_in ?? '');
                 if (count($value->absen) > 0) {
-                    $startTime = Carbon::parse($value->absen[0]->shift->start);
+                    $startTime = Carbon::parse($value->absen[0]->date.' '.$value->absen[0]->shift->start);
                     $finishTime = Carbon::parse($value->absen[0]->clock_in);
                     if($startTime->lte($finishTime)){
                         $totalDuration = $finishTime->diffInSeconds($startTime);
@@ -188,8 +198,10 @@ class AttendanceController extends Controller
                 }
                 $activeWorksheet->setCellValue('I'.$num, $value->absen[0]->clock_out ?? '');
                 if (count($value->absen) > 0 && $value->absen[0]->clock_out) {
+                    $start = Carbon::parse($value->absen[0]->shift->start);
+                    $end = Carbon::parse($value->absen[0]->shift->end);
                     $startTime = Carbon::parse($value->absen[0]->clock_out);
-                    $finishTime = Carbon::parse($value->absen[0]->shift->end);
+                    $finishTime = $start->lte($end) ? Carbon::parse($value->absen[0]->date.' '.$value->absen[0]->shift->end) : Carbon::parse($value->absen[0]->date.' '.$value->absen[0]->shift->end)->addDay();
                     if($startTime->lte($finishTime)){
                         $totalDuration = $finishTime->diffInSeconds($startTime);
                         $activeWorksheet->setCellValue('J'.$num, gmdate('H:i',$totalDuration));

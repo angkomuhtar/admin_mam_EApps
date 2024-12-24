@@ -55,10 +55,12 @@
                                             <div class="input-area">
                                                 <label for="tanggal" class="form-label">Project</label>
                                                 <select id="" class="form-control" name="project" required>
-                                                    <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                                    <option value="" selected
+                                                        class="dark:bg-slate-700 !text-slate-300">Pilih
                                                         Data</option>
                                                     @foreach ($project as $item)
-                                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">{{ $item->name }}
+                                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                                            {{ $item->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -276,11 +278,12 @@
                     }
                 }, {
                     render: (data, type, row, meta) => {
-                        var startTime = moment(row?.absen[0]?.clock_in, "hh:mm:ss");
-                        var start = moment(row?.absen[0]?.shift?.start, "hh:mm:ss");
+                        // telat masuk
+                        var startTime = moment(row?.absen[0]?.clock_in, "YYYY-MM-DD hh:mm:ss");
+                        var start = moment(row?.absen[0]?.date + " " + row?.absen[0]?.shift?.start,
+                            "YYYY-MM-DD hh:mm:ss");
                         var seconds = startTime.diff(start, 's')
-
-                        if (seconds < 0 || isNaN(seconds)) {
+                        if (seconds < 60 || isNaN(seconds)) {
                             return '-'
                         } else {
                             const hours = Math.floor(seconds / 3600)
@@ -290,15 +293,26 @@
                     }
                 }, {
                     render: (data, type, row, meta) => {
-                        var clock = moment(row?.absen[0]?.clock_out, "hh:mm:ss");
-                        var end = moment(row?.absen[0]?.shift?.end, "hh:mm:ss");
-                        var seconds = end.diff(clock, 's');
-                        if (seconds < 0 || isNaN(seconds)) {
-                            return '-'
+                        if (row?.absen[0]?.clock_out) {
+                            var clock = moment(row?.absen[0]?.clock_out, "YYYY-MM-DD hh:mm:ss");
+                            var date = row?.absen[0].date;
+                            if (moment(row.absen[0].shift.start, 'hh:mm:ss').isSameOrAfter(moment(row.absen[
+                                        0]
+                                    .shift.end, 'hh:mm:ss'))) {
+                                date = moment(date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD');
+
+                            }
+                            var end = moment(date + " " + row?.absen[0]?.shift?.end, "YYYY-MM-DD hh:mm:ss");
+                            var seconds = end.diff(clock, 's');
+                            if (seconds < 60 || isNaN(seconds)) {
+                                return '-'
+                            } else {
+                                const hours = Math.floor(seconds / 3600)
+                                const minutes = Math.floor((seconds % 3600) / 60)
+                                return `${hours} hours : ${minutes} minutes`;
+                            }
                         } else {
-                            const hours = Math.floor(seconds / 3600)
-                            const minutes = Math.floor((seconds % 3600) / 60)
-                            return `${hours} hours : ${minutes} minutes`;
+                            return '-'
                         }
                     }
                 }, {

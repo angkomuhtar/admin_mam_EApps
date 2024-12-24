@@ -13,7 +13,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PermissionSeeder::class,
+            // PermissionSeeder::class,
+            normalize_clock::class
         ]);
     }
+    
 }

@@ -39,4 +39,13 @@ class Sleep extends Model
         });
     }
 
+    public function getImagesUrlAttribute()
+    {
+        if($this->attachment !== null){
+            return asset('storage/'.$this->attachment);
+        }else{
+            return null;
+        }
+    }
+
 }

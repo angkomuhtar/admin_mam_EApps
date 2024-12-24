@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -109,15 +110,27 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        $user = Auth::guard('api')->user()->load(['employee','profile', 'employee.division', 'employee.position']);
-        return response()->json([
-            'status' => 'success',
-            'user' => $user,
-            'authorisation' => [
-                'token' => Auth::refresh(),
-                'type' => 'bearer',
-            ]
-        ]);
+        try {
+            // Refresh the token
+            $newToken = JWTAuth::parseToken()->refresh();
+            
+            // Get the authenticated user
+            $user = JWTAuth::setToken($newToken)->toUser();
+
+            return response()->json([
+                "authorisation" => [
+                    'token' => $newToken,
+                    'token_type' => 'bearer',
+                    'expires_in' => config('jwt.ttl') * 60, // Token expiration in seconds
+                ],
+                'user' => $user, // Return user data
+                'status' => "success"
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['error' => 'Token has expired and cannot be refreshed'], 401);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not refresh token'], 401);
+        }
     }
 
     public function me()

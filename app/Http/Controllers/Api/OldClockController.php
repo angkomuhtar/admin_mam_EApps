@@ -16,7 +16,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class ClockController extends Controller
+class OldClockController extends Controller
 {
     public $today;
 
@@ -50,9 +50,18 @@ class ClockController extends Controller
             $endDay = Carbon::createFromFormat('Y-m-d', $startDay)->addMonths(1)->format('Y-m-25');
             $clock = Clock::with('shift')->whereBetween('date', [$startDay, $endDay])->where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->get();
             $clock = $clock->map(function ($clock) {
-                $clock['late'] = $clock->late;
-                $clock['early'] = $clock->early;
-                return $clock;
+                return [
+                    "id" => $clock->id,
+			        "clock_location_id" => $clock->clock_location_id,
+			        "date" => $clock->date,
+			        "clock_in" => $clock->clock_in ? Carbon::createFromFormat('Y-m-d H:i:s', $clock->clock_in)->format('H:i:s') : null,
+                    "clock_out"=>$clock->clock_out ? Carbon::createFromFormat('Y-m-d H:i:s', $clock->clock_out)->format('H:i:s') : null,
+                    "work_hours_id"=>$clock->work_hours_id,
+                    "status"=>$clock->status,
+                    "late"=> $clock->late,
+                    "early"=>$clock->early,
+                    "shift"=>$clock->shift
+                ];
             });
             return ResponseHelper::jsonSuccess('success get data', $clock);
         } catch (\Exception $err) {
@@ -71,9 +80,7 @@ class ClockController extends Controller
             $rekap = [
                 'hadir'=>$hadir,
                 'alpa'=> 0,
-                'izin' => 0,
-                'start' => $startDay, 
-                'end' => $endDay, 
+                'izin' => 0 
             ];
             
             $work_hours = Shift::whereColumn('start', '>', 'end')->get();
@@ -88,7 +95,16 @@ class ClockController extends Controller
                 ->whereNull('clock_out')
                 ->whereIn('work_hours_id', $wh_id);
             })
-            ->get();
+            ->get()->map(function($item){
+                return [
+                    "clock_location_id" => $item->clock_location_id,
+                    "date"=>    $item->date,
+                    "clock_in"=> $item->clock_in ? Carbon::createFromFormat('Y-m-d H:i:s', $item->clock_in)->format('H:i:s') : null,
+                    "clock_out"=>$item->clock_out ? Carbon::createFromFormat('Y-m-d H:i:s', $item->clock_out)->format('H:i:s') : null,
+                    "work_hours_id"=> $item->work_hours_id ,
+                    "status"=> $item->status
+                ];
+            });
             $data = collect(['rekap'=>$rekap, 'today'=>$today]);
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
@@ -108,9 +124,7 @@ class ClockController extends Controller
             $rekap = [
                 'hadir'=>$hadir,
                 'alpa'=> $alpha,
-                'izin' => $izin,
-                'start' => $startDay, 
-                'end' => $endDay, 
+                'izin' => $izin 
             ];
             
             $data = collect(['rekap'=>$rekap]);
@@ -136,12 +150,22 @@ class ClockController extends Controller
                 ->whereIn('work_hours_id', $wh_id);
             })
             ->first();
+
             $sleep = Sleep::where('user_id', Auth::guard('api')->user()->id)
             ->where('date', $date_today)
             ->get();
             if ($today) {
-                $today['late'] = $today->late;
-                $today['early'] = $today->early;
+                $today =  [
+                    "clock_location_id"=>$today->clock_location_id,
+                    "date"=>$today->date,
+                    "clock_in"=> $today->clock_in ? Carbon::createFromFormat('Y-m-d H:i:s', $today->clock_in)->format('H:i:s') : null,
+                    "clock_out"=>$today->clock_out ? Carbon::createFromFormat('Y-m-d H:i:s', $today->clock_out)->format('H:i:s') : null,
+                    "work_hours_id"=>$today->work_hours_id,
+                    "status"=>$today->status,
+                    "shift" =>$today->shift,
+                    "late" => $today->late,
+                    "early" =>$today->early
+                ];
             }
             $today['sleep'] = $sleep;
             return ResponseHelper::jsonSuccess('success get data', $today);
@@ -161,7 +185,6 @@ class ClockController extends Controller
         }
     }
 
-
     public function clock(Request $request){
         try {
             $validator = Validator::make($request->all(), [
@@ -173,7 +196,6 @@ class ClockController extends Controller
             ],[
                 'required' => ':attribute tidak boleh kosong'
               ]);
-              
 
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
@@ -182,7 +204,7 @@ class ClockController extends Controller
             if ($request->type == 'in') {
                 $inlist = Watchdist::where('user_id', Auth::guard('api')->user()->id)->where('status', 'Y')->exists();
                 $sleep = Sleep::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
-
+                
                 if ($inlist && !$sleep) {
                     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
                     return ResponseHelper::jsonError($validator->errors(), 422);
