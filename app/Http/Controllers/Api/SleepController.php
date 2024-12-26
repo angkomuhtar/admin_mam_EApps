@@ -18,7 +18,7 @@ class SleepController extends Controller
             $data = Sleep::where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->get();
             foreach ($data as $item) {
                 if ($item->attachment != null && !filter_var($item->attachment, FILTER_VALIDATE_URL)) {
-                    $item->imagesUrl = asset("{$item->attachment}");
+                    $item->imagesUrl = asset("storage/{$item->attachment}");
                 }else{
                     $item->imagesUrl = $item->attachment;
                 }
