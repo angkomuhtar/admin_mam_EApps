@@ -364,6 +364,7 @@
                                         <option value="RESIGN">Resign</option>
                                         <option value="EXPIRED">Habis Kontrak</option>
                                         <option value="FIRED">PHK</option>
+                                        <option value="CONTRACT">DIKONTRAK</option>
                                     </select>
                                 </div>
                             `,
