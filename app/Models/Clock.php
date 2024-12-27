@@ -39,7 +39,7 @@ class Clock extends Model
 
     public function getLateAttribute()
     {
-        $time1 = $this->shift ? Carbon::parse($this->shift->start) : '';
+        $time1 = $this->shift ? Carbon::parse($this->date.' '.$this->shift->start) : '';
         if ($this->clock_in) {
             $time2 = Carbon::parse($this->clock_in);
             if ($time2->greaterThan($time1)) {
@@ -55,7 +55,7 @@ class Clock extends Model
 
     public function getEarlyAttribute()
     {
-        $time1 = $this->shift ? Carbon::parse($this->shift->end) : '';
+        $time1 = $this->shift ? Carbon::parse($this->date.' '.$this->shift->end) : '';
         if ($this->clock_out) {
             $time2 = Carbon::parse($this->clock_out);
             if ($time2->lessThan($time1)) {
