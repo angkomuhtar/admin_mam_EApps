@@ -179,7 +179,7 @@ class AttendanceController extends Controller
                 $activeWorksheet->setCellValue('D'.$num, $value->employee->project->name);
                 $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
                 $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
-                $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->clock_in ?? '');
+                $activeWorksheet->setCellValue('G'.$num, isset($value->absen[0]->clock_in) ? Carbon::parse($value->absen[0]->clock_in)->format('H:i:s') : '');
                 if (count($value->absen) > 0) {
                     $startTime = Carbon::parse($value->absen[0]->date.' '.$value->absen[0]->shift->start);
                     $finishTime = Carbon::parse($value->absen[0]->clock_in);
@@ -196,7 +196,7 @@ class AttendanceController extends Controller
                         $activeWorksheet->setCellValue('H'.$num, '');
                     }
                 }
-                $activeWorksheet->setCellValue('I'.$num, $value->absen[0]->clock_out ?? '');
+                $activeWorksheet->setCellValue('I'.$num, isset($value->absen[0]->clock_out) ? Carbon::parse($value->absen[0]->clock_out)->format('H:i:s') : '');
                 if (count($value->absen) > 0 && $value->absen[0]->clock_out) {
                     $start = Carbon::parse($value->absen[0]->shift->start);
                     $end = Carbon::parse($value->absen[0]->shift->end);
