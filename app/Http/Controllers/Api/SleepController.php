@@ -12,17 +12,20 @@ use Illuminate\Support\Facades\Validator;
 class SleepController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = Sleep::where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->get();
-            foreach ($data as $item) {
-                if ($item->attachment != null && !filter_var($item->attachment, FILTER_VALIDATE_URL)) {
-                    $item->imagesUrl = asset("storage/{$item->attachment}");
+            $page = $request->page ?? 1;
+            $data = Sleep::where('user_id', Auth::guard('api')->user()->id)->orderBy('date', 'desc')->paginate(10, ['*'], 'page', $page);
+            
+            $data->getCollection()->transform(function ($post) {
+                if ($post->attachment != null && !filter_var($post->attachment, FILTER_VALIDATE_URL)) {
+                    $post->imagesUrl = asset("storage/{$post->attachment}");
                 }else{
-                    $item->imagesUrl = $item->attachment;
+                    $post->imagesUrl = $post->attachment;
                 }
-            }
+                return $post;
+            });
             return ResponseHelper::jsonSuccess('Berhasil', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
