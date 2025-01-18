@@ -93,6 +93,8 @@ Route::prefix('v2')->group(function(){
         Route::POST('/change_avatar', [AuthController::class, 'change_avatar']);
         Route::get('/home', [ClockController::class, 'home']);
         Route::get('/pic', [MasterController::class, 'pic']);
+        Route::get('/request/count', [MasterController::class, 'request_count']);
+
 
         Route::group([
             'prefix' => 'clock',

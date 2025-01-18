@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Hazard_Report extends Model
 {
@@ -56,5 +58,15 @@ class Hazard_Report extends Model
     public function hazardAction()
     {
         return $this->hasOne(Hazard_action::class, 'hazard_id', 'id');
+    }
+
+    public function scopeByDept(Builder $query): void
+    {
+        $user = Auth::guard('api')->user();
+        // return $user;
+        if ($user->employee->division_id == '8' || $user->id == '4') {
+        }else{
+            $query->where('dept_id', $user->employee->division_id);
+        }
     }
 }

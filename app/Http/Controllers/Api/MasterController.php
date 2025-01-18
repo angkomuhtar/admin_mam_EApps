@@ -67,4 +67,14 @@ class MasterController extends Controller
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
     }
+
+    public function request_count()
+    {
+        try {
+            $data = Hazard_Report::where('status', 'open')->count();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
 }

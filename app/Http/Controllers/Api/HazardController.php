@@ -58,7 +58,7 @@ class HazardController extends Controller
                 'hazardAction.pic', 
                 'hazardAction.pic.profile'])
             ->where('status','like', '%'.$status.'%')
-            ->where('dept_id', $user->employee->division_id)
+            ->byDept()
             ->orderBy('date_time', 'desc')
             ->paginate(6, ['*'], 'page', $page);
             return ResponseHelper::jsonSuccess('success get data', $data);
