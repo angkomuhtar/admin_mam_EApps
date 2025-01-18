@@ -26,7 +26,7 @@ class SleepController extends Controller
 
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
-      $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
+      $today = Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d');
       $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
       $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
       $shift = Shift::select('name')->groupBy('name')->get();
@@ -43,11 +43,11 @@ class SleepController extends Controller
           ->whereHas('smartwatch', function($query){
             $query->where('status', 'Y');
           })
-          ->with('absen', function ($query) use ($request) {
-            $query->where('date', $request->tanggal);
+          ->with('absen', function ($query) use ($request, $today) {
+            $query->where('date', $today);
           })
-          ->with(['sleep'=> function ($query) use ($request){
-            $query->where('date', $request->tanggal);
+          ->with(['sleep'=> function ($query) use ($request, $today){
+            $query->where('date', $today);
           }]);
 
           if ($request->division != null || $request->departement != '') {
@@ -70,10 +70,24 @@ class SleepController extends Controller
                 }
               }
             });
-            $dt = DataTables::of($datafilter);
+            $dt = DataTables::of($datafilter)
+            ->addColumn('image', function ($data){
+              if ($data->sleep->count() > 0) {
+                return "<img src=".$data->sleep[0]->attachment." width='300' style='aspect-ratio:2/3; object-fit:contain; border-radius:10px' id='view_image' data-id='".$data->sleep[0]->id."' data-bs-toggle='modal' data-src='".$data->sleep[0]->attachment."' />";
+              }else{
+                return '';
+              }
+            })->rawColumns(['image']);
             return $dt->make(true);
           }else{
-            $dt = DataTables::of($data->get());
+            $dt = DataTables::of($data->get())
+            ->addColumn('image', function ($data){
+              if ($data->sleep->count() > 0) {
+                return "<img src=".$data->sleep[0]->attachment." width='300' style='aspect-ratio:2/3; object-fit:contain; border-radius:10px' />";
+              }else{
+                return '';
+              }
+            })->rawColumns(['image']);
             return $dt->make(true);
           }
       }

@@ -4,8 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClockController;
+use App\Http\Controllers\Api\HazardController;
 use App\Http\Controllers\Api\SleepController;
 use App\Http\Controllers\Api\LeaveApiController;
+use App\Http\Controllers\Api\MasterController;
 use App\Http\Controllers\Api\OldClockController;
 
 Route::prefix('v1')->group(function(){
@@ -90,6 +92,7 @@ Route::prefix('v2')->group(function(){
         Route::POST('/change_password', [AuthController::class, 'change_password']);
         Route::POST('/change_avatar', [AuthController::class, 'change_avatar']);
         Route::get('/home', [ClockController::class, 'home']);
+        Route::get('/pic', [MasterController::class, 'pic']);
 
         Route::group([
             'prefix' => 'clock',
@@ -104,8 +107,6 @@ Route::prefix('v2')->group(function(){
             Route::get('/rekap', 'rekap');
         });
 
-        
-        // Route::apiResource('leave', LeaveApiController::class);
         Route::group([
             'prefix' => 'leave',
             'controller'=> LeaveApiController::class
@@ -123,6 +124,29 @@ Route::prefix('v2')->group(function(){
         ], function(){
             Route::GET('/', 'index');
             Route::POST('/', 'store');
+        });
+
+        Route::group([
+            'prefix' => 'master',
+            'controller'=> MasterController::class
+        ], function(){
+            Route::GET('/company', 'company');
+            Route::GET('/hazard_location', 'hazard_location');
+            Route::GET('/project/{id}', 'project');
+            Route::GET('/division/{id}', 'division');
+        });
+
+        Route::group([
+            'prefix' => 'hazard',
+            'controller'=> HazardController::class
+        ], function(){
+            Route::GET('/', 'index');
+            Route::GET('/report', 'list');
+            Route::GET('/action', 'list_pekerjaan');
+            Route::POST('/action', 'update_action');
+            Route::GET('/{id}', 'show');
+            Route::POST('/', 'store');
+            Route::POST('/{id}/pic', 'set_pic');
         });
     });
 });

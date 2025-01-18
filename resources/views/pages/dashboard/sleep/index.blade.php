@@ -358,16 +358,24 @@
                                 '-';
                         }
                     },
+
                     {
-                        render: (data, type, row, meta) => {
-                            if (row.sleep.length > 0 && row.sleep[0].attachment) {
-                                // return row.sleep[0].attachment;
-                                return `<button id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}" data-bs-target="#form_modal" class="text-blue">lihat file</button>`;
-                            } else {
-                                return '-';
-                            }
-                        }
+                        data: 'image',
+                        name: 'image',
+                        orderable: false,
+                        searchable: false
                     },
+                    // {
+                    //     data: 'iamge'
+                    //     // render: (data, type, row, meta) => {
+                    //     //     if (row.sleep.length > 0 && row.sleep[0].attachment) {
+                    //     //         return `<img src="${row.sleep[0].attachment}" width="350" height="350" onClick={alert('qq')} id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}"/>`;
+                    //     //         // return `<button id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}" data-bs-target="#form_modal" class="text-blue">lihat file</button>`;
+                    //     //     } else {
+                    //     //         return '-';
+                    //     //     }
+                    //     // }
+                    // },
                     {
                         render: (data, type, row, meta) => {
 
@@ -426,8 +434,14 @@
                         // alert('sabar');
                     },
                     success: (res) => {
-                        $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
-                            .attachment);
+                        if (res?.data?.attachment) {
+                            if (String(res.data.attachment).startsWith('http')) {
+                                $("#img_preview").attr('src', res.data.attachment);
+                            } else {
+                                $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
+                                    .attachment);
+                            }
+                        }
                         let duration = moment(res.data.end).diff(moment(res.data.start),
                             'minutes')
                         let hours = Math.floor(duration / 60)
@@ -517,7 +531,8 @@
                             $("#loading").addClass('hidden');
                             console.log(res.message.jam);
                             if (res?.message?.jam) {
-                                $("input[name=jam]").next().removeClass('hidden').html(res?.message?.jam);
+                                $("input[name=jam]").next().removeClass('hidden').html(res?.message
+                                    ?.jam);
                             }
                             if (res?.message?.menit) {
                                 $("input[name=menit]").next().removeClass('hidden').html(res?.message
