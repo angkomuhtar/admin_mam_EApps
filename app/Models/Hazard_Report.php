@@ -64,7 +64,7 @@ class Hazard_Report extends Model
     {
         $user = Auth::guard('api')->user();
         // return $user;
-        if ($user->employee->division_id == '8' || $user->id == '4') {
+        if ($user->employee->division_id == '8' || $user->id == '4' || $user->id == '4482') {
         }else{
             $query->where('dept_id', $user->employee->division_id);
         }

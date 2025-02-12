@@ -144,6 +144,7 @@ Route::prefix('v2')->group(function(){
         ], function(){
             Route::GET('/', 'index');
             Route::GET('/report', 'list');
+            Route::GET('/report/count', 'count_report');
             Route::GET('/action', 'list_pekerjaan');
             Route::POST('/action', 'update_action');
             Route::GET('/{id}', 'show');

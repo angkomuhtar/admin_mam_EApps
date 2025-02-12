@@ -67,6 +67,17 @@ class HazardController extends Controller
         }
     }
 
+    public function count_report(){
+        try {
+            $user =  Auth::guard('api')->user();
+            $data = Hazard_Report::where('status','like', '%OPEN%')
+            ->byDept()->count();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
     public function list_pekerjaan(Request $request)
     {
         try {
