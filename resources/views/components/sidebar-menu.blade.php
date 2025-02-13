@@ -42,6 +42,17 @@
                     </a>
                 </li>
             @endcan
+            @can('hr_view')
+                <li>
+                    <a href="{{ route('hazard_report') }}"
+                        class="navItem {{ \Request::route()->getName() == 'hazard_report' ? 'active' : '' }}">
+                        <span class="flex items-center">
+                            <iconify-icon class="nav-icon" icon="heroicons-outline:clipboard-document-list"></iconify-icon>
+                            <span>Hazard Report</span>
+                        </span>
+                    </a>
+                </li>
+            @endcan
             @can('employee_view')
                 <li>
                     <a href="{{ route('employee') }}"

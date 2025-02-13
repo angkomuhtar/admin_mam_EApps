@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\User;
-use App\Models\Clock;
 use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Division;
@@ -17,7 +16,6 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Illuminate\Contracts\Database\Query\Builder;
 
 class SleepController extends Controller
 {

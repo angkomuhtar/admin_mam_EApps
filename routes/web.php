@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\WorkhoursController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClocklocationsController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\HazardReportController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolesController;
 use Illuminate\Routing\RouteGroup;
@@ -83,6 +84,21 @@ Route::middleware('auth')->prefix('admin')->group(function()
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::post('/{id}/accept','accept')->name('sleep.accept');
                 Route::get('/{id}/watchdist','update_watchdist')->name('sleep.watchdist');
+            });
+        });
+    });
+
+    Route::middleware('role_or_permission:developer|hr_view')->group(function () {
+        Route::controller(HazardReportController::class)->prefix('hazard_report')->group(function()
+        {
+            Route::get('/','index')->name('hazard_report');
+            Route::get('/export','export')->name('hazard_report.export');
+            Route::middleware('permission:hr-update')->group(function () {
+                // Route::get('/{id}','edit')->name('sleep.edit');
+                // Route::post('/{id}','update')->name('sleep.update');
+                // Route::post('/{id}/accept','accept')->name('sleep.accept');
+                // Route::post('/{id}/accept','accept')->name('sleep.accept');
+                // Route::get('/{id}/watchdist','update_watchdist')->name('sleep.watchdist');
             });
         });
     });
