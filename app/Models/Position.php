@@ -26,6 +26,10 @@ class Position extends Model
     public function division() : BelongsTo {
         return $this->belongsTo(Division::class);
     }
+
+    public function position_class() : BelongsTo {
+        return $this->belongsTo(PositionClass::class, 'class_id');
+    }
     
 
 }

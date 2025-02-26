@@ -86,6 +86,43 @@
                     </button>
                 </header>
                 <div class="card-body px-6 pb-6">
+                    <div class="grid grid-cols-4 gap-3 ">
+                        <div class="input-area">
+                            <label for="jabatan" class="form-label">Jabatan</label>
+                            <input id="jabatan" type="text" name="jabatan" class="form-control" placeholder="Nama"
+                                required="required">
+                        </div>
+                        <div class="input-area">
+                            <label for="division" class="form-label">Departement</label>
+                            <select id="division" class="form-control" name="division">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                @foreach ($division as $item)
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">{{ $item->division }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
+                        <div class="input-area">
+                            <label for="kelas" class="form-label">Kelas Jabatan</label>
+                            <select id="kelas" class="form-control" name="kelas">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                @foreach ($position_class as $item)
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                        {{ $item->class_name }}
+                                    </option>
+                                @endforeach
+                                <option value="0" class="dark:bg-slate-700">NOT SET</option>
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-6 pb-6">
                     <div class="overflow-x-auto -mx-6 dashcode-data-table">
                         <span class="col-span-8 hidden"></span>
                         <span class="col-span-4 hidden"></span>
@@ -100,6 +137,9 @@
                                             </th>
                                             <th scope="col" class="table-th">
                                                 Departement
+                                            </th>
+                                            <th scope="col" class="table-th">
+                                                Kelas Jabatan
                                             </th>
                                             <th scope="col" class="table-th">
                                                 Perusahaan
@@ -129,12 +169,21 @@
             var table = $("#data-table, .data-table").DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{!! route('masters.position') !!}',
+                ajax: {
+                    url: '{!! route('masters.position') !!}',
+                    data: function(d) {
+                        return $.extend({}, d, {
+                            jabatan: $('#jabatan').val(),
+                            division: $('#division').val(),
+                            kelas: $('#kelas').val()
+                        })
+                    },
+                },
                 dom: "<'grid grid-cols-12 gap-5 px-6 mt-6'<'col-span-4'l><'col-span-8 flex justify-end'f><'#pagination.flex items-center'>><'min-w-full't><'flex justify-end items-center'p>",
                 paging: true,
                 ordering: true,
                 info: false,
-                searching: true,
+                searching: false,
                 pagingType: 'full_numbers',
                 lengthChange: true,
                 lengthMenu: [10, 25, 50, 100],
@@ -150,11 +199,11 @@
                 },
                 "columnDefs": [{
                         "searchable": false,
-                        "targets": [1, 2, 3]
+                        "targets": [1, 2, 3, 4]
                     },
                     {
                         "orderable": false,
-                        "targets": [1, 2, 3]
+                        "targets": [1, 2, 3, 4]
                     },
                     {
                         'className': 'table-td',
@@ -168,6 +217,26 @@
                     {
                         name: 'division',
                         data: 'division.division',
+                    }, {
+
+                        render: function(data, type, row, meta) {
+                            // return ;
+                            let p_class = @json($position_class);
+                            var dataDiv =
+                                `<div class="dropdown relative">
+                                    <button class="btn inline-flex justify-center text-dark-500 items-center" type="button" id="darkFlatDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                        ${row.position_class?.id ? row.position_class.class_name +' - '+row.position_class.class :  'Not Set'}
+                                        <iconify-icon class="text-xl ltr:ml-2 rtl:mr-2" icon="ic:round-keyboard-arrow-down"></iconify-icon>
+                                    </button>
+                                    <ul data-id="${row.id}" class=" dropdown-menu min-w-max absolute text-sm text-slate-700 dark:text-white hidden bg-white dark:bg-slate-700 shadow
+                                            z-[2] float-left overflow-hidden list-none text-left rounded-lg mt-1 m-0 bg-clip-padding border-none dropdown-shift">`
+                            $.each(p_class, function(index, value) {
+                                dataDiv += `<li>
+                                            <a href="#" data-value="${value.id}" class="text-slate-600 dark:text-white block font-Inter font-normal px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-600 dark:hover:text-white">${value.class_name}</a>
+                                        </li>`
+                            })
+                            return dataDiv + `</ul></div>`
+                        },
                     },
                     {
                         name: 'company',
@@ -190,6 +259,9 @@
                 ],
             });
 
+            $('#jabatan,#division,#kelas').bind('change', function() {
+                table.draw()
+            })
             // submit data
             $(document).on('submit', '#sending_form', (e) => {
                 e.preventDefault();
@@ -343,6 +415,34 @@
                         })
                     }
                 })
+            })
+
+            $(document).on('click', '.dropdown-shift li a', e => {
+                e.preventDefault()
+                var id = $(e.currentTarget).parent().parent().data('id');
+                var val = $(e.currentTarget).data('value');
+                var url = '{!! route('masters.position.update_class', ['id' => ':id']) !!}';
+                url = url.replace(':id', id);
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        "_token": "{{ csrf_token() }}",
+                        "class_id": val
+                    },
+                    success: (msg) => {
+                        if (msg.success) {
+                            Swal.fire(
+                                'Oke ',
+                                'Updated Work Hours',
+                                'success'
+                            ).then(() => {
+                                table.ajax.reload(null, false)
+                            })
+                        }
+                    }
+                })
+
             })
         </script>
     @endpush

@@ -92,12 +92,6 @@ class HazardReportController extends Controller
       $activeWorksheet->getStyle('A1')->applyFromArray($HeaderStyle);
       $activeWorksheet->mergeCells('A1:Q3');
 
-
-    //   $activeWorksheet->setCellValue('B4', 'Tanggal : ' .$date);
-    //   $activeWorksheet->setCellValue('B5', 'Dokumen : Data Tidur Karyawan');
-    //   $activeWorksheet->setCellValue('B6', 'Shift : ' .$request->shift_filter);
-    //   $activeWorksheet->getStyle('B4:B6')->applyFromArray($SubStyle);
-
       $num=4;
       $num++;
       $rowStart = $num;
@@ -148,7 +142,7 @@ class HazardReportController extends Controller
         $num++;
         $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
         $activeWorksheet->setCellValue('B'.$num, $value->createdBy->profile->name);
-        $activeWorksheet->setCellValue('C'.$num, $value->createdBy->employee->division->division);
+        $activeWorksheet->setCellValue('C'.$num, $value->createdBy->employee->position->position);
         $activeWorksheet->setCellValue('D'.$num, Carbon::parse($value->date_time)->format('d m Y h:i'));
         $activeWorksheet->setCellValue('E'.$num, '');
         $activeWorksheet->setCellValue('F'.$num, '');

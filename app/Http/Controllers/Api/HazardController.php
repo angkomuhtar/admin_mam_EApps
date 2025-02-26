@@ -132,6 +132,10 @@ class HazardController extends Controller
     public function store(Request $request)
     {
         try {
+            $user =  Auth::guard('api')->user();
+            if ($user->employee->position->position_class->class < 3) {
+                return ResponseHelper::jsonError('Tidak Boleh', 422);
+            }
             $validator = Validator::make($request->all(), [
                 'id_location' => 'required',
                 'detail_location' => 'required',

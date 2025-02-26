@@ -18,6 +18,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
 
 class EmployeeController extends Controller
@@ -46,6 +47,7 @@ class EmployeeController extends Controller
         }
 
         if ($request->ajax()) {
+          // return "asasa";
           $data = User::with('employee','profile','employee.project', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule')
             ->whereHas('profile', function ($query) use ($request){
               $query->where('name', 'LIKE', '%'.$request->name.'%');
@@ -65,15 +67,10 @@ class EmployeeController extends Controller
               }
             });
 
-
-          $dt = DataTables::of($data->get())
-          ->addColumn('category', function ($row) use($category) {
-            return $category->toArray();
-          })
-          ->addColumn('shift', function ($row) use($shift) {
-            return $shift->toArray();
-          });
+            // return $shift->toArray();
+          $dt = DataTables::of($data->get());
           return $dt->make(true);
+
         }
 
         return view('pages.dashboard.employee.index', [
@@ -246,12 +243,15 @@ class EmployeeController extends Controller
     public function edit_employee(string $id)
     {
 
+      $user = Auth::guard('web')->user();
       $project = Project::all();
       $whcode = WorkSchedule::all();
       $departement = Division::all();
       $employee = Employee::where("user_id", $id)->first();
       $category = Options::where("type", "category")->get();
       $position = Position::where("division_id", $employee->division_id)->get();
+      $company =  $user->user_roles == 'ALL' ? Company::all() : Company::where('id', $user->employee->company_id)->get();
+
 
       // dd($profile);
       return view('pages.dashboard.employee.employee_edit', [
@@ -262,6 +262,7 @@ class EmployeeController extends Controller
         'departement' => $departement,
         'position' => $position,
         'category' => $category,
+        'company' => $company
       ]);
     }
     

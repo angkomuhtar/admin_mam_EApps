@@ -14,10 +14,10 @@
                                 <select id="company_id" class="form-control" name="company_id">
                                     <option value="" selected disabled class="dark:bg-slate-700 !text-slate-300">
                                         Pilih Data</option>
-                                    <option value="1" {{ $employee->company_id == '1' ? 'selected' : '' }}
-                                        class="dark:bg-slate-700">PT MITRA ABADI MAHAKAM</option>
-                                    <option value="2" {{ $employee->company_id == '2' ? 'selected' : '' }}
-                                        class="dark:bg-slate-700">PT ABADI TEKNIK</option>
+                                    @foreach ($company as $item)
+                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                            {{ $item->company }}</option>
+                                    @endforeach
                                 </select>
                                 <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
                                     style="display: none">This is invalid state.</div>

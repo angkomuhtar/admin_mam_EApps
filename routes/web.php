@@ -142,6 +142,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::delete('/{id}','destroy')->name('masters.position.destroy');
             Route::get('/{id}','edit')->name('masters.position.edit');
             Route::post('/{id}','update')->name('masters.position.update');
+            Route::post('/{id}/update_class','update_class')->name('masters.position.update_class');
         });
 
         Route::controller(WorkhoursController::class)->group(function()
