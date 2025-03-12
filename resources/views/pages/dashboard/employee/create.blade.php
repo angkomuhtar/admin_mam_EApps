@@ -306,6 +306,13 @@
                                     style="display: none">This is invalid state.</div>
                             </div> --}}
                             <div class="input-area">
+                                <label for="doh" class="form-label">Nomor Surat Kontrak</label>
+                                <input id="contract_code" type="text" name="contract_code" class="form-control"
+                                    placeholder="Nomor Surat Kontrak" required="required">
+                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
+                                    style="display: none">This is invalid state.</div>
+                            </div>
+                            <div class="input-area">
                                 <label for="doh" class="form-label">Date of Hire (DOH)</label>
                                 <input class="form-control py-2 flatpickr flatpickr-input active" name="doh"
                                     id="default-picker" value="" type="text" readonly="readonly">
