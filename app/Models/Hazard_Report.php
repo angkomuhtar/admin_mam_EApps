@@ -67,7 +67,7 @@ class Hazard_Report extends Model
         if (!$allowed) {
             $query->where('dept_id', $user->employee->division_id);
             if ($user->employee->position->position_class->class < 4) {
-                $query->here('dept_id', '');
+                $query->where('dept_id', '');
             }
         }
 

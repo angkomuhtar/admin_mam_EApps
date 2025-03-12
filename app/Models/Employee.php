@@ -48,6 +48,9 @@ class Employee extends Model
     public function position() {
         return $this->belongsTo(Position::class);
     }
+    public function company() {
+        return $this->belongsTo(Company::class);
+    }
 
     public function division() {
         return $this->belongsTo(Division::class);

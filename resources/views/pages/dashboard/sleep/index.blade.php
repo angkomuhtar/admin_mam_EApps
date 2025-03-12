@@ -50,6 +50,22 @@
                                                     invalid state.</div>
                                             </div>
                                             <div class="input-area">
+                                                <label for="company" class="form-label">Perusahaan</label>
+                                                <select id="company" class="form-control" name="company" required>
+                                                    <option value="" selected
+                                                        class="dark:bg-slate-700 !text-slate-300">Semua
+                                                        Perusahaan</option>
+                                                    @foreach ($company as $item)
+                                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                                            {{ $item->company }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
+                                                    style="display: none">
+                                                    This is invalid state.</div>
+                                            </div>
+                                            <div class="input-area">
                                                 <label for="division_id" class="form-label">Shift</label>
                                                 <select id="shift_filter" class="form-control" name="shift_filter">
                                                     <option value="All Shift" selected
@@ -97,6 +113,20 @@
                                 required="required">
                         </div>
                         <div class="input-area">
+                            <label for="company_id" class="form-label">Perusahaan</label>
+                            <select id="company_id" class="form-control" name="company_id">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Semua
+                                    Perusahaan</option>
+                                @foreach ($company as $item)
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                        {{ $item->company }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
+                        <div class="input-area">
                             <label for="division_id" class="form-label">Departement</label>
                             <select id="division_id" class="form-control" name="division_id">
                                 <option value="" selected class="dark:bg-slate-700 !text-slate-300">Semua
@@ -125,12 +155,6 @@
                                 This is invalid state.</div>
                         </div>
                     </div>
-                    {{-- <div class="space-x-5 pt-6">
-                        <span class="font-bold">Hadir : <span id="hadir">54</span></span>
-                        <span class="font-bold">Fit to Works : <span id="fit">54</span></span>
-                        <span class="font-bold">dalam Pengawasan : <span id="warn">54</span></span>
-                        <span class="font-bold">Istirahat : <span id="pulang">54</span></span>
-                    </div> --}}
                 </div>
                 <div class="card-body px-6 pb-6">
                     <div class="overflow-x-auto -mx-6 dashcode-data-table">
@@ -146,6 +170,9 @@
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 NRP
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                Perusahaan
                                             </th>
                                             <th scope="col" class=" table-th ">
                                                 Departemen
@@ -288,6 +315,7 @@
                         return $.extend({}, d, {
                             name: $('#name').val(),
                             division: $('#division_id').val(),
+                            company: $('#company_id').val(),
                             shift: $('#shift').val(),
                             tanggal: $('#tanggal_fil').val(),
                         })
@@ -331,8 +359,12 @@
                         data: 'employee.nip',
                     },
                     {
+                        data: 'employee.company.company'
+                    },
+                    {
                         data: 'employee.division.division'
-                    }, {
+                    },
+                    {
                         data: 'employee.position.position'
                     },
                     {
@@ -358,24 +390,18 @@
                                 '-';
                         }
                     },
-
                     {
-                        data: 'image',
-                        name: 'image',
+                        data: 'iamge',
+                        render: (data, type, row, meta) => {
+                            if (row?.sleep[0]?.attachment) {
+                                return `<img src="${row?.sleep[0]?.attachment}" style="width:80px; aspect-ratio:2/3; border-radius:10px; object-fit:contain; background:black" id="view_image" data-id="${row?.sleep[0]?.attachment}" data-bs-toggle="modal" data-src="${row?.sleep[0]?.attachment}"/>`;
+                            } else {
+                                return '<div style="width:80px; aspect-ratio:2/3; display:flex; justify-content:center; align-items:center">-</div>';
+                            }
+                        },
                         orderable: false,
                         searchable: false
                     },
-                    // {
-                    //     data: 'iamge'
-                    //     // render: (data, type, row, meta) => {
-                    //     //     if (row.sleep.length > 0 && row.sleep[0].attachment) {
-                    //     //         return `<img src="${row.sleep[0].attachment}" width="350" height="350" onClick={alert('qq')} id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}"/>`;
-                    //     //         // return `<button id="view_image" data-id="${row.sleep[0].id}" data-bs-toggle="modal" data-src="${row.sleep[0].attachment}" data-bs-target="#form_modal" class="text-blue">lihat file</button>`;
-                    //     //     } else {
-                    //     //         return '-';
-                    //     //     }
-                    //     // }
-                    // },
                     {
                         render: (data, type, row, meta) => {
 
@@ -413,7 +439,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #shift, #tanggal_fil').bind('change', function() {
+            $('#name, #division_id, #shift, #tanggal_fil, #company_id').bind('change', function() {
                 table.draw()
             })
 

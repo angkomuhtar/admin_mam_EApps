@@ -11,6 +11,7 @@ use App\Models\Watchdist;
 use App\Models\SleepHistory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -24,19 +25,21 @@ class SleepController extends Controller
 
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
-      $today = Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d');
-      $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
-      $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
+      $today = $request->tanggal ?? Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
       $shift = Shift::select('name')->groupBy('name')->get();
-      // return $shift;
+      $company = $user->employee->division_id == 8 || $user->user_roles == 'ALL' ? Company::all() : Company::where('id', $user->employee->company_id)->get();
 
       if ($request->ajax()) {
-        $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+        $data = User::with('employee','absen.shift', 'profile', 'employee.company', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
             $query->where('name', 'LIKE', '%'.$request->name.'%');
           })
-          ->whereHas('employee', function ($query){
-            $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+          ->whereHas('employee', function ($query) use($user){
+            if ($user->employee->division_id == 8 || $user->user_roles == 'ALL') {
+              $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+            }else{
+              $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+            }
           })
           ->whereHas('smartwatch', function($query){
             $query->where('status', 'Y');
@@ -48,9 +51,15 @@ class SleepController extends Controller
             $query->where('date', $today);
           }]);
 
-          if ($request->division != null || $request->departement != '') {
+          if ($request->division != null || $request->division != '') {
             $data->whereHas('employee', function ($query) use ($request){
               $query->where('division_id', $request->division);
+            });
+          }
+
+          if ($request->comapny != null || $request->company != '') {
+            $data->whereHas('employee', function ($query) use ($request){
+              $query->where('company_id', $request->company);
             });
           }
 
@@ -68,24 +77,10 @@ class SleepController extends Controller
                 }
               }
             });
-            $dt = DataTables::of($datafilter)
-            ->addColumn('image', function ($data){
-              if ($data->sleep->count() > 0) {
-                return "<img src=".$data->sleep[0]->attachment." width='300' style='aspect-ratio:2/3; object-fit:contain; border-radius:10px' id='view_image' data-id='".$data->sleep[0]->id."' data-bs-toggle='modal' data-src='".$data->sleep[0]->attachment."' />";
-              }else{
-                return '';
-              }
-            })->rawColumns(['image']);
+            $dt = DataTables::of($datafilter);
             return $dt->make(true);
           }else{
-            $dt = DataTables::of($data->get())
-            ->addColumn('image', function ($data){
-              if ($data->sleep->count() > 0) {
-                return "<img src=".$data->sleep[0]->attachment." width='300' style='aspect-ratio:2/3; object-fit:contain; border-radius:10px' />";
-              }else{
-                return '';
-              }
-            })->rawColumns(['image']);
+            $dt = DataTables::of($data->get());
             return $dt->make(true);
           }
       }
@@ -94,6 +89,7 @@ class SleepController extends Controller
         'pageTitle' => 'Data Tidur karyawan',
         'dept' => $dept,
         'shift' => $shift,
+        'company' => $company 
       ]);
     }
 
@@ -102,12 +98,12 @@ class SleepController extends Controller
       ini_set('max_execution_time', '300');
       $date = $request->tanggal;
       $dt = '';
-      $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+      $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.company', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
           ->whereHas('profile', function ($query) use ($request){
             $query->where('name', 'LIKE', '%'.$request->name.'%');
           })
-          ->whereHas('employee', function ($query){
-            $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+          ->whereHas('employee', function ($query) use($request){
+            $query->where('contract_status', 'ACTIVE')->where('company_id', $request->company)->where('division_id', '<>', 11)->where('division_id', '<', 100);
           })
           ->whereHas('smartwatch', function($query){
             $query->where('status', 'Y');
@@ -167,7 +163,7 @@ class SleepController extends Controller
       // HEADER
       $activeWorksheet->setCellValue('A2', 'REKAP DATA TIDUR OPERATOR');
       $activeWorksheet->getStyle('A2')->applyFromArray($HeaderStyle);
-      $activeWorksheet->mergeCells('A2:G2');
+      $activeWorksheet->mergeCells('A2:I2');
 
 
       $activeWorksheet->setCellValue('B4', 'Tanggal : ' .$date);
@@ -182,16 +178,17 @@ class SleepController extends Controller
       $activeWorksheet->setCellValue('A'.$num, 'No')->getStyle('A'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('B'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('C'.$num, 'NRP')->getStyle('C'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('D'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('E'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('F'.$num, 'Shift')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('G'.$num, 'Jumlah Jam Tidur')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('H'.$num, 'Kesiapan Kerja')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->getStyle('A'.$num.':H'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('D'.$num, 'Perusahaan')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('E'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('F'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('G'.$num, 'Shift')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('H'.$num, 'Jumlah Jam Tidur')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('I'.$num, 'Kesiapan Kerja')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->getStyle('A'.$num.':I'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
 
       
-      $activeWorksheet->getStyle('A'.$num.':H'.$num)->applyFromArray([
+      $activeWorksheet->getStyle('A'.$num.':I'.$num)->applyFromArray([
           'font' => [
               'size' => 12
           ],
@@ -216,49 +213,50 @@ class SleepController extends Controller
         $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
         $activeWorksheet->setCellValue('B'.$num, $value->profile->name);
         $activeWorksheet->setCellValue('C'.$num, $value->employee->nip);
-        $activeWorksheet->setCellValue('D'.$num, $value->employee->division->division);
-        $activeWorksheet->setCellValue('E'.$num, $value->employee->position->position);
+        $activeWorksheet->setCellValue('D'.$num, $value->employee->company->company);
+        $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
+        $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
         if (count($value->absen) > 0) {
-          $activeWorksheet->setCellValue('F'.$num, $value->absen[0]->shift->name);
+          $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->shift->name);
         }else{
-          $activeWorksheet->setCellValue('F'.$num, '-');
+          $activeWorksheet->setCellValue('H'.$num, '-');
         }
         if (count($value->sleep) > 0) {
           $duration = 0;
           foreach ($value->sleep as $key => $sleep) {
             $duration += Carbon::parse($sleep->end)->diffInMinutes(Carbon::parse($sleep->start));
           }
-          $activeWorksheet->setCellValue('G'.$num, floor($duration / 60) . ' Jam '. $duration % 60 . ' Menit');
+          $activeWorksheet->setCellValue('H'.$num, floor($duration / 60) . ' Jam '. $duration % 60 . ' Menit');
           if ($duration < 5*60) {
-              $activeWorksheet->setCellValue('H'.$num, 'Tidak Boleh Bekerja');
-              $activeWorksheet->getStyle('G'.$num.':H'.$num)
+              $activeWorksheet->setCellValue('I'.$num, 'Tidak Boleh Bekerja');
+              $activeWorksheet->getStyle('H'.$num.':I'.$num)
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFFF0000');
           }elseif ($duration < 6*60) {
-            $activeWorksheet->setCellValue('H'.$num, 'Bekerja Dalam Pengawasan');
-              $activeWorksheet->getStyle('G'.$num.':H'.$num)
+            $activeWorksheet->setCellValue('I'.$num, 'Bekerja Dalam Pengawasan');
+              $activeWorksheet->getStyle('H'.$num.':I'.$num)
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFFFFF00');
           }else{
-            $activeWorksheet->setCellValue('H'.$num, 'Fit To Work');
-              $activeWorksheet->getStyle('G'.$num.':H'.$num)
+            $activeWorksheet->setCellValue('I'.$num, 'Fit To Work');
+              $activeWorksheet->getStyle('H'.$num.':I'.$num)
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FF00FF00');
           }
         }else{
-          $activeWorksheet->setCellValue('G'.$num, '-');
-          $activeWorksheet->setCellValue('H'.$num, 'Data Tidur Kosong');
-          $activeWorksheet->getStyle('G'.$num.':H'.$num)
+          $activeWorksheet->setCellValue('H'.$num, '-');
+          $activeWorksheet->setCellValue('I'.$num, 'Data Tidur Kosong');
+          $activeWorksheet->getStyle('H'.$num.':I'.$num)
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFFF0000');
         }
 
         $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
-         $activeWorksheet->getStyle('A'.$rowStart.':H'.$num)->applyFromArray([
+         $activeWorksheet->getStyle('A'.$rowStart.':I'.$num)->applyFromArray([
              'font' => [
                  'size' => 12
              ],
@@ -277,7 +275,7 @@ class SleepController extends Controller
          // $num++;
      };
 
-     foreach(range('A','H') as $columnID) {
+     foreach(range('A','I') as $columnID) {
       $activeWorksheet->getColumnDimension($columnID)
           ->setAutoSize(true);
       }

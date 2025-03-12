@@ -60,7 +60,7 @@ class HazardController extends Controller
             ->where('status','like', '%'.$status.'%')
             ->byDept()
             ->orderBy('date_time', 'desc')
-            ->paginate(6, ['*'], 'page', $page);
+            ->paginate(15, ['*'], 'page', $page);
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
