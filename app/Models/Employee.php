@@ -14,6 +14,7 @@ class Employee extends Model
     protected $table = 'employees';
 
     protected $fillable = [
+        'contract_code',
         'doh',
         'company_id',
         'division_id',
@@ -76,7 +77,7 @@ class Employee extends Model
     {
         $user = Auth::guard('web')->user();
         if ($user->user_roles == 'ALL') {
-            
+
         }elseif ($user->user_roles == 'COMP') {
             $query->where('company_id', $user->employee->company_id);
         }elseif ($user->user_roles == 'PROJ') {

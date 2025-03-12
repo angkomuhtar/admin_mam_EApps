@@ -63,7 +63,7 @@ class EmployeeController extends Controller
               }
 
               if ($request->project != null) {
-               $q->where('project_id', $request->project); 
+               $q->where('project_id', $request->project);
               }
             });
 
@@ -116,6 +116,7 @@ class EmployeeController extends Controller
         'project_id'  => 'required',
         'doh'  => 'required|date',
         'status'  => 'required',
+        'contract_code' => 'required'
       ],[
           'required' => 'tidak boleh kosong',
           'date' => 'Harus tanggal dengan format YYYY/MM/DD'
@@ -129,18 +130,18 @@ class EmployeeController extends Controller
       DB::beginTransaction();
       try {
         $users = User::create([
-          'username' => $request->username, 
+          'username' => $request->username,
           'email' => $request->email,
           'email_verified_at' => now(),
           'password' => bcrypt($request->password)
         ]);
 
         $profile = $users->profile()->create($request->only([
-          'name', 
-          'card_id', 
-          'kk', 
-          'education', 
-          'tmp_lahir', 
+          'name',
+          'card_id',
+          'kk',
+          'education',
+          'tmp_lahir',
           'tgl_lahir',
           'gender',
           'religion',
@@ -154,6 +155,7 @@ class EmployeeController extends Controller
           'company_id' => $request->company_id,
           'division_id' => $request->division_id,
           'position_id' => $request->position_id,
+          'contract_code' => $request->contract_code,
           'wh_code' => $request->wh_code,
           'nip' => $request->nip,
           'project_id' => $request->project_id,
@@ -171,7 +173,7 @@ class EmployeeController extends Controller
       ]);
       }
 
-      
+
       return response()->json([
           'success' => true,
           'data' => 'Data Created'
@@ -182,7 +184,7 @@ class EmployeeController extends Controller
     {
         //
     }
-    
+
     public function edit_profile(string $id)
     {
       $education =  Options::where("type","education")->get();
@@ -200,7 +202,7 @@ class EmployeeController extends Controller
         'profile' => $profile
       ]);
     }
-    
+
     public function update_profile(Request $request, string $id)
     {
       $validator = Validator::make($request->all(), [
@@ -265,7 +267,7 @@ class EmployeeController extends Controller
         'company' => $company
       ]);
     }
-    
+
     public function update_employee(Request $request, string $id)
     {
       $validator = Validator::make($request->all(), [
@@ -278,6 +280,7 @@ class EmployeeController extends Controller
         'doh'  => 'required|date',
         'nip'  => 'required',
         'status'  => 'required',
+        'contract_code' => 'required',
       ],[
           'required' => 'tidak boleh kosong',
           'date' => 'Harus tanggal dengan format YYYY/MM/DD'
@@ -297,7 +300,7 @@ class EmployeeController extends Controller
       ]);
       }
     }
-    
+
     public function destroy()
     {
       return 'tre';

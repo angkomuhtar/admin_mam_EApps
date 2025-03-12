@@ -15,7 +15,7 @@
                                     <option value="" selected disabled class="dark:bg-slate-700 !text-slate-300">
                                         Pilih Data</option>
                                     @foreach ($company as $item)
-                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">
+                                        <option value="{{ $item->id }}" class="dark:bg-slate-700" @selected($item->id === $employee->company_id)>
                                             {{ $item->company }}</option>
                                     @endforeach
                                 </select>
@@ -105,6 +105,13 @@
                                 <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
                                     style="display: none">
                                     This is invalid state.</div>
+                            </div>
+                            <div class="input-area">
+                                <label for="doh" class="form-label">Nomor Surat Kontrak</label>
+                                <input class="form-control" name="contract_code"
+                                    id="contract_code" value="{{ $employee->contract_code }}" required="required" type="text" placeholder="Nomor Surat Kontrak">
+                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
+                                    style="display: none">This is invalid state.</div>
                             </div>
                             <div class="input-area">
                                 <label for="doh" class="form-label">Date of Hire (DOH)</label>
