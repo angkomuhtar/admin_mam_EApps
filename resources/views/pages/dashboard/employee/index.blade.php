@@ -104,6 +104,9 @@
                                             <th scope="col" class=" table-th ">
                                                 Gender
                                             </th>
+                                            <th scope="col" class="table-th">
+                                                Nomor Surat Kontrak
+                                            </th>
                                             <th scope="col" class=" table-th ">
                                                 DOH
                                             </th>
@@ -245,6 +248,9 @@
                         render: (data) => {
                             return data == 'M' ? 'Laki Laki' : 'Perempuan';
                         }
+                    },
+                    {
+                        data: 'employee.contract_code'
                     },
                     {
                         data: 'employee.doh',
