@@ -116,7 +116,8 @@ class EmployeeController extends Controller
         'project_id'  => 'required',
         'doh'  => 'required|date',
         'status'  => 'required',
-        'contract_code' => 'required'
+        'contract_code' => 'required',
+        'contract_file' => 'required'
       ],[
           'required' => 'tidak boleh kosong',
           'date' => 'Harus tanggal dengan format YYYY/MM/DD'
@@ -156,6 +157,7 @@ class EmployeeController extends Controller
           'division_id' => $request->division_id,
           'position_id' => $request->position_id,
           'contract_code' => $request->contract_code,
+          'contract_file' => $request->contract_file,
           'wh_code' => $request->wh_code,
           'nip' => $request->nip,
           'project_id' => $request->project_id,
@@ -218,6 +220,8 @@ class EmployeeController extends Controller
         "marriage"=> 'required',
         "id_addr"=> 'required',
         "live_addr"=> 'required',
+        'contract_code' => 'required',
+        'contract_file' => 'required'
 
       ], [
           'required' => 'tidak boleh kosong',
