@@ -6,13 +6,14 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Shift;
 use App\Models\Sleep;
+use App\Models\Profile;
 use App\Models\Division;
 use App\Models\Watchdist;
 use App\Models\SleepHistory;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\Hazard_location;
 use App\Models\Hazard_Report;
+use App\Models\Hazard_location;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -27,7 +28,7 @@ class HazardReportController extends Controller
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
       $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('mmm');
-      $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00'); 
+      $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00');
       $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
       $location = Hazard_location::all();
       // return $shift;
@@ -61,7 +62,7 @@ class HazardReportController extends Controller
     //   return Carbon::parse($date)->setTimeZone('Asia/Makassar')->format('m');
       $dt = '';
         $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('M');
-      $data = Hazard_Report::with('location', 'company', 'project', 'division','createdBy', 'createdBy.profile', 'createdBy.employee.division')
+      $data = Hazard_Report::with('hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee', 'hazardAction.pic.employee.position', 'location', 'company', 'project', 'division','createdBy', 'createdBy.profile', 'createdBy.employee.division')
       ->whereMonth('date_time', Carbon::parse($date)->setTimeZone('Asia/Makassar')->format('m'))
       ->whereYear('date_time', Carbon::parse($date)->setTimeZone('Asia/Makassar')->format('Y'))->get();
 
@@ -116,7 +117,7 @@ class HazardReportController extends Controller
       $activeWorksheet->getStyle('A'.$num.':Q'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
 
-      
+
       $activeWorksheet->getStyle('A'.$num.':Q'.$num)->applyFromArray([
           'font' => [
               'size' => 12
@@ -136,16 +137,18 @@ class HazardReportController extends Controller
 
 
       // Data
-      
+
       foreach ($data as $key => $value) {
-        //   return  Carbon::parse($value->date_time)->format('d m Y h:i');
+        if($value->hazardAction)
+            $user = User::where('id', $value->hazardAction->pic)->first();
+
         $num++;
         $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
         $activeWorksheet->setCellValue('B'.$num, $value->createdBy->profile->name);
         $activeWorksheet->setCellValue('C'.$num, $value->createdBy->employee->position->position);
         $activeWorksheet->setCellValue('D'.$num, Carbon::parse($value->date_time)->format('d m Y h:i'));
-        $activeWorksheet->setCellValue('E'.$num, '');
-        $activeWorksheet->setCellValue('F'.$num, '');
+        $activeWorksheet->setCellValue('E'.$num, $value->hazardAction ? $user->profile->name : '');
+        $activeWorksheet->setCellValue('F'.$num, $value->hazardAction ? $user->employee->position->position : '');
         $activeWorksheet->setCellValue('G'.$num, $value->division->division);
         $activeWorksheet->setCellValue('H'.$num, $value->category);
         $activeWorksheet->setCellValue('I'.$num, '');
@@ -183,7 +186,7 @@ class HazardReportController extends Controller
       $activeWorksheet->getColumnDimension($columnID)
           ->setAutoSize(true);
       }
-      
+
       header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       header('Content-Disposition: attachment;filename="Hazard Report ('.$date.').xlsx"');
       header('Cache-Control: max-age=0');
