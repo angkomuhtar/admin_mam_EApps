@@ -1,4 +1,46 @@
 <x-appLayout>
+
+    <button class="btn btn-sm justify-center btn-outline-primary rounded-[25px] hidden" data-bs-toggle="modal"
+        data-bs-target="#image_preview" id="btn_image"></button>
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
+        id="image_preview" tabindex="-1" aria-labelledby="image_preview" aria-hidden="true">
+        <div class="modal-dialog top-1/2 !-translate-y-1/2 relative w-auto pointer-events-none">
+            <div
+                class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding
+                                        rounded-md outline-none text-current">
+                <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
+                    <!-- Modal header -->
+                    <div
+                        class="flex items-center justify-between p-2 border-b dark:border-slate-600 bg-black-500/30 fixed top-0 left-0 right-0">
+                        <h3 class="text-sm font-medium text-white dark:text-white capitalize">
+                            Image Preview
+                        </h3>
+                        <button type="button"
+                            class="text-slate-400 bg-transparent hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+                                                    dark:hover:bg-slate-600 dark:hover:text-white"
+                            data-bs-dismiss="modal">
+                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+                                                            11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="space-y-4">
+                        <img id="src_preview"
+                            src="https://res.cloudinary.com/empapps/image/upload/v1738646578/hazard_report/HR-000026052256.jpg"
+                            class="object-contain" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="space-y-8">
         <div class=" space-y-5">
             <div class="card">
@@ -7,10 +49,13 @@
                     <button class="btn btn-sm inline-flex justify-center btn-outline-primary rounded-[25px]"
                         data-bs-toggle="modal" data-bs-target="#primaryModal">
                         <span class="flex items-center">
-                            <iconify-icon class="text-xl mr-2" icon="material-symbols-light:export-notes"></iconify-icon>
+                            <iconify-icon class="text-xl mr-2"
+                                icon="material-symbols-light:export-notes"></iconify-icon>
                             <span>Export Data HR</span>
                         </span>
                     </button>
+                    {{-- <button data-bs-toggle="modal" data-bs-target="#image_preview"
+                        class="btn inline-flex justify-center btn-outline-dark">Vertically Center</button> --}}
                     <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
                         id="primaryModal" tabindex="-1" aria-labelledby="primaryModalLabel" aria-hidden="true">
                         <div class="modal-dialog relative w-auto pointer-events-none">
@@ -150,6 +195,9 @@
                                             <th scope="col" class="table-th">
                                                 Kondisi
                                             </th>
+                                            <th scope="col" class="table-th">
+                                                Gambar
+                                            </th>
                                             <th scope="col" class=" table-th ">
                                                 status
                                             </th>
@@ -259,12 +307,16 @@
                                 </div>
                             </form>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- Form Modal Area End -->
+
+
+
     @push('scripts')
         @vite(['resources/js/plugins/flatpickr.js'])
 
@@ -347,6 +399,22 @@
                         data: 'reported_condition'
                     },
                     {
+                        data: 'iamge',
+                        render: (data, type, row, meta) => {
+                            if (row?.report_attachment) {
+                                return `
+                                <button class="cursor-pointer group" id="preview_button" data-src="${row?.report_attachment}">
+                                    <img src="${row?.report_attachment}" style="width:80px; aspect-ratio:2/3; border-radius:10px; object-fit:contain; background:black" />
+                                </button>
+                                `;
+                            } else {
+                                return '<div style="width:80px; aspect-ratio:2/3; display:flex; justify-content:center; align-items:center">-</div>';
+                            }
+                        },
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
                         data: 'status',
                         render: (data) => {
                             if (data == 'OPEN') {
@@ -366,7 +434,7 @@
                     },
                     {
                         render: (data, type, row, meta) => {
-                            return row?.created_by?.employee?.nrp ?? "-"
+                            return row?.created_by?.employee?.nip ?? "-"
                         }
                     },
                 ],
@@ -384,40 +452,10 @@
                 defaultDate: 'today'
             });
 
-            $(document).on("click", "#view_image", function() {
-                let id = $(this).data('id');
-                var url = '{!! route('sleep.edit', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                $.ajax({
-                    type: 'GET',
-                    url: url,
-                    beforeSend: function() {
-                        // alert('sabar');
-                    },
-                    success: (res) => {
-                        if (res?.data?.attachment) {
-                            if (String(res.data.attachment).startsWith('http')) {
-                                $("#img_preview").attr('src', res.data.attachment);
-                            } else {
-                                $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
-                                    .attachment);
-                            }
-                        }
-                        let duration = moment(res.data.end).diff(moment(res.data.start),
-                            'minutes')
-                        let hours = Math.floor(duration / 60)
-                        $("#user_input").html(duration > 0 ?
-                            `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit` :
-                            '-')
-                        $("#accept_data").data('id', id);
-                        $("#update_sleep").data('id', id);
-                        $("#jam").val('');
-                        $("#menit").val('');
-                    },
-                    error: () => {
-                        $('select[name="division_id"]').html(dataOption)
-                    }
-                })
+            $(document).on("click", "#preview_button", function() {
+                let src = $(this).data('src');
+                $("#src_preview").attr('src', src);
+                $("#btn_image").click()
             })
 
             $(document).on('click', "#accept_data", function() {
