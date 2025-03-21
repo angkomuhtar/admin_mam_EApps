@@ -24,4 +24,4 @@ jobs:
         env:
           SERVER_USER: ${{ secrets.USERNAME }}
           SERVER_HOST: ${{ secrets.HOST }}
-        run: ssh $SERVER_USER@$SERVER_HOST "echo 'SSH connection successful!'"
+        run: ssh root@103.214.112.119 "echo 'SSH connection successful!'"
