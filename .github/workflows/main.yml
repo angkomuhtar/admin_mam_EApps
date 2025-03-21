@@ -1,24 +1,31 @@
-# This is a basic workflow to help you get started with Actions
+name: Deploy to Server
 
-name: Github CD
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches:
-      - main
+      - main  # Deploy otomatis saat push ke branch `main`
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name : "run"
-        run: echo "Hello"
-      - name: Run Laravel Commands
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Connection
         env:
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PATH: ${{ secrets.SERVER_PATH }}
-        run : cd /var/www/empapps/
+          SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          SERVER_USER: ${{ secrets.USERNAME }}
+          SERVER_HOST: ${{ secrets.HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        env:
+          SERVER_USER: ${{ secrets.USERNAME }}
+          SERVER_HOST: ${{ secrets.HOST }}
+        run: ssh $SERVER_USER@$SERVER_HOST "echo 'SSH connection successful!'"
