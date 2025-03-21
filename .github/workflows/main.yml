@@ -6,10 +6,15 @@ name: Github CD
 # events but only for the master branch
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
@@ -20,18 +25,18 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # - name: CD
       - name: Deploy using ssh
-        # run: echo 'CD is Disabled (Check workflow comment for the code).'
+        run: echo 'CD is Disabled (Check workflow comment for the code).'
         # uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          port: 22
-          script: |
-           cd /var/www/empapps/
-           git pull
-           git status
-           npm run build
+        # with:
+        #   host: ${{ secrets.HOST }}
+        #   username: ${{ secrets.USERNAME }}
+        #   key: ${{ secrets.PRIVATE_KEY }}
+        #   port: 22
+        #   script: |
+        #    cd /var/www/empapps/
+        #    git pull
+        #    git status
+        #    npm run build
       #       git pull origin master
       #       git status
       #       npm install --only=prod
