@@ -16,30 +16,9 @@ jobs:
     steps:
       - name : "run"
         run: echo "Hello"
-
-  # This workflow contains a single job called "build"
-  # build:
-  #   # The type of runner that the job will run on
-  #   runs-on: ubuntu-latest
-
-  #   # Steps represent a sequence of tasks that will be executed as part of the job
-  #   steps:
-  #     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-  #     # - name: CD
-  #     - name: Deploy using ssh
-  #       run: echo 'CD is Disabled (Check workflow comment for the code).'
-        # uses: appleboy/ssh-action@master
-        # with:
-        #   host: ${{ secrets.HOST }}
-        #   username: ${{ secrets.USERNAME }}
-        #   key: ${{ secrets.PRIVATE_KEY }}
-        #   port: 22
-        #   script: |
-        #    cd /var/www/empapps/
-        #    git pull
-        #    git status
-        #    npm run build
-      #       git pull origin master
-      #       git status
-      #       npm install --only=prod
-      #       pm2 restart YoutubeApp
+      - name: Run Laravel Commands
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
+        run : cd /var/www/empapps/
