@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Setup SSH Connection
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SECRET_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           SERVER_USER: ${{ secrets.USER }}
           SERVER_HOST: ${{ secrets.HOST }}
         run: |
