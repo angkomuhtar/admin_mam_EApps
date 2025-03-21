@@ -109,14 +109,14 @@
                             <div class="input-area">
                                 <label for="doh" class="form-label">URL File Surat Kontrak</label>
                                 <input class="form-control" name="contract_file"
-                                    id="contract_file" value="{{ $employee->contract_file }}" required="required" type="text" placeholder="Masukan url surat kontrak">
+                                    id="contract_file" value="{{ $employee->contract_file }}" type="text" placeholder="Masukan url surat kontrak">
                                 <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
                                     style="display: none">This is invalid state.</div>
                             </div>
                             <div class="input-area">
                                 <label for="doh" class="form-label">Nomor Surat Kontrak</label>
                                 <input class="form-control" name="contract_code"
-                                    id="contract_code" value="{{ $employee->contract_code }}" required="required" type="text" placeholder="Nomor Surat Kontrak">
+                                    id="contract_code" value="{{ $employee->contract_code }}" type="text" placeholder="Nomor Surat Kontrak">
                                 <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
                                     style="display: none">This is invalid state.</div>
                             </div>

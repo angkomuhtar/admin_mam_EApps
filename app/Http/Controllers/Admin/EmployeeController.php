@@ -117,7 +117,7 @@ class EmployeeController extends Controller
         'doh'  => 'required|date',
         'status'  => 'required',
         'contract_code' => 'required',
-        'contract_file' => 'required'
+        'contract_file' => 'nullable'
       ],[
           'required' => 'tidak boleh kosong',
           'date' => 'Harus tanggal dengan format YYYY/MM/DD'
@@ -220,8 +220,6 @@ class EmployeeController extends Controller
         "marriage"=> 'required',
         "id_addr"=> 'required',
         "live_addr"=> 'required',
-        'contract_code' => 'required',
-        'contract_file' => 'required'
 
       ], [
           'required' => 'tidak boleh kosong',
