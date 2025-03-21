@@ -13,7 +13,7 @@ jobs:
       - name: Setup SSH Connection
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          SERVER_USER: ${{ secrets.USER }}
+          SERVER_USER: ${{ secrets.USERNAME }}
           SERVER_HOST: ${{ secrets.HOST }}
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
@@ -22,6 +22,6 @@ jobs:
 
       - name: Test SSH Connection
         env:
-          SERVER_USER: ${{ secrets.USER }}
+          SERVER_USER: ${{ secrets.USERNAME }}
           SERVER_HOST: ${{ secrets.HOST }}
         run: ssh $SERVER_USER@$SERVER_HOST "echo 'SSH connection successful!'"
