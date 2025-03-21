@@ -19,8 +19,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # - name: CD
-      #  run: echo 'CD is Disabled (Check workflow comment for the code).'
       - name: Deploy using ssh
+        # run: echo 'CD is Disabled (Check workflow comment for the code).'
         # uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
