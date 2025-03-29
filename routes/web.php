@@ -70,6 +70,8 @@ Route::middleware('auth')->prefix('admin')->group(function()
         Route::post('/userValidate','userValidate')->name('ajax.uservalidate');
         Route::post('/profilevalidate','profilevalidate')->name('ajax.profilevalidate');
         Route::post('/ajaxBarchart','ajaxBarchart')->name('ajax.ajaxBarchart');
+        Route::post('/get-hazard-yearly', 'getHazardYearly')->name('ajax.get-hazard-yearly');
+        Route::post('/get-hazard-category', 'getHazardByCategory')->name('ajax.get-hazard-category');
     });
 
 
@@ -102,10 +104,10 @@ Route::middleware('auth')->prefix('admin')->group(function()
             });
         });
     });
-            
+
 
     Route::middleware('role_or_permission:developer|master_option')->group(function () {
-        
+
         Route::controller(CompanyController::class)->group(function(){
             Route::prefix('company')->group(function () {
                 Route::get('/','index')->name('masters.company');
@@ -133,7 +135,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::get('/{id}','edit')->name('masters.division.edit');
             Route::post('/{id}','update')->name('masters.division.update');
         });
-    
+
         Route::controller(PositionsController::class)->prefix('position')->group(function()
         {
             Route::get('/','index')->name('masters.position');
@@ -160,7 +162,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
                 Route::get('/','index_shift')->name('absensi.shift');
             });
         });
-    
+
         Route::controller(ClocklocationsController::class)->prefix('clocklocations')->group(function()
         {
             Route::get('/','index')->name('absensi.clocklocations');
@@ -171,7 +173,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::post('/{id}','update')->name('absensi.clocklocations.update');
         });
     });
-        
+
 
     Route::middleware('role_or_permission:developer|attd_view')->controller(AttendanceController::class)->prefix('attendance')->group(function()
     {
@@ -214,7 +216,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::patch('/{id}/reset_phone','reset_phone')->name('masters.users.reset_phone');
             Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
         });
-        
+
         Route::group(['middleware'=> 'role_or_permission:developer|role_permission'], function (){
             Route::get('/permission','permission')->name('masters.users.permission');
             Route::get('/permission/{id}','permission_edit')->name('masters.users.permission_edit');

@@ -406,6 +406,54 @@
                     </div>
                 </div>
             </div>
+            <div class="gap-5 grid md:grid-cols-4 mt-5">
+                <!-- Bar Chart (Hazard Report) -->
+                <div class="md:col-span-2">
+                    <div class="card">
+                        <header class="card-header flex justify-between items-center">
+                            <h4 class="card-title">Hazard Report</h4>
+                            <select id="yearSelectorBar" class="border rounded-md p-1">
+                                <!-- Options akan diisi oleh JavaScript -->
+                            </select>
+                        </header>
+                        <div class="card-body p-6">
+                            <div class="legend-ring relative">
+                                <div id="hazard-barchart-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                    <div class="items-center justify-center flex flex-col gap-3">
+                                        <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
+                                        <p class="text-sm font-medium">please wait...</p>
+                                    </div>
+                                </div>
+                                <div id="hazard-barchart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie Chart (Penyebab Langsung) -->
+                <div class="md:col-span-2">
+                    <div class="card">
+                        <header class="card-header flex justify-between items-center">
+                            <h4 class="card-title">Jenis Bahaya Hazard Report</h4>
+                            <select id="yearSelectorPie" class="border rounded-md p-1">
+                                <!-- Options akan diisi oleh JavaScript -->
+                            </select>
+                        </header>
+                        <div class="card-body p-6">
+                            <div class="legend-ring relative">
+                                <div id="hazard-category-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                    <div class="items-center justify-center flex flex-col gap-3">
+                                        <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
+                                        <p class="text-sm font-medium">please wait...</p>
+                                    </div>
+                                </div>
+                                <div id="hazard-category-chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         @endcan
 
 
@@ -701,6 +749,235 @@
                 $(document).on("change", "#tanggal_fil, #shift_fil", function(val) {
                     updateChart($("#tanggal_fil").val(), $("#shift_fil").val())
                 })
+
+                const currentYear = new Date().getFullYear();
+
+                // Elemen untuk Bar Chart
+                const yearSelectorBar = document.getElementById("yearSelectorBar");
+                const selectedYearBar = document.getElementById("selectedYearBar");
+                const loadingIndicatorBar = document.getElementById("hazard-barchart-div");
+
+                // Elemen untuk Pie Chart
+                const yearSelectorPie = document.getElementById("yearSelectorPie");
+                const selectedYearPie = document.getElementById("selectedYearPie");
+                const loadingIndicatorPie = document.getElementById("hazard-category-div");
+
+                // Isi dropdown tahun (5 tahun terakhir) untuk kedua chart
+                for (let i = currentYear; i >= currentYear - 5; i--) {
+                    yearSelectorBar.appendChild(new Option(i, i));
+                    yearSelectorPie.appendChild(new Option(i, i));
+                }
+
+                // Set tahun default
+                yearSelectorBar.value = currentYear;
+                yearSelectorPie.value = currentYear;
+                // selectedYearBar.textContent = currentYear;
+                // selectedYearPie.textContent = currentYear;
+
+                // Load chart pertama kali
+                loadHazardChart(currentYear);
+                loadHazardCategoryChart(currentYear);
+
+                // Event listeners untuk dropdown tahun
+                yearSelectorBar.addEventListener("change", function() {
+                    const year = this.value;
+                    // selectedYearBar.textContent = year;
+                    loadHazardChart(year);
+                });
+
+                yearSelectorPie.addEventListener("change", function() {
+                    const year = this.value;
+                    // selectedYearPie.textContent = year;
+                    loadHazardCategoryChart(year);
+                });
+
+            // Bar Chart (Hazard Report)
+            async function loadHazardChart(year) {
+                try {
+                    loadingIndicatorBar.classList.remove("hidden");
+                    const response = await axios.post('{!! route('ajax.get-hazard-yearly') !!}', { year });
+                    const data = response.data;
+
+                    var options = {
+                        chart: { type: "bar", height: 400 },
+                        series: data.series,
+                        xaxis: { categories: data.categories || [] },
+                        colors: ["#2ECC71", "#F39C12", "#E74C3C"],
+                        plotOptions: {
+                            bar: {
+                                distributed: true,
+                                horizontal: false,
+                                columnWidth: "60%",
+                                endingShape: "rounded",
+                            },
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            style: {
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                colors: ["#ffffff"]
+                            },
+                        },
+                        title: {
+                            text: `HAZARD REPORT ${year}`,
+                            align: "center",
+                            style: {
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                            },
+                        },
+                        legend: {
+                            show: true,
+                            position: "top",
+                            horizontalAlign: "right",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            markers: {
+                                width: 8,
+                                height: 8,
+                                offsetY: -1,
+                                offsetX: -5,
+                                radius: 12,
+                            },
+                            labels: {
+                                colors: isDark ? "#CBD5E1" : "#475569",
+                            },
+                            itemMargin: {
+                                horizontal: 18,
+                                vertical: 0,
+                            },
+                        }
+                    };
+
+                    document.querySelector("#hazard-barchart").innerHTML = "";
+                    const chart = new ApexCharts(document.querySelector("#hazard-barchart"), options);
+                    chart.render();
+
+                } catch (error) {
+                    console.error("Error loading hazard chart:", error);
+                } finally {
+                    loadingIndicatorBar.classList.add("hidden");
+                }
+            }
+
+            // Pie Chart (Penyebab Langsung)
+            async function loadHazardCategoryChart(year) {
+                try {
+                    loadingIndicatorPie.classList.remove("hidden");
+                    const response = await axios.post('{!! route('ajax.get-hazard-category') !!}', { year });
+                    const data = response.data;
+
+                    // Pastikan data.series dan data.labels ada
+                    if (!data.series || !data.labels) {
+                        throw new Error("Data format invalid");
+                    }
+
+                    // Hapus chart lama jika ada
+                    const chartElement = document.querySelector("#hazard-category-chart");
+                    if (window.hazardPieChart) {
+                        window.hazardPieChart.destroy();
+                    }
+                    chartElement.innerHTML = "";
+
+                    var options = {
+                        chart: {
+                            type: "pie",
+                            height: 400,
+                            events: {
+                                animationEnd: function() {
+                                    loadingIndicatorPie.classList.add("hidden");
+                                }
+                            }
+                        },
+                        series: data.series,
+                        labels: data.labels,
+                        colors: ["#F39C12", "#E74C3C"],
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%',
+                                    labels: {
+                                        show: false,
+                                        total: {
+                                            show: true,
+                                            label: 'Total',
+                                            formatter: function(w) {
+                                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            style: {
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                colors: ["#ffffff"]
+                            },
+                        },
+                        title: {
+                            text: `JENIS BAHAYA HAZARD REPORT (${year})`,
+                            align: "center",
+                            style: {
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                            },
+                        },
+                        legend: {
+                            show: true,
+                            position: "bottom",
+                            horizontalAlign: "center",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            markers: {
+                                width: 8,
+                                height: 8,
+                                offsetY: -1,
+                                offsetX: -5,
+                                radius: 12,
+                            },
+                            labels: {
+                                colors: isDark ? "#CBD5E1" : "#475569",
+                            },
+                            itemMargin: {
+                                horizontal: 18,
+                                vertical: 0,
+                            },
+                        },
+                        tooltip: {
+                            enabled: true,
+                            y: {
+                                formatter: function(value) {
+                                    const total = data.series.reduce((a, b) => a + b, 0);
+                                    return `${value} laporan (${Math.round(value/total*100)}%)`;
+                                }
+                            }
+                        },
+                        noData: {
+                            text: "Data tidak tersedia",
+                            align: 'center',
+                            verticalAlign: 'middle',
+                            style: {
+                                color: '#475569',
+                                fontSize: '14px'
+                            }
+                        }
+                    };
+
+                    window.hazardPieChart = new ApexCharts(chartElement, options);
+                    await window.hazardPieChart.render();
+
+                } catch (error) {
+                    console.error("Error loading hazard category chart:", error);
+                    document.querySelector("#hazard-category-chart").innerHTML =
+                        `<div class="text-center p-10 text-gray-500">Gagal memuat data</div>`;
+                } finally {
+                    loadingIndicatorPie.classList.add("hidden");
+                }
+            }
             </script>
         @endpush
 </x-appLayout>
