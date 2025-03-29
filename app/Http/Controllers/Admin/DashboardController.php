@@ -113,7 +113,7 @@ class DashboardController extends Controller
         $tidurKurangPercentage = $totalHadir > 0 ? round($tidurKurang / $totalHadir * 100) : 0;
         $tidakInputPercentage = $totalHadir > 0 ? round($tidakInput / $totalHadir * 100) : 0;
 
-        
+
 
         $barchartData = [
             'series' => [
@@ -148,7 +148,7 @@ class DashboardController extends Controller
         ];
 
         if ($request->ajax()) {
-            
+
         }
 
         $project = Project::All();
@@ -187,8 +187,8 @@ class DashboardController extends Controller
         $offset = $request->offset;
         $start = ($request->page - 1) * $offset;
         $item = $import->data;
-        for ($i=$start; $i < $start+$offset; $i++) { 
-         
+        for ($i=$start; $i < $start+$offset; $i++) {
+
             // echo $i." ";
             if ($i + 1 >= count($item)) {
                 break;
