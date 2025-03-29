@@ -453,6 +453,27 @@
                     </div>
                 </div>
             </div>
+            <div class="mt-5">
+                <div class="card">
+                    <header class="card-header flex justify-between items-center">
+                        <h4 class="card-title">Hazard per Departemen</h4>
+                        <select id="yearSelectorDept" class="border rounded-md p-1">
+                            <!-- Options akan diisi oleh JavaScript -->
+                        </select>
+                    </header>
+                    <div class="card-body p-6">
+                        <div class="legend-ring relative">
+                            <div id="hazard-dept-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                <div class="items-center justify-center flex flex-col gap-3">
+                                    <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
+                                    <p class="text-sm font-medium">please wait...</p>
+                                </div>
+                            </div>
+                            <div id="hazard-dept-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         @endcan
 
@@ -978,6 +999,117 @@
                     loadingIndicatorPie.classList.add("hidden");
                 }
             }
+
+            // Elemen untuk Chart Departemen
+            const yearSelectorDept = document.getElementById("yearSelectorDept");
+            const selectedYearDept = document.getElementById("selectedYearDept");
+            const loadingIndicatorDept = document.getElementById("hazard-dept-div");
+
+            // Inisialisasi dropdown tahun
+            for (let i = currentYear; i >= currentYear - 5; i--) {
+                yearSelectorDept.appendChild(new Option(i, i));
+            }
+
+            // Set tahun default
+            yearSelectorDept.value = currentYear;
+            // selectedYearDept.textContent = `(${currentYear})`;
+
+            // Event listener untuk dropdown tahun
+            yearSelectorDept.addEventListener("change", function() {
+                const year = this.value;
+                // selectedYearDept.textContent = `(${year})`;
+                loadHazardDeptChart(year);
+            });
+
+            // bar Chart (Hazard Per Department)
+            async function loadHazardDeptChart(year) {
+                try {
+                    loadingIndicatorDept.classList.remove("hidden");
+                    const response = await axios.post('{!! route('ajax.get-hazard-department') !!}', {
+                        year: year
+                    });
+                    const data = response.data;
+
+                    var options = {
+                        chart: {
+                            type: 'bar',
+                            height: 400,
+                        },
+                        series: data.series,
+                        xaxis: {
+                            categories: data.categories,
+                            labels: {
+                                style: {
+                                    fontSize: '12px'
+                                }
+                            }
+                        },
+                        colors: ["#2ECC71", "#E74C3C", "#F39C12"],
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                columnWidth: '70%',
+                            },
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            style: {
+                                colors: ["#ffffff"]
+                            }
+                        },
+                        legend: {
+                            show: true,
+                            position: "top",
+                            horizontalAlign: "left",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            markers: {
+                                width: 8,
+                                height: 8,
+                                offsetY: -1,
+                                offsetX: -5,
+                                radius: 12,
+                            },
+                            labels: {
+                                colors: isDark ? "#CBD5E1" : "#475569",
+                            },
+                            itemMargin: {
+                                horizontal: 10,
+                                vertical: 0,
+                            },
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function(value) {
+                                    return value + " laporan";
+                                }
+                            }
+                        }
+                    };
+
+                    // Hapus dan render chart baru
+                    if (window.hazardDeptChart) {
+                        window.hazardDeptChart.destroy();
+                    }
+                    document.querySelector("#hazard-dept-chart").innerHTML = "";
+
+                    window.hazardDeptChart = new ApexCharts(document.querySelector("#hazard-dept-chart"), options);
+                    await window.hazardDeptChart.render();
+
+                } catch (error) {
+                    console.error("Error loading chart:", error);
+                    document.querySelector("#hazard-dept-chart").innerHTML = `
+                        <div class="text-center p-10 text-gray-500">
+                            Gagal memuat data departemen
+                        </div>
+                    `;
+                } finally {
+                    loadingIndicatorDept.classList.add("hidden");
+                }
+            }
+
+            // Load chart pertama kali
+            loadHazardDeptChart(currentYear);
             </script>
         @endpush
 </x-appLayout>

@@ -72,6 +72,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
         Route::post('/ajaxBarchart','ajaxBarchart')->name('ajax.ajaxBarchart');
         Route::post('/get-hazard-yearly', 'getHazardYearly')->name('ajax.get-hazard-yearly');
         Route::post('/get-hazard-category', 'getHazardByCategory')->name('ajax.get-hazard-category');
+        Route::post('/get-hazard-department','getHazardDepartment')->name('ajax.get-hazard-department');
     });
 
 

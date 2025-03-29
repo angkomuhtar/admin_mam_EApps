@@ -242,4 +242,72 @@ class AjaxController extends Controller
             "total" => $total
         ]);
     }
+
+    private function mapStatusData($departments, $statusData)
+    {
+        $mapped = [];
+        foreach ($departments as $dept) {
+            $mapped[] = $statusData[$dept] ?? 0;
+        }
+        return $mapped;
+    }
+
+    public function getHazardDepartment(Request $request)
+    {
+        $data = Hazard_Report::with('division')
+            ->whereYear('created_at', $request->year)
+            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+            ->selectRaw('dept_id, status, COUNT(*) as count')
+            ->groupBy('dept_id', 'status')
+            ->orderBy('dept_id')
+            ->orderBy('status')
+            ->get();
+
+        $departments = [];
+        $seriesData = [
+            'OPEN' => [],
+            'CLOSED' => [],
+            'ONPROGRESS' => []
+        ];
+
+        foreach ($data as $item) {
+            $deptName = $item->division->division ?? 'Unknown';
+            if ($deptName == 'Healt, Safety & Environment') {
+                $deptName = 'HSE';
+            }
+
+            if (!in_array($deptName, $departments)) {
+                $departments[] = $deptName;
+            }
+
+            $seriesData[$item->status][$deptName] = $item->count;
+        }
+
+        usort($departments, function($a, $b) {
+            $order = ['HSE', 'Produksi', 'Maintenance', 'Engineering', 'QA', 'HRD', 'Finance', 'IT', 'Logistik', 'Purchasing', 'GA'];
+            $posA = array_search($a, $order);
+            $posB = array_search($b, $order);
+            return $posA - $posB;
+        });
+
+        $series = [
+            [
+                'name' => 'Open',
+                'data' => $this->mapStatusData($departments, $seriesData['OPEN'])
+            ],
+            [
+                'name' => 'Closed',
+                'data' => $this->mapStatusData($departments, $seriesData['CLOSED'])
+            ],
+            [
+                'name' => 'On Progress',
+                'data' => $this->mapStatusData($departments, $seriesData['ONPROGRESS'])
+            ]
+        ];
+
+        return response()->json([
+            "categories" => $departments,
+            "series" => $series
+        ]);
+    }
 }
