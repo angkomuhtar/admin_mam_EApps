@@ -418,7 +418,8 @@
                         </header>
                         <div class="card-body p-6">
                             <div class="legend-ring relative">
-                                <div id="hazard-barchart-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                <div id="hazard-barchart-div"
+                                    class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
                                     <div class="items-center justify-center flex flex-col gap-3">
                                         <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
                                         <p class="text-sm font-medium">please wait...</p>
@@ -441,7 +442,8 @@
                         </header>
                         <div class="card-body p-6">
                             <div class="legend-ring relative">
-                                <div id="hazard-category-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                                <div id="hazard-category-div"
+                                    class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
                                     <div class="items-center justify-center flex flex-col gap-3">
                                         <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
                                         <p class="text-sm font-medium">please wait...</p>
@@ -463,7 +465,8 @@
                     </header>
                     <div class="card-body p-6">
                         <div class="legend-ring relative">
-                            <div id="hazard-dept-div" class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
+                            <div id="hazard-dept-div"
+                                class="absolute top-0 bottom-0 left-0 w-full bg-white flex justify-center items-center z-10">
                                 <div class="items-center justify-center flex flex-col gap-3">
                                     <iconify-icon class="text-4xl" icon="eos-icons:bubble-loading"></iconify-icon>
                                     <p class="text-sm font-medium">please wait...</p>
@@ -475,354 +478,361 @@
                 </div>
             </div>
         </div>
-        @endcan
+    @endcan
 
 
-        @push('scripts')
-            @vite(['resources/js/plugins/flatpickr.js'])
-            <script type="module">
-                $("#change_shift").on('click', function() {
-                    var now = $(this).data('id');
-                    if (now == 1) {
-                        $("#allday").removeClass('block').addClass('hidden');
-                        $("#day").removeClass('hidden').addClass('block');
-                        $(this).data('id', 2)
-                    } else if (now == 2) {
-                        $("#day").removeClass('block').addClass('hidden');
-                        $("#night").removeClass('hidden').addClass('block');
-                        $(this).data('id', 3)
-                    } else {
-                        $("#night").removeClass('block').addClass('hidden');
-                        $("#allday").removeClass('hidden').addClass('block');
-                        $(this).data('id', 1)
+    @push('scripts')
+        @vite(['resources/js/plugins/flatpickr.js'])
+        <script type="module">
+            $("#change_shift").on('click', function() {
+                var now = $(this).data('id');
+                if (now == 1) {
+                    $("#allday").removeClass('block').addClass('hidden');
+                    $("#day").removeClass('hidden').addClass('block');
+                    $(this).data('id', 2)
+                } else if (now == 2) {
+                    $("#day").removeClass('block').addClass('hidden');
+                    $("#night").removeClass('hidden').addClass('block');
+                    $(this).data('id', 3)
+                } else {
+                    $("#night").removeClass('block').addClass('hidden');
+                    $("#allday").removeClass('hidden').addClass('block');
+                    $(this).data('id', 1)
+                }
+            })
+
+            $("#tanggal").flatpickr({
+                dateFormat: "Y-m-d",
+                defaultDate: "today",
+            });
+            $("#tanggal_fil").flatpickr({
+                dateFormat: "Y-m-d",
+                defaultDate: "today",
+            });
+            var table = $("#data-table, .data-table").DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{!! route('dashboard.rekap_hadir') !!}',
+                    data: function(d) {
+                        return $.extend({}, d, {
+                            tanggal: $('#tanggal').val(),
+                            project: $('#project').val(),
+                            shift: $('#shift').val()
+                        })
+                    },
+                },
+                dom: "<'grid grid-cols-12 gap-5 px-6 mt-6'<'col-span-4'l><'col-span-8 flex justify-end'f><'#pagination.flex items-center'>><'min-w-full't><'flex justify-end items-center'p>",
+                paging: false,
+                ordering: true,
+                info: false,
+                searching: true,
+                // pagingType: 'full_numbers',
+                lengthChange: true,
+                // lengthMenu: [10, 25, 50, 100],
+                language: {
+                    lengthMenu: "Show _MENU_",
+                    paginate: {
+                        previous: `<iconify-icon icon="heroicons:chevron-left-20-solid"></iconify-icon>`,
+                        next: `<iconify-icon icon="heroicons:chevron-right-20-solid"></iconify-icon>`,
+                        first: `<iconify-icon icon="heroicons:chevron-double-left-20-solid"></iconify-icon>`,
+                        last: `<iconify-icon icon="heroicons:chevron-double-right-20-solid"></iconify-icon>`,
+                    },
+                    search: "Search:",
+                },
+                "columnDefs": [{
+                        "searchable": false,
+                        "targets": [1, 2]
+                    },
+                    {
+                        "orderable": false,
+                        "targets": [1, 2]
+                    },
+                    {
+                        'className': 'table-td',
+                        "targets": "_all"
                     }
-                })
+                ],
+                columns: [{
+                        data: 'site'
+                    },
+                    {
+                        data: 'division',
+                    },
 
-                $("#tanggal").flatpickr({
-                    dateFormat: "Y-m-d",
-                    defaultDate: "today",
-                });
-                $("#tanggal_fil").flatpickr({
-                    dateFormat: "Y-m-d",
-                    defaultDate: "today",
-                });
-                var table = $("#data-table, .data-table").DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: '{!! route('dashboard.rekap_hadir') !!}',
-                        data: function(d) {
-                            return $.extend({}, d, {
-                                tanggal: $('#tanggal').val(),
-                                project: $('#project').val(),
-                                shift: $('#shift').val()
-                            })
+                    {
+                        data: 'value',
+                    },
+
+                    {
+                        data: 'total',
+                    },
+                ],
+            });
+
+            table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
+
+            $('#tanggal,#shift,#project').bind('change', function() {
+                table.draw()
+            })
+            const isDark = localStorage.theme === "dark" ? true : false;
+
+            var chartOptions = [{
+                id: "sleep-barchart",
+                options: {
+                    chart: {
+                        height: 400,
+                        width: "100%",
+                        type: "bar",
+                        toolbar: {
+                            show: false,
                         },
                     },
-                    dom: "<'grid grid-cols-12 gap-5 px-6 mt-6'<'col-span-4'l><'col-span-8 flex justify-end'f><'#pagination.flex items-center'>><'min-w-full't><'flex justify-end items-center'p>",
-                    paging: false,
-                    ordering: true,
-                    info: false,
-                    searching: true,
-                    // pagingType: 'full_numbers',
-                    lengthChange: true,
-                    // lengthMenu: [10, 25, 50, 100],
-                    language: {
-                        lengthMenu: "Show _MENU_",
-                        paginate: {
-                            previous: `<iconify-icon icon="heroicons:chevron-left-20-solid"></iconify-icon>`,
-                            next: `<iconify-icon icon="heroicons:chevron-right-20-solid"></iconify-icon>`,
-                            first: `<iconify-icon icon="heroicons:chevron-double-left-20-solid"></iconify-icon>`,
-                            last: `<iconify-icon icon="heroicons:chevron-double-right-20-solid"></iconify-icon>`,
+                    series: [],
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            endingShape: "rounded",
+                            columnWidth: "45%",
                         },
-                        search: "Search:",
                     },
-                    "columnDefs": [{
-                            "searchable": false,
-                            "targets": [1, 2]
+                    legend: {
+                        show: true,
+                        position: "top",
+                        horizontalAlign: "right",
+                        fontSize: "12px",
+                        fontFamily: "Inter",
+                        offsetY: -30,
+                        markers: {
+                            width: 8,
+                            height: 8,
+                            offsetY: -1,
+                            offsetX: -5,
+                            radius: 12,
                         },
-                        {
-                            "orderable": false,
-                            "targets": [1, 2]
+                        labels: {
+                            colors: isDark ? "#CBD5E1" : "#475569",
                         },
-                        {
-                            'className': 'table-td',
-                            "targets": "_all"
-                        }
-                    ],
-                    columns: [{
-                            data: 'site'
+                        itemMargin: {
+                            horizontal: 18,
+                            vertical: 0,
                         },
-                        {
-                            data: 'division',
-                        },
+                    },
+                    title: {
+                        text: "data",
+                        align: "left",
 
-                        {
-                            data: 'value',
-                        },
-
-                        {
-                            data: 'total',
-                        },
-                    ],
-                });
-
-                table.tables().body().to$().addClass('bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
-
-                $('#tanggal,#shift,#project').bind('change', function() {
-                    table.draw()
-                })
-                const isDark = localStorage.theme === "dark" ? true : false;
-
-                var chartOptions = [{
-                    id: "sleep-barchart",
-                    options: {
-                        chart: {
-                            height: 400,
-                            width: "100%",
-                            type: "bar",
-                            toolbar: {
-                                show: false,
-                            },
-                        },
-                        series: [],
-                        plotOptions: {
-                            bar: {
-                                horizontal: false,
-                                endingShape: "rounded",
-                                columnWidth: "45%",
-                            },
-                        },
-                        legend: {
-                            show: true,
-                            position: "top",
-                            horizontalAlign: "right",
-                            fontSize: "12px",
+                        offsetX: 0,
+                        offsetY: 10,
+                        floating: false,
+                        style: {
+                            fontSize: "16px",
+                            fontWeight: "300",
                             fontFamily: "Inter",
-                            offsetY: -30,
-                            markers: {
-                                width: 8,
-                                height: 8,
-                                offsetY: -1,
-                                offsetX: -5,
-                                radius: 12,
-                            },
-                            labels: {
-                                colors: isDark ? "#CBD5E1" : "#475569",
-                            },
-                            itemMargin: {
-                                horizontal: 18,
-                                vertical: 0,
-                            },
+                            color: isDark ? "#fff" : "",
                         },
-                        title: {
-                            text: "data",
-                            align: "left",
-
-                            offsetX: 0,
-                            offsetY: 10,
-                            floating: false,
-                            style: {
-                                fontSize: "16px",
-                                fontWeight: "300",
-                                fontFamily: "Inter",
-                                color: isDark ? "#fff" : "",
-                            },
-                        },
-                        dataLabels: {
-                            enabled: false,
-                        },
-                        stroke: {
-                            show: true,
-                            width: 2,
-                            colors: ["transparent"],
-                        },
-                        yaxis: {
-                            opposite: false,
-                            labels: {
-                                style: {
-                                    colors: isDark ? "#CBD5E1" : "#475569",
-                                    fontFamily: "Inter",
-                                },
-                            },
-                        },
-                        xaxis: {
-                            categories: [],
-                            labels: {
-                                style: {
-                                    colors: isDark ? "#CBD5E1" : "#475569",
-                                    fontFamily: "Inter",
-                                },
-                            },
-                            axisBorder: {
-                                show: false,
-                            },
-                            axisTicks: {
-                                show: false,
-                            },
-                        },
-
-                        fill: {
-                            opacity: 1,
-                        },
-                        tooltip: {
-                            y: {
-                                formatter: function(val) {
-                                    return val + " org";
-                                },
-                            },
-                        },
-                        colors: ['#22c55d', "#FFF22E", '#F44336'],
-                        grid: {
-                            show: true,
-                            borderColor: isDark ? "#334155" : "#E2E8F0",
-                            strokeDashArray: 10,
-                            position: "back",
-                        },
-                        responsive: [{
-                            breakpoint: 600,
-                            options: {
-                                legend: {
-                                    position: "bottom",
-                                    offsetY: 8,
-                                    horizontalAlign: "center",
-                                },
-                                plotOptions: {
-                                    bar: {
-                                        columnWidth: "80%",
-                                    },
-                                },
-                            },
-                        }, ],
-
                     },
-                }, {
-                    id: "radialbars",
-                    options: {
-                        series: {{ Js::from($sleepChart['radialValue']) }},
-                        chart: {
-                            height: 350,
-                            type: 'radialBar',
+                    dataLabels: {
+                        enabled: false,
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ["transparent"],
+                    },
+                    yaxis: {
+                        opposite: false,
+                        labels: {
+                            style: {
+                                colors: isDark ? "#CBD5E1" : "#475569",
+                                fontFamily: "Inter",
+                            },
                         },
-                        plotOptions: {
-                            radialBar: {
-                                dataLabels: {
-                                    name: {
-                                        fontSize: "22px",
-                                        color: isDark ? "#CBD5E1" : "#475569",
-                                    },
-                                    value: {
-                                        fontSize: "16px",
-                                        color: isDark ? "#CBD5E1" : "#475569",
-                                    },
-                                    total: {
-                                        show: true,
-                                        label: "Total Hadir",
-                                        color: isDark ? "#CBD5E1" : "#475569",
-                                        formatter: function() {
-                                            return {!! $sleepChart['totalHadir'] !!};
-                                        },
+                    },
+                    xaxis: {
+                        categories: [],
+                        labels: {
+                            style: {
+                                colors: isDark ? "#CBD5E1" : "#475569",
+                                fontFamily: "Inter",
+                            },
+                        },
+                        axisBorder: {
+                            show: false,
+                        },
+                        axisTicks: {
+                            show: false,
+                        },
+                    },
+
+                    fill: {
+                        opacity: 1,
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val + " org";
+                            },
+                        },
+                    },
+                    colors: ['#22c55d', "#FFF22E", '#F44336'],
+                    grid: {
+                        show: true,
+                        borderColor: isDark ? "#334155" : "#E2E8F0",
+                        strokeDashArray: 10,
+                        position: "back",
+                    },
+                    responsive: [{
+                        breakpoint: 600,
+                        options: {
+                            legend: {
+                                position: "bottom",
+                                offsetY: 8,
+                                horizontalAlign: "center",
+                            },
+                            plotOptions: {
+                                bar: {
+                                    columnWidth: "80%",
+                                },
+                            },
+                        },
+                    }, ],
+
+                },
+            }, {
+                id: "radialbars",
+                options: {
+                    series: {{ Js::from($sleepChart['radialValue']) }},
+                    chart: {
+                        height: 350,
+                        type: 'radialBar',
+                    },
+                    plotOptions: {
+                        radialBar: {
+                            dataLabels: {
+                                name: {
+                                    fontSize: "22px",
+                                    color: isDark ? "#CBD5E1" : "#475569",
+                                },
+                                value: {
+                                    fontSize: "16px",
+                                    color: isDark ? "#CBD5E1" : "#475569",
+                                },
+                                total: {
+                                    show: true,
+                                    label: "Total Hadir",
+                                    color: isDark ? "#CBD5E1" : "#475569",
+                                    formatter: function() {
+                                        return {!! $sleepChart['totalHadir'] !!};
                                     },
                                 },
-                                track: {
-                                    background: "#E2E8F0",
-                                    strokeWidth: "98%",
-                                }
+                            },
+                            track: {
+                                background: "#E2E8F0",
+                                strokeWidth: "98%",
                             }
-                        },
-                        labels: ['Fit to works', 'dalam pengawasan', 'istirahat', 'tidak mengisi'],
-                        fill: {
-                            colors: ['#22c55d', "#FFF22E", '#F44336', '#A4A5A5']
                         }
+                    },
+                    labels: ['Fit to works', 'dalam pengawasan', 'istirahat', 'tidak mengisi'],
+                    fill: {
+                        colors: ['#22c55d', "#FFF22E", '#F44336', '#A4A5A5']
                     }
-                }]
+                }
+            }]
 
-                const radialChart = new ApexCharts(document.getElementById('radialbars'), chartOptions[1].options);
-                radialChart.render();
+            const radialChart = new ApexCharts(document.getElementById('radialbars'), chartOptions[1].options);
+            radialChart.render();
 
-                const SleepbarChart = new ApexCharts(document.getElementById('sleep-barchart'), chartOptions[0].options);
-                SleepbarChart.render();
+            const SleepbarChart = new ApexCharts(document.getElementById('sleep-barchart'), chartOptions[0].options);
+            SleepbarChart.render();
 
-                const updateChart = async (date, shift = '') => {
-                    $("#sleep-barchart-div").removeClass('hidden').addClass('flex');
-                    await axios({
-                        method: 'POST',
-                        url: '{!! route('ajax.ajaxBarchart') !!}',
-                        data: {
-                            'date': date,
-                            'shift': shift
+            const updateChart = async (date, shift = '') => {
+                $("#sleep-barchart-div").removeClass('hidden').addClass('flex');
+                await axios({
+                    method: 'POST',
+                    url: '{!! route('ajax.ajaxBarchart') !!}',
+                    data: {
+                        'date': date,
+                        'shift': shift
+                    }
+                }).then(function({
+                    data
+                }) {
+                    SleepbarChart.updateSeries(data.series);
+                    SleepbarChart.updateOptions({
+                        xaxis: {
+                            categories: data.legend
                         }
-                    }).then(function({
-                        data
-                    }) {
-                        SleepbarChart.updateSeries(data.series);
-                        SleepbarChart.updateOptions({
-                            xaxis: {
-                                categories: data.legend
-                            }
-                        });
-                    })
-                    $("#sleep-barchart-div").removeClass('flex').addClass('hidden');
-                }
-
-                updateChart($('#tanggal_fil').val())
-
-                $(document).on("change", "#tanggal_fil, #shift_fil", function(val) {
-                    updateChart($("#tanggal_fil").val(), $("#shift_fil").val())
+                    });
                 })
+                $("#sleep-barchart-div").removeClass('flex').addClass('hidden');
+            }
 
-                const currentYear = new Date().getFullYear();
+            updateChart($('#tanggal_fil').val())
 
-                // Elemen untuk Bar Chart
-                const yearSelectorBar = document.getElementById("yearSelectorBar");
-                const selectedYearBar = document.getElementById("selectedYearBar");
-                const loadingIndicatorBar = document.getElementById("hazard-barchart-div");
+            $(document).on("change", "#tanggal_fil, #shift_fil", function(val) {
+                updateChart($("#tanggal_fil").val(), $("#shift_fil").val())
+            })
 
-                // Elemen untuk Pie Chart
-                const yearSelectorPie = document.getElementById("yearSelectorPie");
-                const selectedYearPie = document.getElementById("selectedYearPie");
-                const loadingIndicatorPie = document.getElementById("hazard-category-div");
+            const currentYear = new Date().getFullYear();
 
-                // Isi dropdown tahun (5 tahun terakhir) untuk kedua chart
-                for (let i = currentYear; i >= currentYear - 5; i--) {
-                    yearSelectorBar.appendChild(new Option(i, i));
-                    yearSelectorPie.appendChild(new Option(i, i));
-                }
+            // Elemen untuk Bar Chart
+            const yearSelectorBar = document.getElementById("yearSelectorBar");
+            const selectedYearBar = document.getElementById("selectedYearBar");
+            const loadingIndicatorBar = document.getElementById("hazard-barchart-div");
 
-                // Set tahun default
-                yearSelectorBar.value = currentYear;
-                yearSelectorPie.value = currentYear;
-                // selectedYearBar.textContent = currentYear;
-                // selectedYearPie.textContent = currentYear;
+            // Elemen untuk Pie Chart
+            const yearSelectorPie = document.getElementById("yearSelectorPie");
+            const selectedYearPie = document.getElementById("selectedYearPie");
+            const loadingIndicatorPie = document.getElementById("hazard-category-div");
 
-                // Load chart pertama kali
-                loadHazardChart(currentYear);
-                loadHazardCategoryChart(currentYear);
+            // Isi dropdown tahun (5 tahun terakhir) untuk kedua chart
+            for (let i = currentYear; i >= currentYear - 5; i--) {
+                yearSelectorBar.appendChild(new Option(i, i));
+                yearSelectorPie.appendChild(new Option(i, i));
+            }
 
-                // Event listeners untuk dropdown tahun
-                yearSelectorBar.addEventListener("change", function() {
-                    const year = this.value;
-                    // selectedYearBar.textContent = year;
-                    loadHazardChart(year);
-                });
+            // Set tahun default
+            yearSelectorBar.value = currentYear;
+            yearSelectorPie.value = currentYear;
+            // selectedYearBar.textContent = currentYear;
+            // selectedYearPie.textContent = currentYear;
 
-                yearSelectorPie.addEventListener("change", function() {
-                    const year = this.value;
-                    // selectedYearPie.textContent = year;
-                    loadHazardCategoryChart(year);
-                });
+            // Load chart pertama kali
+            loadHazardChart(currentYear);
+            loadHazardCategoryChart(currentYear);
+
+            // Event listeners untuk dropdown tahun
+            yearSelectorBar.addEventListener("change", function() {
+                const year = this.value;
+                // selectedYearBar.textContent = year;
+                loadHazardChart(year);
+            });
+
+            yearSelectorPie.addEventListener("change", function() {
+                const year = this.value;
+                // selectedYearPie.textContent = year;
+                loadHazardCategoryChart(year);
+            });
 
             // Bar Chart (Hazard Report)
             async function loadHazardChart(year) {
                 try {
                     loadingIndicatorBar.classList.remove("hidden");
-                    const response = await axios.post('{!! route('ajax.get-hazard-yearly') !!}', { year });
+                    const response = await axios.post('{!! route('ajax.get_hazard_yearly') !!}', {
+                        year
+                    });
                     const data = response.data;
 
                     var options = {
-                        chart: { type: "bar", height: 400 },
+                        chart: {
+                            type: "bar",
+                            height: 400
+                        },
                         series: data.series,
-                        xaxis: { categories: data.categories || [] },
+                        xaxis: {
+                            categories: data.categories || []
+                        },
                         colors: ["#2ECC71", "#F39C12", "#E74C3C"],
                         plotOptions: {
                             bar: {
@@ -886,7 +896,9 @@
             async function loadHazardCategoryChart(year) {
                 try {
                     loadingIndicatorPie.classList.remove("hidden");
-                    const response = await axios.post('{!! route('ajax.get-hazard-category') !!}', { year });
+                    const response = await axios.post('{!! route('ajax.get_hazard_category') !!}', {
+                        year
+                    });
                     const data = response.data;
 
                     // Pastikan data.series dan data.labels ada
@@ -1025,7 +1037,7 @@
             async function loadHazardDeptChart(year) {
                 try {
                     loadingIndicatorDept.classList.remove("hidden");
-                    const response = await axios.post('{!! route('ajax.get-hazard-department') !!}', {
+                    const response = await axios.post('{!! route('ajax.get_hazard_department') !!}', {
                         year: year
                     });
                     const data = response.data;
@@ -1110,6 +1122,6 @@
 
             // Load chart pertama kali
             loadHazardDeptChart(currentYear);
-            </script>
-        @endpush
+        </script>
+    @endpush
 </x-appLayout>

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClockController;
 use App\Http\Controllers\Api\HazardController;
+use App\Http\Controllers\Api\InspectionController;
 use App\Http\Controllers\Api\SleepController;
 use App\Http\Controllers\Api\LeaveApiController;
 use App\Http\Controllers\Api\MasterController;
@@ -150,6 +151,15 @@ Route::prefix('v2')->group(function(){
             Route::GET('/{id}', 'show');
             Route::POST('/', 'store');
             Route::POST('/{id}/pic', 'set_pic');
+        });
+
+        Route::group([
+            'prefix' => 'inspection',
+            'controller'=> InspectionController::class
+        ], function(){
+            Route::GET('/', 'index');
+            Route::POST('/', 'store');
+            Route::GET('/{id}/question', 'getQuestion');
         });
     });
 });
