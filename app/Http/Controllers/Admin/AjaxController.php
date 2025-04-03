@@ -11,6 +11,7 @@ use App\Models\ViewClockSleep;
 use App\Helpers\ResponseHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Hazard_Report;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -154,7 +155,7 @@ class AjaxController extends Controller
                     $fit[$no] = $ds->total;
                 }
             }
-            
+
 
             // if (isset($dataSleepWeek[$startDate->format('Y-m-d')])) {
             //     $total = $dataSleepWeek[$startDate->format('Y-m-d')]->filter()->groupBy('sleep_cat');
@@ -170,7 +171,7 @@ class AjaxController extends Controller
             $startDate->addDay();
             $no++;
         }
-        
+
         return response()->json([
             "series" => [
                 ['name' => 'fit to works', 'data' => $fit],
@@ -179,7 +180,7 @@ class AjaxController extends Controller
            ],
             "legend" => $legend
         ]);
-        
+
         // foreach ($dataSleepWeek as $key => $item) {
         //     return $key;
         // }
@@ -187,4 +188,126 @@ class AjaxController extends Controller
 
     }
 
+    public function getHazardYearly(Request $request)
+    {
+        $year = $request->year;
+
+        $data = Hazard_Report::query()
+            ->where('company_id', 1)
+            ->whereIn('project_id', [1, 4, 6])
+            ->whereYear('created_at', $year)
+            ->selectRaw("status, COUNT(*) as count")
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        return response()->json([
+            "categories" => ["Open", "On Progress", "Closed"],
+            "series" => [
+                [
+                    "name" => "Hazard Reports",
+                    "data" => [
+                        $data['OPEN'] ?? 0,
+                        $data['ONPROGRESS'] ?? 0,
+                        $data['CLOSED'] ?? 0
+                    ]
+                ],
+            ],
+        ]);
+    }
+
+    public function getHazardByCategory(Request $request)
+    {
+        $year = $request->year;
+
+        $data = Hazard_Report::query()
+            ->where('company_id', 1)
+            ->whereIn('project_id', [1, 4, 6])
+            ->whereYear('created_at', $year)
+            ->selectRaw("
+                CASE
+                    WHEN category = 'KTA' THEN 'Faktor Kondisi Tidak Aman'
+                    WHEN category = 'TTA' THEN 'Faktor Tindakan Tidak Aman'
+                    ELSE 'Lainnya'
+                END as category,
+                COUNT(*) as count
+            ")
+            ->groupBy('category')
+            ->pluck('count', 'category');
+
+        $total = $data->sum();
+
+        return response()->json([
+            "series" => $data->values()->toArray(),
+            "labels" => $data->keys()->toArray(),
+            "total" => $total
+        ]);
+    }
+
+    private function mapStatusData($departments, $statusData)
+    {
+        $mapped = [];
+        foreach ($departments as $dept) {
+            $mapped[] = $statusData[$dept] ?? 0;
+        }
+        return $mapped;
+    }
+
+    public function getHazardDepartment(Request $request)
+    {
+        $data = Hazard_Report::with('division')
+            ->whereYear('created_at', $request->year)
+            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+            ->selectRaw('dept_id, status, COUNT(*) as count')
+            ->groupBy('dept_id', 'status')
+            ->orderBy('dept_id')
+            ->orderBy('status')
+            ->get();
+
+        $departments = [];
+        $seriesData = [
+            'OPEN' => [],
+            'CLOSED' => [],
+            'ONPROGRESS' => []
+        ];
+
+        foreach ($data as $item) {
+            $deptName = $item->division->division ?? 'Unknown';
+            if ($deptName == 'Healt, Safety & Environment') {
+                $deptName = 'HSE';
+            }
+
+            if (!in_array($deptName, $departments)) {
+                $departments[] = $deptName;
+            }
+
+            $seriesData[$item->status][$deptName] = $item->count;
+        }
+
+        usort($departments, function($a, $b) {
+            $order = ['HSE', 'Produksi', 'Maintenance', 'Engineering', 'QA', 'HRD', 'Finance', 'IT', 'Logistik', 'Purchasing', 'GA'];
+            $posA = array_search($a, $order);
+            $posB = array_search($b, $order);
+            return $posA - $posB;
+        });
+
+        $series = [
+            [
+                'name' => 'Open',
+                'data' => $this->mapStatusData($departments, $seriesData['OPEN'])
+            ],
+            [
+                'name' => 'Closed',
+                'data' => $this->mapStatusData($departments, $seriesData['CLOSED'])
+            ],
+            [
+                'name' => 'On Progress',
+                'data' => $this->mapStatusData($departments, $seriesData['ONPROGRESS'])
+            ]
+        ];
+
+        return response()->json([
+            "categories" => $departments,
+            "series" => $series
+        ]);
+    }
 }
