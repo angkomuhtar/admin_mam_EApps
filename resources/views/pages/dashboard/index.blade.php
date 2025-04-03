@@ -819,7 +819,7 @@
             async function loadHazardChart(year) {
                 try {
                     loadingIndicatorBar.classList.remove("hidden");
-                    const response = await axios.post('{!! route('ajax.get_hazard_yearly') !!}', {
+                    const response = await axios.post("{!! route('ajax.get_hazard_yearly') !!}", {
                         year
                     });
                     const data = response.data;

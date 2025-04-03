@@ -195,6 +195,7 @@ class AjaxController extends Controller
         $data = Hazard_Report::query()
             ->where('company_id', 1)
             ->whereIn('project_id', [1, 4, 6])
+            ->whereNotIn('dept_id', [11])
             ->whereYear('created_at', $year)
             ->selectRaw("status, COUNT(*) as count")
             ->groupBy('status')
@@ -222,6 +223,7 @@ class AjaxController extends Controller
         $data = Hazard_Report::query()
             ->where('company_id', 1)
             ->whereIn('project_id', [1, 4, 6])
+            ->whereNotIn('dept_id', [11])
             ->whereYear('created_at', $year)
             ->selectRaw("
                 CASE
@@ -256,7 +258,7 @@ class AjaxController extends Controller
     {
         $data = Hazard_Report::with('division')
             ->whereYear('created_at', $request->year)
-            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12])
             ->selectRaw('dept_id, status, COUNT(*) as count')
             ->groupBy('dept_id', 'status')
             ->orderBy('dept_id')
