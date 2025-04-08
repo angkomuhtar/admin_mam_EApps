@@ -191,13 +191,19 @@ class AjaxController extends Controller
     public function getHazardYearly(Request $request)
     {
         $year = $request->year;
+        $month = $request->month;
 
-        $data = Hazard_Report::query()
+        $query = Hazard_Report::query()
             ->where('company_id', 1)
             ->whereIn('project_id', [1, 4, 6])
             ->whereNotIn('dept_id', [11])
-            ->whereYear('created_at', $year)
-            ->selectRaw("status, COUNT(*) as count")
+            ->whereYear('created_at', $year);
+
+        if ($month) {
+            $query->whereMonth('created_at', $month);
+        }
+
+        $data = $query->selectRaw("status, COUNT(*) as count")
             ->groupBy('status')
             ->pluck('count', 'status');
 
@@ -219,13 +225,19 @@ class AjaxController extends Controller
     public function getHazardByCategory(Request $request)
     {
         $year = $request->year;
+        $month = $request->month;
 
-        $data = Hazard_Report::query()
+        $query = Hazard_Report::query()
             ->where('company_id', 1)
             ->whereIn('project_id', [1, 4, 6])
             ->whereNotIn('dept_id', [11])
-            ->whereYear('created_at', $year)
-            ->selectRaw("
+            ->whereYear('created_at', $year);
+
+        if ($month) {
+            $query->whereMonth('created_at', $month);
+        }
+
+        $data = $query->selectRaw("
                 CASE
                     WHEN category = 'KTA' THEN 'Faktor Kondisi Tidak Aman'
                     WHEN category = 'TTA' THEN 'Faktor Tindakan Tidak Aman'
@@ -256,10 +268,18 @@ class AjaxController extends Controller
 
     public function getHazardDepartment(Request $request)
     {
-        $data = Hazard_Report::with('division')
-            ->whereYear('created_at', $request->year)
-            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12])
-            ->selectRaw('dept_id, status, COUNT(*) as count')
+        $year = $request->year;
+        $month = $request->month;
+
+        $query = Hazard_Report::with('division')
+            ->whereYear('created_at', $year)
+            ->whereIn('dept_id', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]);
+
+        if ($month) {
+            $query->whereMonth('created_at', $month);
+        }
+
+        $data = $query->selectRaw('dept_id, status, COUNT(*) as count')
             ->groupBy('dept_id', 'status')
             ->orderBy('dept_id')
             ->orderBy('status')

@@ -412,9 +412,12 @@
                     <div class="card">
                         <header class="card-header flex justify-between items-center">
                             <h4 class="card-title">Hazard Report</h4>
-                            <select id="yearSelectorBar" class="border rounded-md p-1">
-                                <!-- Options akan diisi oleh JavaScript -->
-                            </select>
+                            <div class="flex gap-2">
+                                <select id="yearSelectorBar" class="border rounded-md p-1">
+                                </select>
+                                <select id="monthSelectorBar" class="border rounded-md p-1">
+                                </select>
+                            </div>
                         </header>
                         <div class="card-body p-6">
                             <div class="legend-ring relative">
@@ -436,9 +439,12 @@
                     <div class="card">
                         <header class="card-header flex justify-between items-center">
                             <h4 class="card-title">Jenis Bahaya Hazard Report</h4>
-                            <select id="yearSelectorPie" class="border rounded-md p-1">
-                                <!-- Options akan diisi oleh JavaScript -->
-                            </select>
+                            <div class="flex gap-2">
+                                <select id="yearSelectorPie" class="border rounded-md p-1">
+                                </select>
+                                <select id="monthSelectorPie" class="border rounded-md p-1">
+                                </select>
+                            </div>
                         </header>
                         <div class="card-body p-6">
                             <div class="legend-ring relative">
@@ -455,13 +461,17 @@
                     </div>
                 </div>
             </div>
+
             <div class="mt-5">
                 <div class="card">
                     <header class="card-header flex justify-between items-center">
                         <h4 class="card-title">Hazard per Departemen</h4>
-                        <select id="yearSelectorDept" class="border rounded-md p-1">
-                            <!-- Options akan diisi oleh JavaScript -->
-                        </select>
+                        <div class="flex gap-2">
+                            <select id="yearSelectorDept" class="border rounded-md p-1">
+                            </select>
+                            <select id="monthSelectorDept" class="border rounded-md p-1">
+                            </select>
+                        </div>
                     </header>
                     <div class="card-body p-6">
                         <div class="legend-ring relative">
@@ -775,54 +785,118 @@
             })
 
             const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1; // Get current month (1-12)
 
             // Elemen untuk Bar Chart
             const yearSelectorBar = document.getElementById("yearSelectorBar");
+            const monthSelectorBar = document.getElementById("monthSelectorBar");
             const selectedYearBar = document.getElementById("selectedYearBar");
             const loadingIndicatorBar = document.getElementById("hazard-barchart-div");
 
             // Elemen untuk Pie Chart
             const yearSelectorPie = document.getElementById("yearSelectorPie");
+            const monthSelectorPie = document.getElementById("monthSelectorPie");
             const selectedYearPie = document.getElementById("selectedYearPie");
             const loadingIndicatorPie = document.getElementById("hazard-category-div");
 
-            // Isi dropdown tahun (5 tahun terakhir) untuk kedua chart
+            // Elemen untuk Chart Departemen
+            const yearSelectorDept = document.getElementById("yearSelectorDept");
+            const monthSelectorDept = document.getElementById("monthSelectorDept");
+            const selectedYearDept = document.getElementById("selectedYearDept");
+            const loadingIndicatorDept = document.getElementById("hazard-dept-div");
+
+            // Isi dropdown tahun (5 tahun terakhir) untuk semua chart
             for (let i = currentYear; i >= currentYear - 5; i--) {
                 yearSelectorBar.appendChild(new Option(i, i));
                 yearSelectorPie.appendChild(new Option(i, i));
+                yearSelectorDept.appendChild(new Option(i, i));
             }
 
-            // Set tahun default
+            // Isi dropdown bulan untuk semua chart
+            const months = [
+                {value: '', text: 'Semua Bulan'},
+                {value: '1', text: 'Januari'},
+                {value: '2', text: 'Februari'},
+                {value: '3', text: 'Maret'},
+                {value: '4', text: 'April'},
+                {value: '5', text: 'Mei'},
+                {value: '6', text: 'Juni'},
+                {value: '7', text: 'Juli'},
+                {value: '8', text: 'Agustus'},
+                {value: '9', text: 'September'},
+                {value: '10', text: 'Oktober'},
+                {value: '11', text: 'November'},
+                {value: '12', text: 'Desember'}
+            ];
+
+            months.forEach(month => {
+                monthSelectorBar.appendChild(new Option(month.text, month.value));
+                monthSelectorPie.appendChild(new Option(month.text, month.value));
+                monthSelectorDept.appendChild(new Option(month.text, month.value));
+            });
+
+            // Set default values
             yearSelectorBar.value = currentYear;
             yearSelectorPie.value = currentYear;
-            // selectedYearBar.textContent = currentYear;
-            // selectedYearPie.textContent = currentYear;
+            yearSelectorDept.value = currentYear;
+            monthSelectorBar.value = currentMonth;
+            monthSelectorPie.value = currentMonth;
+            monthSelectorDept.value = currentMonth;
 
-            // Load chart pertama kali
-            loadHazardChart(currentYear);
-            loadHazardCategoryChart(currentYear);
+            // Load charts for the first time
+            loadHazardChart(currentYear, currentMonth);
+            loadHazardCategoryChart(currentYear, currentMonth);
+            loadHazardDeptChart(currentYear, currentMonth);
 
-            // Event listeners untuk dropdown tahun
+            // Event listeners for year and month selectors
             yearSelectorBar.addEventListener("change", function() {
                 const year = this.value;
-                // selectedYearBar.textContent = year;
-                loadHazardChart(year);
+                const month = monthSelectorBar.value;
+                loadHazardChart(year, month);
+            });
+
+            monthSelectorBar.addEventListener("change", function() {
+                const year = yearSelectorBar.value;
+                const month = this.value;
+                loadHazardChart(year, month);
             });
 
             yearSelectorPie.addEventListener("change", function() {
                 const year = this.value;
-                // selectedYearPie.textContent = year;
-                loadHazardCategoryChart(year);
+                const month = monthSelectorPie.value;
+                loadHazardCategoryChart(year, month);
+            });
+
+            monthSelectorPie.addEventListener("change", function() {
+                const year = yearSelectorPie.value;
+                const month = this.value;
+                loadHazardCategoryChart(year, month);
+            });
+
+            yearSelectorDept.addEventListener("change", function() {
+                const year = this.value;
+                const month = monthSelectorDept.value;
+                loadHazardDeptChart(year, month);
+            });
+
+            monthSelectorDept.addEventListener("change", function() {
+                const year = yearSelectorDept.value;
+                const month = this.value;
+                loadHazardDeptChart(year, month);
             });
 
             // Bar Chart (Hazard Report)
-            async function loadHazardChart(year) {
+            async function loadHazardChart(year, month = '') {
                 try {
                     loadingIndicatorBar.classList.remove("hidden");
                     const response = await axios.post("{!! route('ajax.get_hazard_yearly') !!}", {
-                        year
+                        year,
+                        month: month || undefined
                     });
                     const data = response.data;
+
+                    const monthText = month ? months.find(m => m.value === month)?.text : 'Tahun';
+                    const title = month ? `${monthText} ${year}` : `Tahun ${year}`;
 
                     var options = {
                         chart: {
@@ -833,7 +907,7 @@
                         xaxis: {
                             categories: data.categories || []
                         },
-                        colors: ["#2ECC71", "#F39C12", "#E74C3C"],
+                        colors: ["#E74C3C", "#F39C12", "#2ECC71"],
                         plotOptions: {
                             bar: {
                                 distributed: true,
@@ -851,7 +925,7 @@
                             },
                         },
                         title: {
-                            text: `HAZARD REPORT ${year}`,
+                            text: `HAZARD REPORT ${title}`,
                             align: "center",
                             style: {
                                 fontSize: "16px",
@@ -893,11 +967,12 @@
             }
 
             // Pie Chart (Penyebab Langsung)
-            async function loadHazardCategoryChart(year) {
+            async function loadHazardCategoryChart(year, month = '') {
                 try {
                     loadingIndicatorPie.classList.remove("hidden");
                     const response = await axios.post('{!! route('ajax.get_hazard_category') !!}', {
-                        year
+                        year,
+                        month: month || undefined
                     });
                     const data = response.data;
 
@@ -912,6 +987,9 @@
                         window.hazardPieChart.destroy();
                     }
                     chartElement.innerHTML = "";
+
+                    const monthText = month ? months.find(m => m.value === month)?.text : 'Tahun';
+                    const title = month ? `${monthText} ${year}` : `Tahun ${year}`;
 
                     var options = {
                         chart: {
@@ -952,7 +1030,7 @@
                             },
                         },
                         title: {
-                            text: `JENIS BAHAYA HAZARD REPORT (${year})`,
+                            text: `JENIS BAHAYA HAZARD REPORT (${title})`,
                             align: "center",
                             style: {
                                 fontSize: "16px",
@@ -1012,35 +1090,18 @@
                 }
             }
 
-            // Elemen untuk Chart Departemen
-            const yearSelectorDept = document.getElementById("yearSelectorDept");
-            const selectedYearDept = document.getElementById("selectedYearDept");
-            const loadingIndicatorDept = document.getElementById("hazard-dept-div");
-
-            // Inisialisasi dropdown tahun
-            for (let i = currentYear; i >= currentYear - 5; i--) {
-                yearSelectorDept.appendChild(new Option(i, i));
-            }
-
-            // Set tahun default
-            yearSelectorDept.value = currentYear;
-            // selectedYearDept.textContent = `(${currentYear})`;
-
-            // Event listener untuk dropdown tahun
-            yearSelectorDept.addEventListener("change", function() {
-                const year = this.value;
-                // selectedYearDept.textContent = `(${year})`;
-                loadHazardDeptChart(year);
-            });
-
             // bar Chart (Hazard Per Department)
-            async function loadHazardDeptChart(year) {
+            async function loadHazardDeptChart(year, month = '') {
                 try {
                     loadingIndicatorDept.classList.remove("hidden");
                     const response = await axios.post('{!! route('ajax.get_hazard_department') !!}', {
-                        year: year
+                        year,
+                        month: month || undefined
                     });
                     const data = response.data;
+
+                    const monthText = month ? months.find(m => m.value === month)?.text : 'Tahun';
+                    const title = month ? `${monthText} ${year}` : `Tahun ${year}`;
 
                     var options = {
                         chart: {
@@ -1056,7 +1117,7 @@
                                 }
                             }
                         },
-                        colors: ["#2ECC71", "#E74C3C", "#F39C12"],
+                        colors: ["#E74C3C", "#2ECC71", "#F39C12"],
                         plotOptions: {
                             bar: {
                                 horizontal: false,
@@ -1096,7 +1157,15 @@
                                     return value + " laporan";
                                 }
                             }
-                        }
+                        },
+                        title: {
+                            text: `HAZARD PER DEPARTEMEN (${title})`,
+                            align: "center",
+                            style: {
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                            },
+                        },
                     };
 
                     // Hapus dan render chart baru
@@ -1119,9 +1188,6 @@
                     loadingIndicatorDept.classList.add("hidden");
                 }
             }
-
-            // Load chart pertama kali
-            loadHazardDeptChart(currentYear);
         </script>
     @endpush
 </x-appLayout>
