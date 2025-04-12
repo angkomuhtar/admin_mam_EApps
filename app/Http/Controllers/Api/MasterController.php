@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Division;
 use App\Models\Hazard_location;
 use App\Models\Hazard_Report;
+use App\Models\Position;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\UserProfileView;
@@ -45,11 +46,33 @@ class MasterController extends Controller
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
     }
-    
+
     public function project(String $id)
     {
         try {
             $data = Project::where('company_id', $id)->get();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function position(String $id)
+    {
+        try {
+            $data = Position::where('company_id', $id)->get();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function user(String $id)
+    {
+        try {
+            $data = User::with('employee', 'profile')->whereHas('employee', function($employee) use($id){
+                $employee->where('company_id', $id);
+            })->where('status', 'Y')->get();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);

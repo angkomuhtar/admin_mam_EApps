@@ -21,7 +21,7 @@ Route::prefix('v1')->group(function(){
         Route::post('/logout', 'logout');
         Route::post('/refresh', 'refresh');
     });
-    
+
     Route::middleware('jwt')->group(function () {
         Route::get('/', function(){
             return 'losee';
@@ -47,7 +47,7 @@ Route::prefix('v1')->group(function(){
             Route::get('/rekap', 'rekap');
         });
 
-        
+
         // Route::apiResource('leave', LeaveApiController::class);
         Route::group([
             'prefix' => 'leave',
@@ -81,7 +81,7 @@ Route::prefix('v2')->group(function(){
         Route::post('/logout', 'logout');
         Route::post('/refresh', 'refresh');
     });
-    
+
     Route::middleware('jwt')->group(function () {
         Route::get('/', function(){
             return 'losee';
@@ -137,6 +137,8 @@ Route::prefix('v2')->group(function(){
             Route::GET('/hazard_location', 'hazard_location');
             Route::GET('/project/{id}', 'project');
             Route::GET('/division/{id}', 'division');
+            Route::GET('/position/{id}', 'position');
+            Route::GET('/user/{id}', 'user');
         });
 
         Route::group([
