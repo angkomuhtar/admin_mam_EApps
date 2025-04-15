@@ -130,6 +130,29 @@
                 <div class="card-body px-6 pb-6">
                     <div class="grid grid-cols-4 gap-3 ">
                         <div class="input-area">
+                            <label for="tanggal" class="form-label">Bulan</label>
+                            <select class="form-control" id="month" name="month">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div class="input-area">
+                            <label for="username" class="form-label">Nama Pelapor</label>
+                            <input id="name" type="text" name="name" class="form-control" placeholder="Nama"
+                                required="required">
+                        </div>
+                        <div class="input-area">
                             <label for="division_id" class="form-label">Departement</label>
                             <select id="division_id" class="form-control" name="division_id">
                                 <option value="" selected class="dark:bg-slate-700 !text-slate-300">Semua
@@ -334,7 +357,8 @@
                         return $.extend({}, d, {
                             division: $('#division_id').val(),
                             location: $('#location').val(),
-                            tanggal: $('#tanggal_fil').val(),
+                            name: $('#name').val(),
+                            month: $('#month').val(),
                         })
                     },
                 },
@@ -442,7 +466,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #location, #tanggal_fil').bind('change', function() {
+            $('#name, #division_id, #location, #month').bind('change', function() {
                 table.draw()
             })
 
