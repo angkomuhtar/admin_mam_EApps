@@ -36,13 +36,21 @@ class HazardReportController extends Controller
       if ($request->ajax()) {
         $data = Hazard_Report::with('location', 'company', 'project', 'division', 'createdBy.profile', 'createdBy.employee.division');
 
-          if ($request->division != null || $request->departement != '') {
+        if ($request->division != null || $request->departement != '')
             $data->where('dept_id', $request->division);
-          }
 
-          if ($request->location != null || $request->location != '') {
-              $data->where('id_location', $request->location);
-          }
+        if ($request->location != null || $request->location != '')
+            $data->where('id_location', $request->location);
+
+        if($request->name != null || $request->name != '')
+            $data->whereHas('createdBy', function($query) use($request){
+                $query->whereHas('profile', function($query) use($request){
+                    $query->where('name', 'like', '%'. $request->name.'%');
+                });
+            });
+
+        if($request->month != null || $request->month != '')
+            $data->whereMonth('created_at', $request->month);
 
             $dt = DataTables::of($data->get());
             return $dt->make(true);
