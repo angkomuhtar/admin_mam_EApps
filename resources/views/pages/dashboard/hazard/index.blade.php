@@ -40,6 +40,54 @@
         </div>
     </div>
 
+    <div class="offcanvas offcanvas-end fixed bottom-0 flex flex-col max-w-full bg-white dark:bg-slate-800 invisible bg-clip-padding shadow-sm outline-none transition duration-300 ease-in-out text-gray-700 top-0 ltr:right-0 rtl:left-0 border-none w-96"
+        tabindex="-1" id="offcanvas" aria-labelledby="offcanvas">
+        <div
+            class="offcanvas-header flex items-center justify-between p-4 pt-3 border-b border-b-slate-300 dark:border-b-slate-900">
+            <div>
+                <h3 class="block text-xl font-Inter text-slate-900 font-medium dark:text-[#eee]">
+                    Set PIC
+                </h3>
+            </div>
+            <button type="button"
+                class="box-content text-2xl w-4 h-4 p-2 pt-0 -my-5 -mr-2 text-black dark:text-white border-none rounded-none opacity-100 focus:shadow-none focus:outline-none focus:opacity-100 hover:text-black hover:opacity-75 hover:no-underline"
+                data-bs-dismiss="offcanvas">
+                <iconify-icon icon="line-md:close"></iconify-icon>
+            </button>
+        </div>
+        <div class="offcanvas-body flex-grow overflow-y-auto">
+            <div class="settings-modal">
+                <div class="divider"></div>
+                <div class="p-6">
+                    <form class="space-y-4" id="sending_form">
+                        <input type="hidden" name="id" id="id" value="">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+                        <div class="input-area mb-4">
+                            <label for="company_id" class="form-label">Pilih Pic</label>
+                            <select id="company_id" class="form-control" name="pic">
+                                <option value="" selected disabled class="dark:bg-slate-700 !text-slate-300">
+                                    Pilih PIC
+                                </option>
+                                @foreach ($employees as $employee)
+                                    <option value="{{ $employee->user_id }}" class="dark:bg-slate-700">
+                                        {{ $employee->name }} - {{ $employee->user->employee->position->position }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="submit"
+                                class="btn btn-sm inline-flex justify-center btn-dark">Simpan</button>
+                            <button type="reset" id="btn_cancel" data-bs-dismiss="offcanvas"
+                                class="btn btn-sm btn-outline-danger inline-flex justify-center btn-dark">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="space-y-8">
         <div class=" space-y-5">
@@ -233,6 +281,18 @@
                                             <th scope="col" class=" table-th ">
                                                 NRP Pelapor
                                             </th>
+                                            <th scope="col" class=" table-th ">
+                                                Ditunjukan Kepada
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                Jabatan
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                Departemen Yang Dituju
+                                            </th>
+                                            <th scope="col" class=" table-th ">
+                                                Action
+                                            </th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -393,7 +453,8 @@
                         "targets": "_all"
                     }
                 ],
-                columns: [{
+                columns: [
+                    {
                         data: 'hazard_report_number',
                     },
                     {
@@ -459,6 +520,26 @@
                     {
                         render: (data, type, row, meta) => {
                             return row?.created_by?.employee?.nip ?? "-"
+                        }
+                    },
+                    {
+                        data: 'hazard_action.pic.profile.name'
+                    },
+                    {
+                        data: 'hazard_action.pic.employee.position.position'
+                    },
+                    {
+                        data: 'hazard_action.pic.employee.division.division'
+                    },
+                    {
+                        data: 'id',
+                        name: 'action',
+                        render: (data, type, row, meta) => {
+                            return `<div class="flex space-x-3 rtl:space-x-reverse">
+                                <button class="action-btn toolTip onTop cursor-pointer btn-edit" data-tippy-content="Edit" data-id="${row.id}" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">
+                                    <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
+                                </button>
+                            </div>`;
                         }
                     },
                 ],
@@ -569,6 +650,48 @@
                     }
                 })
 
+            })
+
+            $(document).on('click', '.btn-edit', function () {
+                const hazardId = $(this).data('id');
+                $('#id').val(hazardId);
+            });
+
+            $(document).on('submit', '#sending_form', (e) => {
+                e.preventDefault();
+                var data = $('#sending_form').serializeArray();
+                let id = $('#id').val();
+                let url = `{{ route('hazard.set-pic', ['id' => 'ID_REPLACE']) }}`.replace('ID_REPLACE', id);
+
+                $.post(url, data)
+                    .done(function(msg) {
+                        if (!msg.success) {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'data belum lengkap',
+                                icon: 'error',
+                                confirmButtonText: 'Oke'
+                            })
+                        } else {
+                            Swal.fire({
+                                title: 'success',
+                                text: msg.message,
+                                icon: 'success',
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                table.draw()
+                                $("#btn_cancel").click();
+                            })
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Internal Error',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        })
+                    });
             })
         </script>
     @endpush

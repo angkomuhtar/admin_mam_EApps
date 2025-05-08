@@ -96,6 +96,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
         {
             Route::get('/','index')->name('hazard_report');
             Route::get('/export','export')->name('hazard_report.export');
+            Route::post('/{id}/set-pic', 'setPic')->name('hazard.set-pic');
             Route::middleware('permission:hr-update')->group(function () {
                 // Route::get('/{id}','edit')->name('sleep.edit');
                 // Route::post('/{id}','update')->name('sleep.update');

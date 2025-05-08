@@ -8,9 +8,11 @@ use App\Models\Shift;
 use App\Models\Sleep;
 use App\Models\Profile;
 use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Watchdist;
 use App\Models\SleepHistory;
 use Illuminate\Http\Request;
+use App\Models\Hazard_action;
 use App\Models\Hazard_Report;
 use App\Models\Hazard_location;
 use App\Http\Controllers\Controller;
@@ -22,19 +24,22 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class HazardReportController extends Controller
 {
+
     public function index(Request $request)
     {
-
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
       $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('mmm');
       $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00');
       $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
       $location = Hazard_location::all();
+      $employees = Profile::with('user', 'user.employee')->whereHas('user.employee', function($query){
+        $query->where('contract_status', 'ACTIVE')->where('company_id', 1)->whereIn('division_id', [3, 4, 5, 6, 7, 8, 9, 10])->orderBy('division_id');
+      })->orderBy('name')->get();
       // return $shift;
 
       if ($request->ajax()) {
-        $data = Hazard_Report::with('location', 'company', 'project', 'division', 'createdBy.profile', 'createdBy.employee.division');
+        $data = Hazard_Report::with('hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee', 'hazardAction.pic.employee.position', 'hazardAction.pic.employee.division', 'location', 'company', 'project', 'division', 'createdBy.profile', 'createdBy.employee.division');
 
         if ($request->division != null || $request->departement != '')
             $data->where('dept_id', $request->division);
@@ -60,6 +65,7 @@ class HazardReportController extends Controller
         'pageTitle' => 'Hazard Report',
         'dept' => $dept,
         'location' => $location,
+        'employees' => $employees
       ]);
     }
 
@@ -203,4 +209,29 @@ class HazardReportController extends Controller
       $writer->save('php://output');
     }
 
+    public function setPic($id, Request $request)
+    {
+        Hazard_action::create([
+            'hazard_id' => $id,
+            'pic' => $request->pic,
+            'status' => 'WORKING',
+            'supervised_by' => $request->user()->id,
+        ]);
+
+        $update = Hazard_Report::where('id', $id)->update([
+            'status' => 'ONPROGRESS'
+        ]);
+
+        if ($update) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Disimpan'
+            ]);
+        }else{
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Gagal Disimpan'
+            ]);
+        }
+    }
 }
