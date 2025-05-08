@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class InspectionQuest extends Model
 {
@@ -13,7 +14,6 @@ class InspectionQuest extends Model
     protected $fillable = [
         'slug',
         'question',
-        'type',
         'status',
         'inspection_id',
         'sub_inspection_id',
@@ -26,5 +26,15 @@ class InspectionQuest extends Model
     public function inspection()
     {
         return $this->belongsTo(Inspection::class, 'inspection_id', 'id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->slug = strtolower(Str::random(10).'_'. $model->slug);
+        });
+
     }
 }

@@ -99,6 +99,26 @@
                     </ul>
                 </li>
             @endcanany
+            <li class="{{ \Request::route()->getName() == 'hse*' ? 'active' : '' }}">
+                <a href="#" class="navItem">
+                    <span class="flex items-center">
+                        <iconify-icon class=" nav-icon" icon="heroicons:cog-6-tooth"></iconify-icon>
+                        <span>HSE</span>
+                    </span>
+                    <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a href={{ route('hse.inspection.type') }}
+                            class="navItem {{ stripos(\Request::route()->getName(), 'hse.inspection') !== false ? 'active' : '' }}">Jenis
+                            Inspeksi</a>
+                    </li>
+                    <li>
+                        <a href={{ route('hse.inspection.type') }} class="navItem">Hasil
+                            Inspeksi</a>
+                    </li>
+                </ul>
+            </li>
             @canany(['user_view', 'role_permission', 'master_option'])
                 <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
                     <a href="#" class="navItem">

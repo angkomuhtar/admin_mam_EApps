@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('inspection_card', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('location_id')->constrained('hazard_location', 'id')->onDelete('cascade');
             $table->string('other_location')->nullable();
+            $table->string('inspection_number')->unique();
+            $table->string('status')->default('created');
+            $table->string('shift')->nullable();
             $table->text('detail_location');
             $table->date('inspection_date');
             $table->text('recomended_action');
+            $table->foreignId('departement_id')->constrained('divisions', 'id')->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users', 'id')->onDelete('cascade');
-            $table->foreignId('supervised_by')->constrained('users', 'id')->onDelete('cascade');
-            $table->foreignId('location_id')->constrained('hazard_location', 'id')->onDelete('cascade');
+            $table->foreignId('supervised_by')->nullable()->default(null)->constrained('users', 'id')->onDelete('cascade');
             $table->foreignId('inspection_id')->constrained('inspection', 'id')->onDelete('cascade');
             $table->timestamps();
         });

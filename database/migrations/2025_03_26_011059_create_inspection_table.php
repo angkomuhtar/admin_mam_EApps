@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('inspection', function (Blueprint $table) {
             $table->id();
             $table->string('inspection_name');
+            $table->string('slug')->unique();
             $table->enum('status' , ['Y', 'N'])->default('Y');
             $table->timestamps();
         });

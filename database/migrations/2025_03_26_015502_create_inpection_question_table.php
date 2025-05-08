@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('slug')->unique();
             $table->string('question');
-            $table->string('type');
             $table->enum('status', ['Y', 'N'])->default('Y');
             $table->foreignId('inspection_id')->constrained('inspection', 'id')->onDelete('cascade');
             $table->foreignId('sub_inspection_id')->constrained('sub_inspection','id')->onDelete('cascade');

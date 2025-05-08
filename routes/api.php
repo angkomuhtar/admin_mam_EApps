@@ -146,12 +146,12 @@ Route::prefix('v2')->group(function(){
             'controller'=> HazardController::class
         ], function(){
             Route::GET('/', 'index');
+            Route::POST('/', 'store');
             Route::GET('/report', 'list');
             Route::GET('/report/count', 'count_report');
             Route::GET('/action', 'list_pekerjaan');
             Route::POST('/action', 'update_action');
             Route::GET('/{id}', 'show');
-            Route::POST('/', 'store');
             Route::POST('/{id}/pic', 'set_pic');
         });
 
@@ -159,7 +159,11 @@ Route::prefix('v2')->group(function(){
             'prefix' => 'inspection',
             'controller'=> InspectionController::class
         ], function(){
-            Route::GET('/', 'index');
+            Route::GET('/type', 'index');
+            Route::GET('/count', 'count');
+            Route::GET('/history', 'history');
+            Route::GET('/report', 'list_report');
+            Route::GET('/{id}/detail', 'show');
             Route::POST('/', 'store');
             Route::GET('/{id}/question', 'getQuestion');
         });

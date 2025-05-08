@@ -16,9 +16,10 @@ return new class extends Migration
             $table->enum('answer', ['yes', 'no']);
             $table->text('note')->nullable();
             $table->date('due_date')->nullable();
-            $table->foreignId('question_id')->constrained('inspection_question','id')->onDelete('cascade');
+            $table->string('question_slug');
             $table->foreignId('inspection_card_id')->constrained('inspection_card','id')->onDelete('cascade');
             $table->timestamps();
+            $table->foreign('question_slug')->references('slug')->on('inspection_question')->onDelete('cascade');
         });
     }
 

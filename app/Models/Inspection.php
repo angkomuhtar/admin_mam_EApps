@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Inspection extends Model
 {
@@ -12,8 +13,7 @@ class Inspection extends Model
     protected $fillable = [
         'inspection_name',
         'status',
-        'created_by',
-        'updated_by',
+        'slug',
     ];
 
     public function sub_inspection()
@@ -23,5 +23,15 @@ class Inspection extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->slug = Str::slug($model->inspection_name);
+        });
+
     }
 }

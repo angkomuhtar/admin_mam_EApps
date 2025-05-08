@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\HazardReportController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolesController;
+use App\Http\Controllers\Admin\InspectionController;
 use Illuminate\Routing\RouteGroup;
 
 /*
@@ -90,6 +91,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             });
         });
     });
+
 
     Route::middleware('role_or_permission:developer|hr_view')->group(function () {
         Route::controller(HazardReportController::class)->prefix('hazard_report')->group(function()
@@ -228,5 +230,17 @@ Route::middleware('auth')->prefix('admin')->group(function()
     });
 
 
-}
-);
+    Route::middleware('role_or_permission:developer|hse')->group(function () {
+        Route::controller(InspectionController::class)->prefix('inspection')->group(function()
+        {
+            Route::get('/','index')->name('hse.inspection.type');
+            Route::get('/question/{id}','question')->name('hse.inspection.question');
+            Route::post('/type','typestore')->name('hse.inspection.type.store');
+            Route::delete('/type/{id}','typedelete')->name('hse.inspection.type.destroy');
+            Route::post('/subitem','subitemstore')->name('hse.inspection.subitem.store');
+            Route::delete('/subitem','subitemdelete')->name('hse.inspection.subitem.delete');
+            Route::post('/item','itemstore')->name('hse.inspection.item.store');
+            Route::DELETE('/item','itemdelete')->name('hse.inspection.item.delete');
+        });
+    });
+});
