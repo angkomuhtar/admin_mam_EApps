@@ -28,7 +28,6 @@ class HazardReportController extends Controller
     public function index(Request $request)
     {
       ini_set('memory_limit', '256M');
-
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
       $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('mmm');
