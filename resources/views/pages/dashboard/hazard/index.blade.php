@@ -64,16 +64,18 @@
                         <input type="hidden" name="_token" value="{{ csrf_token() }}" />
                         <div class="input-area mb-4">
                             <label for="company_id" class="form-label">Pilih Pic</label>
-                            <select id="company_id" class="form-control" name="pic">
-                                <option value="" selected disabled class="dark:bg-slate-700 !text-slate-300">
-                                    Pilih PIC
-                                </option>
-                                @foreach ($employees as $employee)
-                                    <option value="{{ $employee->user_id }}" class="dark:bg-slate-700">
-                                        {{ $employee->name }} - {{ $employee->user->employee->position->position }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="relative">
+                                <input type="text" id="pic_search" placeholder="Cari nama karyawan..." class="form-control w-full px-3 py-2 rounded border border-gray-300" autocomplete="off">
+                                <div id="pic_dropdown" class="absolute w-full bg-white border border-gray-300 rounded mt-1 max-h-48 overflow-y-auto z-50 hidden shadow-lg">
+                                    @foreach ($employees as $employee)
+                                        <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer option-item text-left" data-id="{{ $employee->user_id }}">
+                                            {{ $employee->name }} - {{ $employee->user->employee->position->position }}
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <input type="hidden" name="pic" id="pic_id">
+                            </div>
                             <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
                                 This is invalid state.</div>
                         </div>
@@ -404,6 +406,39 @@
         @vite(['resources/js/plugins/flatpickr.js'])
 
         <script type="module">
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchInput = document.getElementById("pic_search");
+                const dropdown = document.getElementById("pic_dropdown");
+                const hiddenInput = document.getElementById("pic_id");
+
+                searchInput.addEventListener("input", function () {
+                    const query = this.value.toLowerCase().trim();
+                    dropdown.classList.remove("hidden");
+
+                    dropdown.querySelectorAll(".option-item").forEach(function (item) {
+                        const name = item.textContent.toLowerCase();
+                        item.style.display = name.includes(query) ? "block" : "none";
+                    });
+                });
+
+                dropdown.addEventListener("click", function (e) {
+                    if (e.target.classList.contains("option-item")) {
+                        const name = e.target.textContent.trim();
+                        const id = e.target.dataset.id;
+
+                        searchInput.value = name;
+                        hiddenInput.value = id;
+                        dropdown.classList.add("hidden");
+                    }
+                });
+
+                document.addEventListener("click", function (e) {
+                    if (!dropdown.contains(e.target) && e.target !== searchInput) {
+                        dropdown.classList.add("hidden");
+                    }
+                });
+            });
+
             $("#tanggal_fil").flatpickr({
                 dateFormat: "Y-m-d",
                 defaultDate: "today",
