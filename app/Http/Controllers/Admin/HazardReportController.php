@@ -106,7 +106,7 @@ class HazardReportController extends Controller
       // HEADER
       $activeWorksheet->setCellValue('A1', 'SUMMARY HAZARD REPORT PERIODE '.Carbon::parse($date)->format('F Y').' PT MITRA ABADI MAHAKAM');
       $activeWorksheet->getStyle('A1')->applyFromArray($HeaderStyle);
-      $activeWorksheet->mergeCells('A1:Q3');
+      $activeWorksheet->mergeCells('A1:R3');
 
       $num=4;
       $num++;
@@ -127,13 +127,14 @@ class HazardReportController extends Controller
       $activeWorksheet->setCellValue('M'.$num, 'Deskripsi Bahaya')->getStyle('M'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('N'.$num, 'Tindakan Perbaikan')->getStyle('N'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->setCellValue('O'.$num, 'Tindakan Yang dilakukan')->getStyle('O'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('P'.$num, 'Tanggal Tindakan Selesai dilakukan')->getStyle('P'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('Q'.$num, 'Status Report')->getStyle('Q'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->getStyle('A'.$num.':Q'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('P'.$num, 'Batas Waktu Pelaksanaan Tindakan')->getStyle('P'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('Q'.$num, 'Tanggal Selesai Pelaksanaan Tindakan')->getStyle('Q'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->setCellValue('R'.$num, 'Status Report')->getStyle('Q'.$num)->applyFromArray($HeaderStyle);
+      $activeWorksheet->getStyle('A'.$num.':R'.$num)->applyFromArray($HeaderStyle);
       $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
 
 
-      $activeWorksheet->getStyle('A'.$num.':Q'.$num)->applyFromArray([
+      $activeWorksheet->getStyle('A'.$num.':R'.$num)->applyFromArray([
           'font' => [
               'size' => 12
           ],
@@ -157,6 +158,8 @@ class HazardReportController extends Controller
         if($value->hazardAction)
             $user = User::where('id', $value->hazardAction->pic)->first();
 
+        $hazardActionTime = $value->hazardAction ? $value->hazardAction->updated_at->format('Y-m-d') : '';
+
         $num++;
         $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
         $activeWorksheet->setCellValue('B'.$num, $value->createdBy->profile->name);
@@ -175,12 +178,13 @@ class HazardReportController extends Controller
         $activeWorksheet->setCellValue('N'.$num, $value->recomended_action);
         $activeWorksheet->setCellValue('O'.$num, $value->action_taken);
         $activeWorksheet->setCellValue('P'.$num, $value->due_date);
-        $activeWorksheet->setCellValue('Q'.$num, $value->status);
+        $activeWorksheet->setCellValue('Q'.$num, $value->status == 'CLOSED' ? $hazardActionTime : '');
+        $activeWorksheet->setCellValue('R'.$num, $value->status);
         $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
      };
 
      $activeWorksheet->getRowDimension($num)->setRowHeight(35, 'pt');
-         $activeWorksheet->getStyle('A'.$rowStart.':Q'.$num)->applyFromArray([
+         $activeWorksheet->getStyle('A'.$rowStart.':R'.$num)->applyFromArray([
              'font' => [
                  'size' => 12
              ],
@@ -197,7 +201,7 @@ class HazardReportController extends Controller
           ]
          ]);
 
-     foreach(range('A','Q') as $columnID) {
+     foreach(range('A','R') as $columnID) {
       $activeWorksheet->getColumnDimension($columnID)
           ->setAutoSize(true);
       }
