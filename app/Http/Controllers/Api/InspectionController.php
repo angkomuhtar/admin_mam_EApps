@@ -17,6 +17,12 @@ class InspectionController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        
+    }
+
     public function index()
     {
         $data = Inspection::where('status', 'Y')->get();
@@ -28,12 +34,10 @@ class InspectionController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try{
+            $user =  Auth::guard('api')->user();
 
             $validator = Validator::make($request->all(), [
                 'id_location' => 'required',
@@ -46,6 +50,10 @@ class InspectionController extends Controller
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
 
+            if ($user->employee->position->position_class->class) {
+                return ResponseHelper::jsonError('anda tidak memiliki akses untuk melakukan ini', 403);
+            }
+
 
             $answer= $request->except(['id_location', 'other_location', 'detail_location', 'date', 'recommendation', 'inspection_id', 'shift']);
 
@@ -55,7 +63,6 @@ class InspectionController extends Controller
 
             // return ResponseHelper::jsonSuccess('Berhasil', $filteredanswer);
 
-            $user =  Auth::guard('api')->user();
             
             $acronim = 'INS/'.str_pad($request->id_location, 2, '0', STR_PAD_LEFT).'/';
             $lastReport = InspectionCard::where('inspection_number', 'LIKE', $acronim.'%')->orderBy('id', 'desc')->first();
@@ -130,19 +137,19 @@ class InspectionController extends Controller
             return ResponseHelper::jsonError('Error', 400);
         }
     }
+
     public function list_report(Request $request)
     {
         $page = $request->page ?? 1;
         $status = $request->status ?? '';
+            $search = $request->search ?? '';
         $user =  Auth::guard('api')->user();
-        $data  = InspectionCard::with('location', 'inspection','creator.employee.position.position_class')->where('created_by', $user->id)
+        $data  = InspectionCard::with('location', 'inspection','creator', 'supervisor')
         ->where('status', 'LIKE', '%'.$status.'%')
-        ->whereHas('creator.employee.position.position_class', function($query) use ($user){
-            $query->where('class', '<', $user->employee->position->position_class->class);   
+        ->whereHas('creator', function($q) use($search){
+            $q->where('name', 'like', '%'.$search.'%');
         })
-        ->whereHas('creator.employee', function($query) use ($user){
-            $query->where('position_id', $user->employee->position->position_class->class);   
-        })
+        ->ByDept()
         ->orderBy('created_at', 'desc')
         ->paginate(15, ['*'], 'page', $page);
         
@@ -156,7 +163,7 @@ class InspectionController extends Controller
     public function show(string $id)
     {
         try {
-            $data = InspectionCard::with('location', 'inspection', 'answer', 'answer.question.sub_inspection', 'creator.profile', 'creator.employee.position')->find($id);
+            $data = InspectionCard::with('location', 'inspection', 'answer', 'answer.question.sub_inspection', 'creator', 'supervisor')->find($id);
             if ($data) {
                 return ResponseHelper::jsonSuccess('Berhasil', $data);
             }else{
@@ -171,7 +178,7 @@ class InspectionController extends Controller
     {
         try {
             $user =  Auth::guard('api')->user();
-            $data = InspectionCard::where('status', 'created')->count();
+            $data = InspectionCard::where('status', 'created')->ByDept()->count();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
@@ -181,8 +188,21 @@ class InspectionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function verified(string $id)
     {
-        //
+        try {
+            $user =  Auth::guard('api')->user();
+            $data = InspectionCard::find($id);
+            if ($data) {
+                $data->status = 'verified';
+                $data->supervised_by = $user->id;
+                $data->save();
+                return ResponseHelper::jsonSuccess('success get data', $data);
+            }else{
+                return ResponseHelper::jsonError('error', 404);
+            }
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
     }
 }

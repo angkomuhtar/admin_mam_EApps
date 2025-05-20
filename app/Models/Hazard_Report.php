@@ -55,6 +55,11 @@ class Hazard_Report extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+    public function creator()
+    {
+        return $this->belongsTo(UserProfileView::class, 'created_by');
+    }
+    
     public function hazardAction()
     {
         return $this->hasOne(Hazard_action::class, 'hazard_id', 'id');

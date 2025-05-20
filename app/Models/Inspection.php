@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+
 class Inspection extends Model
 {
     use HasFactory;
@@ -34,4 +35,6 @@ class Inspection extends Model
         });
 
     }
+
+    
 }

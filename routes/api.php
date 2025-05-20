@@ -166,6 +166,7 @@ Route::prefix('v2')->group(function(){
             Route::GET('/{id}/detail', 'show');
             Route::POST('/', 'store');
             Route::GET('/{id}/question', 'getQuestion');
+            Route::POST('/{id}/verified', 'verified');
         });
     });
 });

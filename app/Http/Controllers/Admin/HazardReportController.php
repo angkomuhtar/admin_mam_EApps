@@ -4,18 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\User;
-use App\Models\Shift;
-use App\Models\Sleep;
 use App\Models\Profile;
 use App\Models\Division;
-use App\Models\Employee;
-use App\Models\Watchdist;
-use App\Models\SleepHistory;
 use Illuminate\Http\Request;
 use App\Models\Hazard_action;
 use App\Models\Hazard_Report;
 use App\Models\Hazard_location;
 use App\Http\Controllers\Controller;
+use App\Models\ViewHazardReport;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -27,20 +23,29 @@ class HazardReportController extends Controller
 
     public function index(Request $request)
     {
+<<<<<<< Updated upstream
       ini_set('memory_limit', '256M');
+=======
+        // ini_set('memory_limit', '256M');
+>>>>>>> Stashed changes
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
-      $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('mmm');
-      $start =Carbon::now()->setTimeZone('Asia/Makassar')->subDays(1)->format('Y-m-d 19:00:00');
-      $end =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d 19:00:00');
       $location = Hazard_location::all();
       $employees = Profile::with('user', 'user.employee')->whereHas('user.employee', function($query){
         $query->where('contract_status', 'ACTIVE')->where('company_id', 1)->whereIn('division_id', [3, 4, 5, 6, 7, 8, 9, 10])->orderBy('division_id');
       })->orderBy('name')->get();
-      // return $shift;
 
+      
       if ($request->ajax()) {
-        $data = Hazard_Report::with('hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee', 'hazardAction.pic.employee.position', 'hazardAction.pic.employee.division', 'location', 'company', 'project', 'division', 'createdBy.profile', 'createdBy.employee.division');
+          $data = Hazard_Report::with(
+              'hazardAction',
+              'hazardAction.picProfile',
+              'hazardAction.supProfile',
+              'location', 
+              'company', 
+              'project', 
+              'division', 
+              'creator');
 
         if ($request->division != null || $request->departement != '')
             $data->where('dept_id', $request->division);
@@ -49,10 +54,8 @@ class HazardReportController extends Controller
             $data->where('id_location', $request->location);
 
         if($request->name != null || $request->name != '')
-            $data->whereHas('createdBy', function($query) use($request){
-                $query->whereHas('profile', function($query) use($request){
-                    $query->where('name', 'like', '%'. $request->name.'%');
-                });
+            $data->whereHas('creator', function($query) use($request){
+                $query->where('name', 'like', '%'. $request->name.'%');
             });
 
         if($request->month != null || $request->month != '')

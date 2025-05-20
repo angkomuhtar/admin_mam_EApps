@@ -133,13 +133,14 @@
                                             <span class="sr-only">Close modal</span>
                                         </button>
                                     </div>
-                                    <form action="{{ route('hazard_report.export') }}" target="_blank" id="form_export">
+                                    <form action="{{ route('hazard_report.export') }}" target="_blank"
+                                        id="form_export">
                                         <div class="grid p-4 gap-y-3">
                                             <div class="input-area">
                                                 <label for="tanggal" class="form-label">Tanggal</label>
                                                 <input class="form-control py-2 flatpickr flatpickr-input active"
-                                                    name="tanggal_fil" id="tanggal_fil" value="" type="text"
-                                                    readonly="readonly">
+                                                    name="tanggal_fil" id="tanggal_fil" value=""
+                                                    type="text" readonly="readonly">
                                                 <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
                                                     style="display: none">
                                                     This
@@ -199,8 +200,8 @@
                         </div>
                         <div class="input-area">
                             <label for="username" class="form-label">Nama Pelapor</label>
-                            <input id="name" type="text" name="name" class="form-control" placeholder="Nama"
-                                required="required">
+                            <input id="name" type="text" name="name" class="form-control"
+                                placeholder="Nama" required="required">
                         </div>
                         <div class="input-area">
                             <label for="division_id" class="form-label">Departement</label>
@@ -488,8 +489,7 @@
                         "targets": "_all"
                     }
                 ],
-                columns: [
-                    {
+                columns: [{
                         data: 'hazard_report_number',
                     },
                     {
@@ -547,24 +547,24 @@
                         }
                     },
                     {
-                        data: 'created_by.profile.name'
+                        data: 'creator.name'
                     },
                     {
-                        data: 'created_by.employee.division.division'
+                        data: 'creator.division'
                     },
                     {
                         render: (data, type, row, meta) => {
-                            return row?.created_by?.employee?.nip ?? "-"
+                            return row?.created_by?.nrp ?? "-"
                         }
                     },
                     {
-                        data: 'hazard_action.pic.profile.name'
+                        data: 'hazard_action.pic_profile.name'
                     },
                     {
-                        data: 'hazard_action.pic.employee.position.position'
+                        data: 'hazard_action.pic_profile.position'
                     },
                     {
-                        data: 'hazard_action.pic.employee.division.division'
+                        data: 'hazard_action.pic_profile.division'
                     },
                     {
                         data: 'id',
@@ -687,7 +687,7 @@
 
             })
 
-            $(document).on('click', '.btn-edit', function () {
+            $(document).on('click', '.btn-edit', function() {
                 const hazardId = $(this).data('id');
                 $('#id').val(hazardId);
             });

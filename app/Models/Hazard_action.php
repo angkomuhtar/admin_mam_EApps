@@ -27,8 +27,17 @@ class Hazard_action extends Model
     {
         return $this->belongsTo(User::class, 'pic');
     }
+    public function picProfile()
+    {
+        return $this->belongsTo(UserProfileView::class, 'pic');
+    }
+
     public function supervisedBy()
     {
         return $this->belongsTo(User::class, 'supervised_by');
+    }
+    public function supProfile()
+    {
+        return $this->belongsTo(UserProfileView::class, 'supervised_by');
     }
 }

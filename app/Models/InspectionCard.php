@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InspectionCard extends Model
@@ -16,6 +18,7 @@ class InspectionCard extends Model
         'shift',
         'detail_location',
         'inspection_date',
+        'departement_id',
         'recommended_action',
         'created_by',
         'supervised_by',
@@ -40,10 +43,25 @@ class InspectionCard extends Model
     }
 
     public function creator() {
-        return $this->hasOne(User::class, 'id', 'created_by');
+        return $this->hasOne(UserProfileView::class, 'id', 'created_by');
     }
 
     public function supervisor(){
-        return $this->belongsTo(User::class, 'id', 'supervised_by');  
+        return $this->belongsTo(UserProfileView::class, 'supervised_by', 'id');  
+    }
+
+    public function scopeByDept(Builder $query): void
+    {
+        $user = Auth::guard('api')->user();
+        $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482' ;
+        if (!$allowed) {
+            $query->where('departement_id', $user->employee->division_id)
+            ->whereHas('creator', function($query) use ($user){
+                $query->where('class', '<', $user->employee->position->position_class->class);   
+            });
+            // if ($user->employee->position->position_class->class < 4) {
+            //     $query->where('departement_id', '');
+            // }
+        }
     }
 }

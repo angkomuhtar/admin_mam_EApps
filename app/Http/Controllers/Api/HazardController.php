@@ -46,6 +46,7 @@ class HazardController extends Controller
             $user =  Auth::guard('api')->user();
             $page = $request->page ?? 1;
             $status = $request->status ?? '';
+            $search = $request->search ?? '';
             $data = Hazard_Report::with([
                 'location', 
                 'company', 
@@ -58,6 +59,9 @@ class HazardController extends Controller
                 'hazardAction.pic', 
                 'hazardAction.pic.profile'])
             ->where('status','like', '%'.$status.'%')
+            ->whereHas('createdBy.profile', function($q) use ($search){
+                $q->where('name', 'like', '%'.$search.'%');
+            })
             ->byDept()
             ->orderBy('date_time', 'desc')
             ->paginate(15, ['*'], 'page', $page);
