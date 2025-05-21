@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\ClockLocation;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Version;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -152,8 +153,6 @@ class ClockController extends Controller
 
     public function location(){
         try {
-            // $location = ClockLocation::All();
-            // return ResponseHelper::jsonSuccess('success get location', $location);
             $location = Employee::where('user_id', Auth::guard('api')->user()->id)->first();
             return ResponseHelper::jsonSuccess('success get location', $location->lokasi);
         } catch (\Exception $err) {
@@ -170,6 +169,7 @@ class ClockController extends Controller
                 'time' => 'required',
                 'location' => 'required',
                 'version' => 'required',
+                // 'platform' => 'required', open On Sunday
             ],[
                 'required' => ':attribute tidak boleh kosong'
               ]);
@@ -178,6 +178,14 @@ class ClockController extends Controller
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
+
+            $versionCheck = Version::where('device', $request->platform)->first();
+
+            // Open On Sunday
+            // if ($request->version < $versionCheck->version) {
+            //     $validator->errors()->add('jam_tidur', 'versi aplikasi tidak sesuai, segera melakukan update');
+            //     return ResponseHelper::jsonError($validator->errors(), 422);
+            // }
 
             if ($request->type == 'in') {
                 $inlist = Watchdist::where('user_id', Auth::guard('api')->user()->id)->where('status', 'Y')->exists();

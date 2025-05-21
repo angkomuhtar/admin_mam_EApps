@@ -31,17 +31,7 @@
                 </a>
             </li>
 
-            @can('sleep_view')
-                <li>
-                    <a href="{{ route('sleep') }}"
-                        class="navItem {{ \Request::route()->getName() == 'sleep' ? 'active' : '' }}">
-                        <span class="flex items-center">
-                            <iconify-icon class="nav-icon" icon="heroicons-outline:moon"></iconify-icon>
-                            <span>Sleep duration</span>
-                        </span>
-                    </a>
-                </li>
-            @endcan
+            <li class="sidebar-menu-title">{{ __('HSE') }}</li>
             @can('hr_view')
                 <li>
                     <a href="{{ route('hazard_report') }}"
@@ -53,6 +43,42 @@
                     </a>
                 </li>
             @endcan
+            @can('sleep_view')
+                <li>
+                    <a href="{{ route('hse.sleep') }}"
+                        class="navItem {{ request()->routeIs('hse.sleep*') ? 'active' : '' }}">
+                        <span class="flex items-center">
+                            <iconify-icon class="nav-icon" icon="heroicons:moon-16-solid"></iconify-icon>
+                            <span>Sleep Duration</span>
+                        </span>
+                    </a>
+                </li>
+            @endcan
+            <li class="{{ request()->routeIs('hse.inspection*') ? 'active' : '' }}">
+                <a href="#" class="navItem">
+                    <span class="flex items-center">
+                        <iconify-icon class=" nav-icon" icon="heroicons:wrench-screwdriver"></iconify-icon>
+                        <span>Inspeksi</span>
+                    </span>
+                    <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a href={{ route('hse.inspection.type') }}
+                            class="navItem {{ stripos(\Request::route()->getName(), 'hse.inspection') !== false ? 'active' : '' }}">Jenis
+                            Inspeksi</a>
+                    </li>
+
+                    <li>
+                        <a href={{ route('hse.inspection.type') }} class="navItem">Hasil
+                            Inspeksi</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="sidebar-menu-title">{{ __('HR') }}</li>
+
+
             @can('employee_view')
                 <li>
                     <a href="{{ route('employee') }}"
@@ -99,26 +125,7 @@
                     </ul>
                 </li>
             @endcanany
-            <li class="{{ \Request::route()->getName() == 'hse*' ? 'active' : '' }}">
-                <a href="#" class="navItem">
-                    <span class="flex items-center">
-                        <iconify-icon class=" nav-icon" icon="heroicons:cog-6-tooth"></iconify-icon>
-                        <span>HSE</span>
-                    </span>
-                    <iconify-icon class="icon-arrow" icon="heroicons-outline:chevron-right"></iconify-icon>
-                </a>
-                <ul class="sidebar-submenu">
-                    <li>
-                        <a href={{ route('hse.inspection.type') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'hse.inspection') !== false ? 'active' : '' }}">Jenis
-                            Inspeksi</a>
-                    </li>
-                    <li>
-                        <a href={{ route('hse.inspection.type') }} class="navItem">Hasil
-                            Inspeksi</a>
-                    </li>
-                </ul>
-            </li>
+
             @canany(['user_view', 'role_permission', 'master_option'])
                 <li class="{{ \Request::route()->getName() == 'masters*' ? 'active' : '' }}">
                     <a href="#" class="navItem">

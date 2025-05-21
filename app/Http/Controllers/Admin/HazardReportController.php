@@ -23,11 +23,7 @@ class HazardReportController extends Controller
 
     public function index(Request $request)
     {
-<<<<<<< Updated upstream
-      ini_set('memory_limit', '256M');
-=======
         // ini_set('memory_limit', '256M');
->>>>>>> Stashed changes
       $user = Auth::guard('web')->user();
       $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
       $location = Hazard_location::all();

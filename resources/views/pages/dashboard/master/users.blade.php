@@ -460,7 +460,7 @@
                 e.preventDefault()
                 var id = $(e.currentTarget).parent().parent().data('id');
                 var val = $(e.currentTarget).data('value');
-                var url = '{!! route('sleep.watchdist', ['id' => ':id']) !!}';
+                var url = '{!! route('hse.sleep.watchdist', ['id' => ':id']) !!}';
                 url = url.replace(':id', id);
                 $.ajax({
                     url: url,

@@ -38,7 +38,7 @@
                                             <span class="sr-only">Close modal</span>
                                         </button>
                                     </div>
-                                    <form action="{{ route('sleep.export') }}" target="_blank" id="form_export">
+                                    <form action="{{ route('hse.sleep.export') }}" target="_blank" id="form_export">
                                         <div class="grid p-4 gap-y-3">
                                             <div class="input-area">
                                                 <label for="tanggal" class="form-label">Tanggal</label>
@@ -310,7 +310,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{!! route('sleep') !!}',
+                    url: '{!! route('hse.sleep') !!}',
                     data: function(d) {
                         return $.extend({}, d, {
                             name: $('#name').val(),
@@ -451,7 +451,7 @@
 
             $(document).on("click", "#view_image", function() {
                 let id = $(this).data('id');
-                var url = '{!! route('sleep.edit', ['id' => ':id']) !!}';
+                var url = '{!! route('hse.sleep.edit', ['id' => ':id']) !!}';
                 url = url.replace(':id', id);
                 $.ajax({
                     type: 'GET',
@@ -487,7 +487,7 @@
 
             $(document).on('click', "#accept_data", function() {
                 let id = $(this).data('id');
-                var url = '{!! route('sleep.accept', ['id' => ':id']) !!}';
+                var url = '{!! route('hse.sleep.accept', ['id' => ':id']) !!}';
                 url = url.replace(':id', id);
                 $.ajaxSetup({
                     headers: {
@@ -524,7 +524,7 @@
             $(document).on('submit', "#update_sleep", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
-                var url = '{!! route('sleep.update', ['id' => ':id']) !!}';
+                var url = '{!! route('hse.sleep.update', ['id' => ':id']) !!}';
                 url = url.replace(':id', id);
                 console.log(url);
                 $.ajaxSetup({

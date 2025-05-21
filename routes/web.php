@@ -76,20 +76,6 @@ Route::middleware('auth')->prefix('admin')->group(function()
     });
 
 
-    Route::middleware('role_or_permission:developer|sleep_view')->group(function () {
-        Route::controller(SleepController::class)->prefix('sleep')->group(function()
-        {
-            Route::get('/','index')->name('sleep');
-            Route::middleware('permission:sleep_update')->group(function () {
-                Route::get('/export','export')->name('sleep.export');
-                Route::get('/{id}','edit')->name('sleep.edit');
-                Route::post('/{id}','update')->name('sleep.update');
-                Route::post('/{id}/accept','accept')->name('sleep.accept');
-                Route::post('/{id}/accept','accept')->name('sleep.accept');
-                Route::get('/{id}/watchdist','update_watchdist')->name('sleep.watchdist');
-            });
-        });
-    });
 
 
     Route::middleware('role_or_permission:developer|hr_view')->group(function () {
@@ -229,6 +215,20 @@ Route::middleware('auth')->prefix('admin')->group(function()
     });
 
 
+    Route::middleware('role_or_permission:developer|sleep_view')->group(function () {
+        Route::controller(SleepController::class)->prefix('sleep')->group(function()
+        {
+            Route::get('/','index')->name('hse.sleep');
+            Route::middleware('permission:sleep_update')->group(function () {
+                Route::get('/export','export')->name('hse.sleep.export');
+                Route::get('/{id}','edit')->name('hse.sleep.edit');
+                Route::post('/{id}','update')->name('hse.sleep.update');
+                Route::post('/{id}/accept','accept')->name('hse.sleep.accept');
+                Route::post('/{id}/accept','accept')->name('hse.sleep.accept');
+                Route::get('/{id}/watchdist','update_watchdist')->name('hse.sleep.watchdist');
+            });
+        });
+    });
     Route::middleware('role_or_permission:developer|hse')->group(function () {
         Route::controller(InspectionController::class)->prefix('inspection')->group(function()
         {

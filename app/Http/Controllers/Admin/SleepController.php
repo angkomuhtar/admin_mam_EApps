@@ -85,7 +85,7 @@ class SleepController extends Controller
           }
       }
 
-      return view('pages.dashboard.sleep.index', [
+      return view('pages.dashboard.hse.sleep.index', [
         'pageTitle' => 'Data Tidur karyawan',
         'dept' => $dept,
         'shift' => $shift,

@@ -65,10 +65,14 @@
                         <div class="input-area mb-4">
                             <label for="company_id" class="form-label">Pilih Pic</label>
                             <div class="relative">
-                                <input type="text" id="pic_search" placeholder="Cari nama karyawan..." class="form-control w-full px-3 py-2 rounded border border-gray-300" autocomplete="off">
-                                <div id="pic_dropdown" class="absolute w-full bg-white border border-gray-300 rounded mt-1 max-h-48 overflow-y-auto z-50 hidden shadow-lg">
+                                <input type="text" id="pic_search" placeholder="Cari nama karyawan..."
+                                    class="form-control w-full px-3 py-2 rounded border border-gray-300"
+                                    autocomplete="off">
+                                <div id="pic_dropdown"
+                                    class="absolute w-full bg-white border border-gray-300 rounded mt-1 max-h-48 overflow-y-auto z-50 hidden shadow-lg">
                                     @foreach ($employees as $employee)
-                                        <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer option-item text-left" data-id="{{ $employee->user_id }}">
+                                        <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer option-item text-left"
+                                            data-id="{{ $employee->user_id }}">
                                             {{ $employee->name }} - {{ $employee->user->employee->position->position }}
                                         </div>
                                     @endforeach
@@ -123,8 +127,8 @@
                                             class="text-slate-400 bg-transparent hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
                                                         dark:hover:bg-slate-600 dark:hover:text-white"
                                             data-bs-dismiss="modal">
-                                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
-                                                xmlns="http://www.w3.org/2000/svg">
+                                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff"
+                                                viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                                 <path fill-rule="evenodd"
                                                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
                                                                 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -407,22 +411,22 @@
         @vite(['resources/js/plugins/flatpickr.js'])
 
         <script type="module">
-            document.addEventListener("DOMContentLoaded", function () {
+            document.addEventListener("DOMContentLoaded", function() {
                 const searchInput = document.getElementById("pic_search");
                 const dropdown = document.getElementById("pic_dropdown");
                 const hiddenInput = document.getElementById("pic_id");
 
-                searchInput.addEventListener("input", function () {
+                searchInput.addEventListener("input", function() {
                     const query = this.value.toLowerCase().trim();
                     dropdown.classList.remove("hidden");
 
-                    dropdown.querySelectorAll(".option-item").forEach(function (item) {
+                    dropdown.querySelectorAll(".option-item").forEach(function(item) {
                         const name = item.textContent.toLowerCase();
                         item.style.display = name.includes(query) ? "block" : "none";
                     });
                 });
 
-                dropdown.addEventListener("click", function (e) {
+                dropdown.addEventListener("click", function(e) {
                     if (e.target.classList.contains("option-item")) {
                         const name = e.target.textContent.trim();
                         const id = e.target.dataset.id;
@@ -433,7 +437,7 @@
                     }
                 });
 
-                document.addEventListener("click", function (e) {
+                document.addEventListener("click", function(e) {
                     if (!dropdown.contains(e.target) && e.target !== searchInput) {
                         dropdown.classList.add("hidden");
                     }
@@ -554,7 +558,7 @@
                     },
                     {
                         render: (data, type, row, meta) => {
-                            return row?.created_by?.nrp ?? "-"
+                            return row?.creator?.nrp ?? "-"
                         }
                     },
                     {
@@ -598,94 +602,6 @@
                 $("#btn_image").click()
             })
 
-            $(document).on('click', "#accept_data", function() {
-                let id = $(this).data('id');
-                var url = '{!! route('sleep.accept', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    beforeSend: function() {
-                        $("#loading").removeClass('hidden');
-                    },
-                    success: (res) => {
-                        if (res.success) {
-                            $("#loading").addClass('hidden');
-                            Swal.fire({
-                                title: 'success',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonText: 'Oke'
-                            }).then(() => {
-                                table.draw()
-                                $("#close_modal").click();
-                            })
-                        }
-                    },
-                    error: () => {
-                        $("#loading").addClass('hidden');
-                        $("#close_modal").click();
-                    }
-                })
-            })
-
-            $(document).on('submit', "#update_sleep", function(e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                var url = '{!! route('sleep.update', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                console.log(url);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: $("#update_sleep").serialize(),
-                    beforeSend: function() {
-                        $("#loading").removeClass('hidden');
-                        $("input[name=jam]").next().addClass('hidden');
-                        $("input[name=menit]").next().addClass('hidden');
-                    },
-                    success: (res) => {
-                        if (res.success) {
-                            $("#loading").addClass('hidden');
-                            $("#close_modal").click();
-                            Swal.fire({
-                                title: 'success',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonText: 'Oke'
-                            }).then(() => {
-                                table.draw()
-                            })
-                        } else {
-                            $("#loading").addClass('hidden');
-                            console.log(res.message.jam);
-                            if (res?.message?.jam) {
-                                $("input[name=jam]").next().removeClass('hidden').html(res?.message
-                                    ?.jam);
-                            }
-                            if (res?.message?.menit) {
-                                $("input[name=menit]").next().removeClass('hidden').html(res?.message
-                                    ?.menit);
-                            }
-                        }
-                    },
-                    error: () => {
-                        $("#loading").addClass('hidden');
-                        // $("#close_modal").click();
-                    }
-                })
-
-            })
 
             $(document).on('click', '.btn-edit', function() {
                 const hazardId = $(this).data('id');
