@@ -50,10 +50,9 @@ class InspectionController extends Controller
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
 
-            if ($user->employee->position->position_class->class) {
+            if (!$user->employee->position->position_class->class) {
                 return ResponseHelper::jsonError('anda tidak memiliki akses untuk melakukan ini', 403);
             }
-
 
             $answer= $request->except(['id_location', 'other_location', 'detail_location', 'date', 'recommendation', 'inspection_id', 'shift']);
 

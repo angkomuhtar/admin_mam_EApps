@@ -486,7 +486,7 @@
                     },
                     {
                         "orderable": false,
-                        "targets": [3, 1]
+                        "targets": '_all'
                     },
                     {
                         'className': 'table-td',

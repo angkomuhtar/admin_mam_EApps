@@ -159,12 +159,12 @@ Route::prefix('v2')->group(function(){
             'prefix' => 'inspection',
             'controller'=> InspectionController::class
         ], function(){
+            Route::POST('/', 'store');
             Route::GET('/type', 'index');
             Route::GET('/count', 'count');
             Route::GET('/history', 'history');
             Route::GET('/report', 'list_report');
             Route::GET('/{id}/detail', 'show');
-            Route::POST('/', 'store');
             Route::GET('/{id}/question', 'getQuestion');
             Route::POST('/{id}/verified', 'verified');
         });

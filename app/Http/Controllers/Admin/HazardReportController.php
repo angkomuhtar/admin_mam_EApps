@@ -57,7 +57,7 @@ class HazardReportController extends Controller
         if($request->month != null || $request->month != '')
             $data->whereMonth('created_at', $request->month);
 
-            $dt = DataTables::of($data->get());
+            $dt = DataTables::of($data->orderBy('date_time', 'DESC')->get());
             return $dt->make(true);
       }
 
