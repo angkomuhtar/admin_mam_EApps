@@ -54,7 +54,7 @@
                     </a>
                 </li>
             @endcan
-            <li class="{{ request()->routeIs('hse.inspection*') ? 'active' : '' }}">
+            <li class="{{ request()->routeIs('hse.inspection.*') ? 'active' : '' }}">
                 <a href="#" class="navItem">
                     <span class="flex items-center">
                         <iconify-icon class=" nav-icon" icon="heroicons:wrench-screwdriver"></iconify-icon>
@@ -65,12 +65,13 @@
                 <ul class="sidebar-submenu">
                     <li>
                         <a href={{ route('hse.inspection.type') }}
-                            class="navItem {{ stripos(\Request::route()->getName(), 'hse.inspection') !== false ? 'active' : '' }}">Jenis
+                            class="navItem {{ stripos(\Request::route()->getName(), 'hse.inspection.type') !== false ? 'active' : '' }}">Jenis
                             Inspeksi</a>
                     </li>
 
                     <li>
-                        <a href={{ route('hse.inspection.type') }} class="navItem">Hasil
+                        <a href={{ route('hse.inspection.report') }}
+                            class="navItem {{ request()->routeIs('hse.inspection.report*') ? 'active' : '' }}">Hasil
                             Inspeksi</a>
                     </li>
                 </ul>

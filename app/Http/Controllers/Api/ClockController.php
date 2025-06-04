@@ -169,7 +169,7 @@ class ClockController extends Controller
                 'time' => 'required',
                 'location' => 'required',
                 'version' => 'required',
-                // 'platform' => 'required', open On Sunday
+                'platform' => 'required',
             ],[
                 'required' => ':attribute tidak boleh kosong'
               ]);
@@ -182,10 +182,10 @@ class ClockController extends Controller
             $versionCheck = Version::where('device', $request->platform)->first();
 
             // Open On Sunday
-            // if ($request->version < $versionCheck->version) {
-            //     $validator->errors()->add('jam_tidur', 'versi aplikasi tidak sesuai, segera melakukan update');
-            //     return ResponseHelper::jsonError($validator->errors(), 422);
-            // }
+            if ($request->version < $versionCheck->version) {
+                $validator->errors()->add('jam_tidur', 'versi aplikasi tidak sesuai, segera melakukan update');
+                return ResponseHelper::jsonError($validator->errors(), 422);
+            }
 
             if ($request->type == 'in') {
                 $inlist = Watchdist::where('user_id', Auth::guard('api')->user()->id)->where('status', 'Y')->exists();

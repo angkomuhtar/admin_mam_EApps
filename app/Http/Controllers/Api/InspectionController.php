@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inspection;
 use App\Models\InspectionCard;
 use App\Models\SubInspection;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -141,15 +142,22 @@ class InspectionController extends Controller
     {
         $page = $request->page ?? 1;
         $status = $request->status ?? '';
-            $search = $request->search ?? '';
+        $search = $request->search ?? '';
+        $month = $request->month ?? '';
         $user =  Auth::guard('api')->user();
         $data  = InspectionCard::with('location', 'inspection','creator', 'supervisor')
         ->where('status', 'LIKE', '%'.$status.'%')
         ->whereHas('creator', function($q) use($search){
             $q->where('name', 'like', '%'.$search.'%');
         })
+        ->where(function($q) use ($month){
+            if ($month != '') {
+                $q->whereMonth('inspection_date', Carbon::parse($month)->month)
+                  ->whereYear('inspection_date', Carbon::parse($month)->format('Y'));
+            }
+        })
         ->ByDept()
-        ->orderBy('created_at', 'desc')
+        ->orderBy('inspection_date', 'desc')
         ->paginate(15, ['*'], 'page', $page);
         
         if ($data){
