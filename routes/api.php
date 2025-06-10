@@ -167,7 +167,10 @@ Route::prefix('v2')->group(function(){
             Route::GET('/{id}/detail', 'show');
             Route::GET('/{id}/question', 'getQuestion');
             Route::POST('/{id}/verified', 'verified');
+            // Route::GET('/{id}/export_pdf', 'pdf');
         });
     });
+
+    Route::get('/inspection/{id}/export_pdf', [InspectionController::class, 'pdf']);
 });
 

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Inspection;
+use App\Models\InspectionAnswer;
 use App\Models\InspectionCard;
 use App\Models\SubInspection;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -210,6 +212,23 @@ class InspectionController extends Controller
             }
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function pdf(string $id){
+        $card = InspectionCard::with('location', 'inspection', 'creator', 'supervisor')->find($id);
+        $data = InspectionAnswer::with('question', 'question.sub_inspection')
+            ->where('inspection_card_id', $id)
+            ->get()
+            ->sortBy(function($item){
+                return $item->question->sub_inspection_id;
+            });
+
+        if ($data) {
+            $pdf = Pdf::loadView('pages.dashboard.hse.inspection.pdf', ['data' => $data, 'card' => $card])->setPaper('a4', 'portrait');
+            return $pdf->stream('inspection_report.pdf');
+        } else {
+            return ResponseHelper::jsonError('Data not found', 404);
         }
     }
 }
