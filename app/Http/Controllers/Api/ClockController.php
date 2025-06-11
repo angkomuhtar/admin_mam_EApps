@@ -124,7 +124,7 @@ class ClockController extends Controller
     public function today(Request $request){
         try {
             $date_today =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d'); 
-            $work_hours = Shift::whereColumn('start', '>', 'end')->get();
+            $work_hours = Shift::whereColumn('start', '>', 'end')->orWhere('start', '<=', '03:00:00')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
                 $query->where('user_id',Auth::guard('api')->user()->id)
