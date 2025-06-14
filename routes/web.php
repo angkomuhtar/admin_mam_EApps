@@ -30,6 +30,7 @@ use Illuminate\Routing\RouteGroup;
 |
 */
 
+Route::get('/pindai/{id}/inspection', [DashboardController::class, 'inspection'])->name('inspection.signed');
 Route::middleware('auth')->get('/',[DashboardController::class, 'index']);
 Route::controller(LoginController::class)->group(function() {
     Route::get('/login', 'login')->name('login');
