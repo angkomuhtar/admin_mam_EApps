@@ -203,10 +203,12 @@
                 </td>
                 <td style="height: 100px;"></td>
                 <td>
-                    <img src="data:image/png;base64, {!! base64_encode(
-                        QrCode::format('png')->size(100)->generate(route('inspection.signed', ['id' => $card->id])),
-                    ) !!}" alt="qrcode" srcset=""
-                        style="width: 90px; height: auto; object-fit: cover;">
+                    @if ($card->supervisor)
+                        <img src="data:image/png;base64, {!! base64_encode(
+                            QrCode::format('png')->size(100)->generate(route('inspection.signed', ['id' => $card->id])),
+                        ) !!}" alt="qrcode" srcset=""
+                            style="width: 90px; height: auto; object-fit: cover;">
+                    @endif
                 </td>
             </tr>
             <tr>
