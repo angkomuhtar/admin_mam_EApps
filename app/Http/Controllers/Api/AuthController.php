@@ -29,7 +29,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email'     => 'required|string',
             'password'  => 'required|min:6',
-            'phone_id'  => 'required'
+            'phone_id'  => $request->has('apps') ? 'nullable' : 'required'
         ]);
         if ($validator->fails()) {
             return ResponseHelper::jsonError($validator->errors(), 422);
@@ -46,13 +46,13 @@ class AuthController extends Controller
         }else{
             $user = Auth::guard('api')->user()->load(['employee','profile', 'employee.division', 'employee.position', 'employee.position.position_class']);
             $phoneID = User::where('phone_id', $request->phone_id)->where('id','!=', $user->id)->get();
-            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin') {
-                
+            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps')) {
+
                 if ($user->status != 'Y') {
                     return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
                 }
                 if ($user->user_roles != 'superadmin') {
-                    $db = User::find($user->id);               
+                    $db = User::find($user->id);
                     $db->phone_id = $request->phone_id;
                     $db->save();
                 }
@@ -72,7 +72,7 @@ class AuthController extends Controller
     }
 
     public function register(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255|unique:users',
@@ -114,7 +114,7 @@ class AuthController extends Controller
         try {
             // Refresh the token
             $newToken = JWTAuth::parseToken()->refresh();
-            
+
             // Get the authenticated user
             $user = JWTAuth::setToken($newToken)->toUser();
 
@@ -161,9 +161,9 @@ class AuthController extends Controller
             'data' => $data
         ]);
     }
-    
+
     public function version(Request $request){
-        
+
         if ($request->has('device')) {
             $data = Version::where('device', $request->device)->first();
             return response()->json([
@@ -202,7 +202,7 @@ class AuthController extends Controller
                 }
             };
             return ResponseHelper::jsonError(['password'=>['passsword not match']], 422);
-            
+
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
 
@@ -237,7 +237,7 @@ class AuthController extends Controller
                 }
                 $file = $request->file('file');
                 $fileName = Auth::user()->username.'-avatar'.now()->format('His').'.'.$file->getClientOriginalExtension();
-                $fileFullPath = 'images/avatar/'.$fileName; 
+                $fileFullPath = 'images/avatar/'.$fileName;
                 Storage::disk('public')->put($fileFullPath, file_get_contents($file));
 
                 $user = User::find(Auth::user()->id)->update(['avatar' => $fileName]);
@@ -245,7 +245,7 @@ class AuthController extends Controller
 
             } else {
                 return ResponseHelper::jsonError('error on update', 400);
-            }            
+            }
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
 
