@@ -47,6 +47,8 @@ class HazardController extends Controller
             $page = $request->page ?? 1;
             $status = $request->status ?? '';
             $search = $request->search ?? '';
+            $month = $request->month ?? '';
+
             $data = Hazard_Report::with([
                 'location', 
                 'company', 
@@ -59,11 +61,15 @@ class HazardController extends Controller
                 'hazardAction.pic', 
                 'hazardAction.pic.profile'])
             ->where('status','like', '%'.$status.'%')
+            ->where(function($q) use ($month){
+                if ($month != '') {
+                    $q->whereMonth('date_time', Carbon::parse($month)->month)
+                      ->whereYear('date_time', Carbon::parse($month)->format('Y'));
+                }
+            })
             ->whereHas('createdBy.profile', function($q) use ($search){
                 $q->where('name', 'like', '%'.$search.'%');
-            })
-            ->byDept()
-            ->orderBy('date_time', 'desc')
+            })->byDept()->orderBy('date_time', 'desc')
             ->paginate(15, ['*'], 'page', $page);
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {

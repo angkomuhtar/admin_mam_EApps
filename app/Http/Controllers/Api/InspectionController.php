@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Inspection;
+use App\Models\InspectionAnswer;
 use App\Models\InspectionCard;
 use App\Models\SubInspection;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -141,15 +144,22 @@ class InspectionController extends Controller
     {
         $page = $request->page ?? 1;
         $status = $request->status ?? '';
-            $search = $request->search ?? '';
+        $search = $request->search ?? '';
+        $month = $request->month ?? '';
         $user =  Auth::guard('api')->user();
         $data  = InspectionCard::with('location', 'inspection','creator', 'supervisor')
         ->where('status', 'LIKE', '%'.$status.'%')
         ->whereHas('creator', function($q) use($search){
             $q->where('name', 'like', '%'.$search.'%');
         })
+        ->where(function($q) use ($month){
+            if ($month != '') {
+                $q->whereMonth('inspection_date', Carbon::parse($month)->month)
+                  ->whereYear('inspection_date', Carbon::parse($month)->format('Y'));
+            }
+        })
         ->ByDept()
-        ->orderBy('created_at', 'desc')
+        ->orderBy('inspection_date', 'desc')
         ->paginate(15, ['*'], 'page', $page);
         
         if ($data){
@@ -202,6 +212,23 @@ class InspectionController extends Controller
             }
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function pdf(string $id){
+        $card = InspectionCard::with('location', 'inspection', 'creator', 'supervisor')->find($id);
+        $data = InspectionAnswer::with('question', 'question.sub_inspection')
+            ->where('inspection_card_id', $id)
+            ->get()
+            ->sortBy(function($item){
+                return $item->question->sub_inspection_id;
+            });
+
+        if ($data) {
+            $pdf = Pdf::loadView('pages.dashboard.hse.inspection.pdf', ['data' => $data, 'card' => $card])->setPaper('a4', 'portrait');
+            return $pdf->stream('inspection_report.pdf');
+        } else {
+            return ResponseHelper::jsonError('Data not found', 404);
         }
     }
 }

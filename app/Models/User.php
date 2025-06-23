@@ -120,6 +120,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Watchdist::class, 'user_id', 'id');
     }
 
+    public function signature()
+    {
+        return $this->hasOne(UserSignature::class, 'user_id', 'id');
+    }
+
 
 }
 

@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\ViewClockSleep;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\InspectionCard;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -240,4 +241,17 @@ class DashboardController extends Controller
 
         return Sleep::all();
     }
+
+    public function inspection(String $id)
+    {
+        $card = InspectionCard::with('location', 'inspection', 'creator', 'supervisor')->where('status', 'verified')->find($id);
+        if (!$card) {
+            abort(404, 'Data tidak ditemukan');
+        }
+        return view('pages.dashboard.hse.inspection.signed', [
+            'pageTitle' => 'Detail Inspeksi',
+            'card' => $card
+        ]);
+    }
+
 }

@@ -30,6 +30,7 @@ use Illuminate\Routing\RouteGroup;
 |
 */
 
+Route::get('/pindai/{id}/inspection', [DashboardController::class, 'inspection'])->name('inspection.signed');
 Route::middleware('auth')->get('/',[DashboardController::class, 'index']);
 Route::controller(LoginController::class)->group(function() {
     Route::get('/login', 'login')->name('login');
@@ -232,8 +233,12 @@ Route::middleware('auth')->prefix('admin')->group(function()
     Route::middleware('role_or_permission:developer|hse')->group(function () {
         Route::controller(InspectionController::class)->prefix('inspection')->group(function()
         {
-            Route::get('/','index')->name('hse.inspection.type');
-            Route::get('/question/{id}','question')->name('hse.inspection.question');
+            Route::get('/', 'index')->name('hse.inspection.report');
+            Route::get('/{id}/detail', 'detail')->name('hse.inspection.report.detail');
+            Route::get('/{id}/print', 'print')->name('hse.inspection.report.print');
+
+            Route::get('/question','type')->name('hse.inspection.type');
+            Route::get('/question/{id}','question')->name('hse.inspection.type.question');
             Route::post('/type','typestore')->name('hse.inspection.type.store');
             Route::delete('/type/{id}','typedelete')->name('hse.inspection.type.destroy');
             Route::post('/subitem','subitemstore')->name('hse.inspection.subitem.store');

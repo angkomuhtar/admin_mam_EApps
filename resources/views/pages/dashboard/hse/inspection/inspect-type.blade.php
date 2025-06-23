@@ -153,7 +153,7 @@
                     {
                         render: (data, type, row, meta) => {
                             return `<div class="flex space-x-3 rtl:space-x-reverse">
-                                    <a class="flex justify-center items-center space-x-2 text-success-500" href={{ route('hse.inspection.question', '') }}/${row.id} id="btn_edit" type="button">
+                                    <a class="flex justify-center items-center space-x-2 text-success-500" href={{ route('hse.inspection.type.question', '') }}/${row.id} id="btn_edit" type="button">
                                       <span>Item Pemeriksaan</span>
                                     </a>
                                   </div>`;
