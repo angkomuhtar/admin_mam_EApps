@@ -136,7 +136,7 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = Auth::guard('api')->user()->load(['leaves','employee','profile','profile.religions','profile.marriages','profile.educations', 'employee.division', 'employee.position', 'employee.position.position_class']);
+        $user = Auth::guard('api')->user()->load(['leaves', 'non_employee', 'employee','profile','profile.religions','profile.marriages','profile.educations', 'employee.division', 'employee.position', 'employee.position.position_class']);
         return response()->json([
             'status' => 'success',
             'user' => new UserResource($user)
