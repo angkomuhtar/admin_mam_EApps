@@ -90,6 +90,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Employee::class);
     }
 
+    public function non_employee()
+    {
+        return $this->hasOne(NonEmployee::class);
+    }
+
     public function leaves()
     {
         return $this->hasMany(LeaveBalance::class)->where('start_date', '<=', now())->where('exp_date','>=', now());

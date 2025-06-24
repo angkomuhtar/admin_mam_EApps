@@ -44,7 +44,7 @@ class AuthController extends Controller
         if (!$token) {
             return ResponseHelper::jsonError('password not match', 401);
         }else{
-            $user = Auth::guard('api')->user()->load(['employee','profile', 'employee.division', 'employee.position', 'employee.position.position_class']);
+            $user = Auth::guard('api')->user()->load(['employee', 'non_employee', 'profile', 'employee.division', 'employee.position', 'employee.position.position_class']);
             $phoneID = User::where('phone_id', $request->phone_id)->where('id','!=', $user->id)->get();
             if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps')) {
 
@@ -136,7 +136,7 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = Auth::guard('api')->user()->load(['signature','leaves','employee','profile','profile.religions','profile.marriages','profile.educations', 'employee.division', 'employee.position', 'employee.position.position_class']);
+        $user = Auth::guard('api')->user()->load(['signature','leaves', 'non_employee', 'employee','profile','profile.religions','profile.marriages','profile.educations', 'employee.division', 'employee.position', 'employee.position.position_class']);
         return response()->json([
             'status' => 'success',
             'user' => new UserResource($user)
