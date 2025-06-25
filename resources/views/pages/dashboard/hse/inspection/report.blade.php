@@ -338,8 +338,8 @@
                         data: 'status',
                         render: (data) => {
                             return data == 'created' ?
-                                `<span class="block w-full"><span class=" inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 text-danger-500 bg-danger-500">pending</span></span>` :
-                                `<span class="block w-full"><span class=" inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 text-primary-500 bg-primary-500">shipped</span></span>`
+                                `<span class="block w-full">. </span>` :
+                                `<span class="block w-full"><span class=" inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] text-white bg-green-500">Verified</span></span>`
                         }
                     },
                     {
@@ -369,10 +369,10 @@
                                             <span>detail</span>
                                         </span>
                                     </a>
-                                    <button class="btn btn-sm inline-flex justify-center btn-outline-danger">
+                                    <button class="btn btn-sm inline-flex justify-center btn-outline-danger" id="verify_btn">
                                         <span class="flex items-center">
-                                            <iconify-icon class="text-xs ltr:mr-2 rtl:ml-2" icon="heroicons-outline:trash"></iconify-icon>
-                                            <span>del</span>
+                                            <iconify-icon class="text-xs ltr:mr-2 rtl:ml-2" icon="heroicons:check-badge-20-solid"></iconify-icon>
+                                            <span>Verify</span>
                                         </span>
                                     </button>
                                   </div>`;

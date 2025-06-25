@@ -30,7 +30,9 @@ class InspectionController extends Controller
             $data = InspectionCard::with('inspection', 'creator', 'supervisor', 'location')
                 ->whereHas('creator', function($query) use($request){
                   $query->where('name' , 'like', '%'.$request->name.'%');
-                })->get();
+                })
+                ->orderBy('inspection_date', 'desc')
+                ->get();
 
             return DataTables::of($data)->toJson();
         }
