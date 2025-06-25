@@ -171,6 +171,6 @@ Route::prefix('v2')->group(function(){
         });
     });
 
-    Route::get('/inspection/{id}/export_pdf', [InspectionController::class, 'pdf']);
+    Route::get('/inspection/{id}/export_pdf', [InspectionController::class, 'pdf'])->name('api.inspection.pdf');
 });
 

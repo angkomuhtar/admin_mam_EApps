@@ -236,6 +236,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
             Route::get('/', 'index')->name('hse.inspection.report');
             Route::get('/{id}/detail', 'detail')->name('hse.inspection.report.detail');
             Route::get('/{id}/print', 'print')->name('hse.inspection.report.print');
+            Route::post('/{id}/print', 'verify')->name('hse.inspection.report.verify');
 
             Route::get('/question','type')->name('hse.inspection.type');
             Route::get('/question/{id}','question')->name('hse.inspection.type.question');

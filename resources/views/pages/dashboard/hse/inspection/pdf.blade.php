@@ -150,7 +150,7 @@
                     <tr>
                         <td class="font-bold text-center">{{ ++$itemnum }}</td>
                         <td>{{ $item->question->question }}</td>
-                        <td>{{ ($item->answer == 'yes' ? 'Sesuai' : $item->answer == 'na') ? 'N/A' : 'Tidak Sesuai' }}
+                        <td>{{ $item->answer == 'yes' ? 'Sesuai' : ($item->answer == 'na' ? 'N/A' : 'Tidak Sesuai') }}
                         </td>
                         <td>{{ $item->note ?? '-' }}</td>
                         <td class="no-wrap">

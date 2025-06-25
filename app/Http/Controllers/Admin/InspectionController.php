@@ -11,6 +11,7 @@ use App\Models\InspectionCard;
 use App\Models\InspectionQuest;
 use App\Models\SubInspection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -30,6 +31,12 @@ class InspectionController extends Controller
             $data = InspectionCard::with('inspection', 'creator', 'supervisor', 'location')
                 ->whereHas('creator', function($query) use($request){
                   $query->where('name' , 'like', '%'.$request->name.'%');
+                })
+                ->when($request->tanggal, function($query) use($request){
+                    $query->where('inspection_date', $request->tanggal);
+                })
+                ->when($request->status, function($query) use($request){
+                    $query->where('status', $request->status);
                 })
                 ->orderBy('inspection_date', 'desc')
                 ->get();
@@ -52,6 +59,19 @@ class InspectionController extends Controller
         ]);
     }
 
+    public function verify(String $id)
+    {
+        $user =  Auth::guard('web')->user();
+        $data = InspectionCard::find($id);
+        if ($data) {
+            $data->status = 'verified';
+            $data->supervised_by = $user->id;
+            $data->save();
+            return ResponseHelper::jsonSuccess('Data Berhasil Diverifikasi');
+        } else {
+            return ResponseHelper::jsonError('Data Tidak Ditemukan', 404);
+        }
+    }
 
     public function print(String $id)
     {

@@ -4,81 +4,6 @@
             <div class="card">
                 <header class=" card-header noborder">
                     <h4 class="card-title">Hasil Inspeksi</h4>
-                    <button class="btn btn-sm inline-flex justify-center btn-outline-primary rounded-[25px]"
-                        data-bs-toggle="modal" data-bs-target="#primaryModal">
-                        <span class="flex items-center">
-                            <iconify-icon class="text-xl mr-2" icon="material-symbols-light:export-notes"></iconify-icon>
-                            <span>Export Data</span>
-                        </span>
-                    </button>
-                    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
-                        id="primaryModal" tabindex="-1" aria-labelledby="primaryModalLabel" aria-hidden="true">
-                        <div class="modal-dialog relative w-auto pointer-events-none">
-                            <div
-                                class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding
-                                            rounded-md outline-none text-current">
-                                <div class="relative bg-white rounded-lg shadow dark:bg-slate-700">
-                                    <!-- Modal header -->
-                                    <div
-                                        class="flex items-center justify-between p-5 border-b rounded-t dark:border-slate-600 bg-primary-500">
-                                        <h3 class="text-base font-medium text-white dark:text-white capitalize">
-                                            Export Data
-                                        </h3>
-                                        <button type="button"
-                                            class="text-slate-400 bg-transparent hover:text-slate-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-                                                        dark:hover:bg-slate-600 dark:hover:text-white"
-                                            data-bs-dismiss="modal">
-                                            <svg aria-hidden="true" class="w-5 h-5" fill="#ffffff" viewbox="0 0 20 20"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-                                                                11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="sr-only">Close modal</span>
-                                        </button>
-                                    </div>
-                                    <form action="{{ route('hse.sleep.export') }}" target="_blank" id="form_export">
-                                        <div class="grid p-4 gap-y-3">
-                                            <div class="input-area">
-                                                <label for="tanggal" class="form-label">Tanggal</label>
-                                                <input class="form-control py-2 flatpickr flatpickr-input active"
-                                                    name="tanggal" id="export_date" value="" type="text"
-                                                    readonly="readonly" required>
-                                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
-                                                    style="display: none">This is
-                                                    invalid state.</div>
-                                            </div>
-                                            <div class="input-area">
-                                                <label for="company" class="form-label">Perusahaan</label>
-                                                <select id="company" class="form-control" name="company" required>
-                                                    <option value="" selected
-                                                        class="dark:bg-slate-700 !text-slate-300">Semua
-                                                        Perusahaan</option>
-                                                    @foreach ($company as $item)
-                                                        <option value="{{ $item->id }}" class="dark:bg-slate-700">
-                                                            {{ $item->company }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="font-Inter text-sm text-danger-500 pt-2 error-message"
-                                                    style="display: none">
-                                                    This is invalid state.</div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="flex justify-end items-center p-6 space-x-2 border-t border-slate-200 rounded-b dark:border-slate-600">
-                                            <button type="submit" id="submit"
-                                                class="btn btn-sm inline-flex justify-center text-white bg-primary-500">Export
-                                                to
-                                                Excel</button>
-                                            <button type="submit" class="hidden" id="submit_forrm">sub</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </header>
                 <div class="card-body px-6 pb-6">
                     <div class="grid grid-cols-4 gap-3 ">
@@ -97,15 +22,11 @@
                                 required="required">
                         </div>
                         <div class="input-area">
-                            <label for="company_id" class="form-label">Perusahaan</label>
+                            <label for="company_id" class="form-label">Status</label>
                             <select id="company_id" class="form-control" name="company_id">
-                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Semua
-                                    Perusahaan</option>
-                                @foreach ($company as $item)
-                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">
-                                        {{ $item->company }}
-                                    </option>
-                                @endforeach
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">All</option>
+                                <option value="created" class="dark:bg-slate-700 !text-slate-300">created</option>
+                                <option value="verified" class="dark:bg-slate-700 !text-slate-300">verified</option>
                             </select>
                             <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
                                 This is invalid state.</div>
@@ -256,9 +177,9 @@
         <script type="module">
             $("#tanggal_fil").flatpickr({
                 dateFormat: "Y-m-d",
-                defaultDate: "today",
             });
-            var linkView = '{!! route('hse.inspection.report.detail', ['id' => ':id']) !!}';
+
+            var linkView = '{!! route('api.inspection.pdf', ['id' => ':id']) !!}';
             var table = $("#data-table, .data-table").DataTable({
                 processing: true,
                 serverSide: true,
@@ -267,7 +188,7 @@
                     data: function(d) {
                         return $.extend({}, d, {
                             name: $('#name').val(),
-                            company: $('#company_id').val(),
+                            status: $('#company_id').val(),
                             tanggal: $('#tanggal_fil').val(),
                         })
                     },
@@ -363,18 +284,21 @@
                         name: 'action',
                         render: (data, type, row) => {
                             return `<div class="flex space-x-3 rtl:space-x-reverse">
-                                    <a href="${linkView.replace(':id', row.id)}" class="btn btn-sm inline-flex justify-center btn-outline-primary">
+                                    <a href="${linkView.replace(':id', row.id)}" target="_blank" class="btn btn-sm inline-flex justify-center btn-outline-primary">
                                         <span class="flex items-center">
                                             <iconify-icon class="text-xs ltr:mr-2 rtl:ml-2" icon="heroicons-outline:eye"></iconify-icon>
                                             <span>detail</span>
                                         </span>
                                     </a>
-                                    <button class="btn btn-sm inline-flex justify-center btn-outline-danger" id="verify_btn">
-                                        <span class="flex items-center">
-                                            <iconify-icon class="text-xs ltr:mr-2 rtl:ml-2" icon="heroicons:check-badge-20-solid"></iconify-icon>
-                                            <span>Verify</span>
-                                        </span>
-                                    </button>
+                                    ${row.status == 'created' ?
+                                        `<button class="btn btn-sm inline-flex justify-center btn-outline-danger" id="verify_btn" data-id="${row.id}">
+                                                                                                                                    <span class="flex items-center">
+                                                                                                                                        <iconify-icon class="text-xs ltr:mr-2 rtl:ml-2" icon="heroicons:check-badge-20-solid"></iconify-icon>
+                                                                                                                                        <span>Verify</span>
+                                                                                                                                    </span>
+                                                                                                                                </button>` 
+                                        : 
+                                        ''}
                                   </div>`;
                         }
                     }
@@ -383,7 +307,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #shift, #tanggal_fil, #company_id').bind('change', function() {
+            $('#name, #tanggal_fil, #company_id').bind('change', function() {
                 table.draw()
             })
 
@@ -393,129 +317,48 @@
                 defaultDate: 'today'
             });
 
-            $(document).on("click", "#view_image", function() {
-                let id = $(this).data('id');
-                var url = '{!! route('hse.sleep.edit', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                $.ajax({
-                    type: 'GET',
-                    url: url,
-                    beforeSend: function() {
-                        // alert('sabar');
-                    },
-                    success: (res) => {
-                        if (res?.data?.attachment) {
-                            if (String(res.data.attachment).startsWith('http')) {
-                                $("#img_preview").attr('src', res.data.attachment);
-                            } else {
-                                $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
-                                    .attachment);
+            $(document).on("click", "#verify_btn", function() {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, verify it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let id = $(this).data('id');
+                        $.ajax({
+                            url: `{{ route('hse.inspection.report.verify', ['id' => ':id']) }}`.replace(
+                                ':id', id),
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                            },
+                            beforeSend: function() {
+                                $('#loading').removeClass('hidden');
+                            },
+                            success: function(response) {
+                                $('#loading').addClass('hidden');
+                                Swal.fire(
+                                    'Verified!',
+                                    'The inspection has been verified.',
+                                    'success'
+                                );
+                                table.draw();
+                            },
+                            error: function(xhr) {
+                                $('#loading').addClass('hidden');
+                                Swal.fire(
+                                    'Error!',
+                                    'There was an error verifying the inspection.',
+                                    'error'
+                                );
                             }
-                        }
-                        let duration = moment(res.data.end).diff(moment(res.data.start),
-                            'minutes')
-                        let hours = Math.floor(duration / 60)
-                        $("#user_input").html(duration > 0 ?
-                            `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit` :
-                            '-')
-                        $("#accept_data").data('id', id);
-                        $("#update_sleep").data('id', id);
-                        $("#jam").val('');
-                        $("#menit").val('');
-                    },
-                    error: () => {
-                        $('select[name="division_id"]').html(dataOption)
+                        });
                     }
                 })
-            })
-
-            $(document).on('click', "#accept_data", function() {
-                let id = $(this).data('id');
-                var url = '{!! route('hse.sleep.accept', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    beforeSend: function() {
-                        $("#loading").removeClass('hidden');
-                    },
-                    success: (res) => {
-                        if (res.success) {
-                            $("#loading").addClass('hidden');
-                            Swal.fire({
-                                title: 'success',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonText: 'Oke'
-                            }).then(() => {
-                                table.draw()
-                                $("#close_modal").click();
-                            })
-                        }
-                    },
-                    error: () => {
-                        $("#loading").addClass('hidden');
-                        $("#close_modal").click();
-                    }
-                })
-            })
-
-            $(document).on('submit', "#update_sleep", function(e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                var url = '{!! route('hse.sleep.update', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
-                console.log(url);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: $("#update_sleep").serialize(),
-                    beforeSend: function() {
-                        $("#loading").removeClass('hidden');
-                        $("input[name=jam]").next().addClass('hidden');
-                        $("input[name=menit]").next().addClass('hidden');
-                    },
-                    success: (res) => {
-                        if (res.success) {
-                            $("#loading").addClass('hidden');
-                            $("#close_modal").click();
-                            Swal.fire({
-                                title: 'success',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonText: 'Oke'
-                            }).then(() => {
-                                table.draw()
-                            })
-                        } else {
-                            $("#loading").addClass('hidden');
-                            console.log(res.message.jam);
-                            if (res?.message?.jam) {
-                                $("input[name=jam]").next().removeClass('hidden').html(res?.message
-                                    ?.jam);
-                            }
-                            if (res?.message?.menit) {
-                                $("input[name=menit]").next().removeClass('hidden').html(res?.message
-                                    ?.menit);
-                            }
-                        }
-                    },
-                    error: () => {
-                        $("#loading").addClass('hidden');
-                        // $("#close_modal").click();
-                    }
-                })
-
             })
         </script>
     @endpush
