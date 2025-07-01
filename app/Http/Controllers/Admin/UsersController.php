@@ -8,6 +8,7 @@ use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Models\ClockLocation;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use PhpParser\Node\Stmt\TryCatch;
 use Spatie\Permission\Models\Permission;
@@ -21,11 +22,22 @@ class UsersController extends Controller
         $user = Auth::guard('web')->user();
         $departemen = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
         $location = ClockLocation::where('status', 'Y')->get();
+        $comp = Company::all();
 
         if ($request->ajax()) {
             $data = User::with('employee', 'employee.division', 'employee.position', 'profile', 'smartwatch')
             ->whereHas('profile', function($query) use($request) {
                     $query->where('name','LIKE','%'.$request->name.'%');
+            })
+            ->when($request->location, function($query) use($request) {
+                    $query->whereHas('employee', function($query) use($request) {
+                        $query->whereRaw('FIND_IN_SET(?, absen_location) > 0', [$request->location]);
+                    });
+            })
+            ->when($request->company, function($query) use($request) {
+                    $query->whereHas('employee', function($query) use($request) {
+                        $query->where('company_id', $request->company);
+                    });
             })
             ->whereHas('employee', function($query) use($request){
                 $query->ofLevel();
@@ -44,7 +56,8 @@ class UsersController extends Controller
         return view('pages.dashboard.master.users', [   
             'pageTitle' => 'Users',
             'dept'=>$departemen,
-            'loc'=>$location
+            'loc'=>$location,
+            'comp'=>$comp
         ]);
     }
 

@@ -101,6 +101,33 @@
                             <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
                                 This is invalid state.</div>
                         </div>
+
+                        <div class="input-area">
+                            <label for="company_id" class="form-label">Company</label>
+                            <select id="company_id" class="form-control" name="company_id">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                @foreach ($comp as $item)
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">{{ $item->company }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
+                        <div class="input-area">
+                            <label for="locat_id" class="form-label">Absen Location</label>
+                            <select id="locat_id" class="form-control" name="locat_id">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                @foreach ($loc as $item)
+                                    <option value="{{ $item->id }}" class="dark:bg-slate-700">{{ $item->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body px-6 pb-6">
@@ -163,6 +190,8 @@
                         return $.extend({}, d, {
                             name: $('#name').val(),
                             division: $('#division_id').val(),
+                            location: $('#locat_id').val(),
+                            company: $('#company_id').val(),
                         })
                     },
                 },
@@ -286,7 +315,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id').bind('change', function() {
+            $('#name, #division_id, #locat_id, #compnay_id').bind('change', function() {
                 table.draw()
             })
 
