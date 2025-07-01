@@ -39,6 +39,11 @@ class UsersController extends Controller
                         $query->where('company_id', $request->company);
                     });
             })
+            ->when($request->status, function($query) use($request) {
+                    $query->whereHas('employee', function($query) use($request) {
+                        $query->where('contract_status', $request->status);
+                    });
+            })
             ->whereHas('employee', function($query) use($request){
                 $query->ofLevel();
                 if ($request->division) {

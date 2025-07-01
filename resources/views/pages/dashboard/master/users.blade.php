@@ -128,6 +128,17 @@
                             <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
                                 This is invalid state.</div>
                         </div>
+                        <div class="input-area">
+                            <label for="status" class="form-label">Status</label>
+                            <select id="status" class="form-control" name="status">
+                                <option value="" selected class="dark:bg-slate-700 !text-slate-300">Pilih
+                                    Data</option>
+                                <option value="ACTIVE" class="dark:bg-slate-700">ACTIVE
+                                </option>
+                            </select>
+                            <div class="font-Inter text-sm text-danger-500 pt-2 error-message" style="display: none">
+                                This is invalid state.</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body px-6 pb-6">
@@ -192,6 +203,7 @@
                             division: $('#division_id').val(),
                             location: $('#locat_id').val(),
                             company: $('#company_id').val(),
+                            status: $('#status').val(),
                         })
                     },
                 },
@@ -315,7 +327,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #locat_id, #compnay_id').bind('change', function() {
+            $('#name, #division_id, #locat_id, #compnay_id, #status').bind('change', function() {
                 table.draw()
             })
 
