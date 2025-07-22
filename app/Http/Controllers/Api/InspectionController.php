@@ -53,6 +53,7 @@ class InspectionController extends Controller
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
 
+            // return $user->employee->position->position_class;
             if (!$user->employee->position->position_class->class) {
                 return ResponseHelper::jsonError('anda tidak memiliki akses untuk melakukan ini', 403);
             }
@@ -91,8 +92,8 @@ class InspectionController extends Controller
                     'inspection_card_id' => $id,
                     'question_slug' => $value,
                     'answer' => $request[$value],
-                    'note' => $request['note_'.$value] ?? null,
-                    'due_date' => $request['date_'.$value] ?? null
+                    'note' => $request[$value] == 'no' ? $request['note_'.$value] : null,
+                    'due_date' =>$request[$value] == 'no' ? $request['date_'.$value] : null
                 ]);
             }
             DB::commit();

@@ -295,4 +295,27 @@ class HazardController extends Controller
     {
         //
     }
+
+    public function upload_pdf(Request $request)
+    {
+        try {
+            if (!$request->hasFile('report_attachment')) {
+                return ResponseHelper::jsonError('file upload Not found', 422);
+            }
+            $file = $request->file('report_attachment');
+            $fileName = now()->format('His');
+            $url = cloudinary()->upload($file->getRealPath(), [
+                "public_id" => $fileName,
+                "folder"    => "SOP_TEST"
+                ])->getSecurePath();
+
+            if ($url) {
+                return ResponseHelper::jsonSuccess('Berhasil', $url);
+            }else{
+                return ResponseHelper::jsonError('error', 400);
+            }
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
 }

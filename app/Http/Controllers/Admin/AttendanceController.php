@@ -178,7 +178,7 @@ class AttendanceController extends Controller
                 $activeWorksheet->setCellValue('C'.$num, $value->profile->name);
                 $activeWorksheet->setCellValue('D'.$num, $value->employee->project->name);
                 $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
-                $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
+                $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position ?? "");
                 $activeWorksheet->setCellValue('G'.$num, isset($value->absen[0]->clock_in) ? Carbon::parse($value->absen[0]->clock_in)->format('H:i:s') : '');
                 if (count($value->absen) > 0) {
                     $startTime = Carbon::parse($value->absen[0]->date.' '.$value->absen[0]->shift->start);

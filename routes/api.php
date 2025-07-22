@@ -153,6 +153,7 @@ Route::prefix('v2')->group(function(){
             Route::POST('/action', 'update_action');
             Route::GET('/{id}', 'show');
             Route::POST('/{id}/pic', 'set_pic');
+            Route::POST('/upload_test', 'upload_pdf');
         });
 
         Route::group([
