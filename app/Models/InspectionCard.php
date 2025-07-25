@@ -53,7 +53,7 @@ class InspectionCard extends Model
     public function scopeByDept(Builder $query): void
     {
         $user = Auth::guard('api')->user();
-        $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482' ;
+        $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
         if (!$allowed) {
             $query->where('departement_id', $user->employee->division_id)
             ->whereHas('creator', function($query) use ($user){
