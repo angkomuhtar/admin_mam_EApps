@@ -28,6 +28,7 @@ class User extends Authenticatable implements JWTSubject
         'phone_id',
         'avatar',
         'status',
+        'fcm_token'
     ];
 
     protected $guard_name = ['web', 'api'];

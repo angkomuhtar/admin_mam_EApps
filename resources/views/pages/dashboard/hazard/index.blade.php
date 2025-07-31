@@ -95,6 +95,79 @@
         </div>
     </div>
 
+    <div class="offcanvas offcanvas-end fixed bottom-0 flex flex-col max-w-full bg-white dark:bg-slate-800 invisible bg-clip-padding shadow-sm outline-none transition duration-300 ease-in-out text-gray-700 top-0 ltr:right-0 rtl:left-0 border-none w-96"
+        tabindex="-1" id="close-canvas" aria-labelledby="offcanvas">
+        <div
+            class="offcanvas-header flex items-center justify-between p-4 pt-3 border-b border-b-slate-300 dark:border-b-slate-900">
+            <div>
+                <h3 class="block text-xl font-Inter text-slate-900 font-medium dark:text-[#eee]">
+                    Close Hazard Report
+                </h3>
+            </div>
+            <button type="button"
+                class="box-content text-2xl w-4 h-4 p-2 pt-0 -my-5 -mr-2 text-black dark:text-white border-none rounded-none opacity-100 focus:shadow-none focus:outline-none focus:opacity-100 hover:text-black hover:opacity-75 hover:no-underline"
+                data-bs-dismiss="offcanvas">
+                <iconify-icon icon="line-md:close"></iconify-icon>
+            </button>
+        </div>
+        <div class="absolute top-0 left-0 right-0 bottom-0 bg-black-500/40 z-50 flex justify-center items-center hidden"
+            id="l_close_canvas">
+            <div class="flex justify-center items-center space-y-2">
+                <iconify-icon class="text-4xl text-white" icon="line-md:loading-twotone-loop"></iconify-icon>
+                <p class="text-lg text-white">Tunggu ...</p>
+            </div>
+        </div>
+        <div class="offcanvas-body flex-grow overflow-y-auto">
+            <div class="settings-modal">
+                <div class="divider"></div>
+                <div class="p-6">
+                    <form class="space-y-4" id="close_hazard">
+                        <input type="hidden" name="id" id="hazard_id" value="">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+                        <div class="card-text h-full space-y-4">
+                            <div class="input-area">
+                                <label for="select" class="form-label">Status Pekerjaan</label>
+                                <select id="select" class="form-control" name="action_status">
+                                    <option value="DONE" class="dark:bg-slate-700">Selesai</option>
+                                    <option value="PENDING" class="dark:bg-slate-700">Pending</option>
+                                </select>
+                            </div>
+                            <div class="input-area">
+                                <label for="description" class="form-label">File Attachment</label>
+                                <div class="filegroup">
+                                    <label>
+                                        <input type="file" class=" w-full hidden" name="action_attachment"
+                                            accept="image/*">
+                                        <span class="w-full h-[40px] file-control flex items-center custom-class">
+                                            <span class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                                                <span class="text-slate-400 fileName">Choose a file or drop it
+                                                    here...</span>
+                                            </span>
+                                            <span
+                                                class="file-name flex-none cursor-pointer border-l px-4 border-slate-200 dark:border-slate-700 h-full inline-flex items-center bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm rounded-tr rounded-br font-normal">Browse</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                            </div>
+                            <div class="input-area">
+                                <label for="description" class="form-label">Catatan Perbaikan</label>
+                                <textarea id="description" name="action_note" rows="5" class="form-control" placeholder="Type Here"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-3">
+                            <button type="submit"
+                                class="btn btn-sm inline-flex justify-center btn-dark">Simpan</button>
+                            <button type="reset" id="e_close_canvas" data-bs-dismiss="offcanvas"
+                                class="btn btn-sm btn-outline-danger inline-flex justify-center btn-dark">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="space-y-8">
         <div class=" space-y-5">
             <div class="card">
@@ -272,6 +345,9 @@
                                             </th>
                                             <th scope="col" class="table-th">
                                                 Kondisi
+                                            </th>
+                                            <th scope="col" class="table-th">
+                                                Rekomendasi Perbaikan
                                             </th>
                                             <th scope="col" class="table-th">
                                                 Gambar
@@ -523,6 +599,9 @@
                         data: 'reported_condition'
                     },
                     {
+                        data: 'recomended_action'
+                    },
+                    {
                         data: 'iamge',
                         render: (data, type, row, meta) => {
                             if (row?.report_attachment) {
@@ -543,7 +622,7 @@
                         render: (data) => {
                             if (data == 'OPEN') {
                                 return '<span class="badge bg-red-500 text-white capitalize">OPEN</span>';
-                            } else if (data == 'Onprogress') {
+                            } else if (data == 'ONPROGRESS') {
                                 return '<span class="badge bg-yellow-500 text-white capitalize">ON PROGRESS</span>';
                             } else {
                                 return '<span class="badge bg-green-500 text-white capitalize">CLOSE</span>';
@@ -575,9 +654,25 @@
                         name: 'action',
                         render: (data, type, row, meta) => {
                             return `<div class="flex space-x-3 rtl:space-x-reverse">
-                                <button class="action-btn toolTip onTop cursor-pointer btn-edit" data-tippy-content="Edit" data-id="${row.id}" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">
-                                    <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
-                                </button>
+                                ${
+                                    row.status == 'ONPROGRESS' ? (
+                                        `<button class="px-1 rounded-sm py-0.5 inline-flex justify-center btn-outline-success close-hazard" data-id="${row.hazard_action.id}" data-bs-toggle="offcanvas" data-bs-target="#close-canvas" aria-controls="offcanvas">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <span class="flex items-center text-sm">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <iconify-icon class="ltr:mr-2 rtl:ml-2" icon="heroicons:clipboard-document-check-16-solid"></iconify-icon>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <span>Close</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </button>`
+                                    ) : ''
+                                }
+                                                    ${
+                                row.status != 'CLOSED' ?
+                                    `<button class="px-1 rounded-sm py-0.5 inline-flex justify-center btn-outline-success btn-edit" data-tippy-content="SET PIC" data-id="${row.id}" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <span class="flex items-center text-sm">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <iconify-icon class="ltr:mr-2 rtl:ml-2" icon="heroicons:pencil-square"></iconify-icon>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <span>PIC</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </button>` : ''
+                                }
                             </div>`;
                         }
                     },
@@ -606,6 +701,12 @@
             $(document).on('click', '.btn-edit', function() {
                 const hazardId = $(this).data('id');
                 $('#id').val(hazardId);
+            });
+
+            $(document).on('click', '.close-hazard', function() {
+                const hazardId = $(this).data('id');
+                console.log(hazardId);
+                $('#hazard_id').val(hazardId)
             });
 
             $(document).on('submit', '#sending_form', (e) => {
@@ -643,6 +744,64 @@
                             confirmButtonText: 'OK'
                         })
                     });
+            })
+
+
+            $(document).on('submit', '#close_hazard', function(e) {
+                e.preventDefault();
+
+                var form = $(this)[0]; // now this refers to the form element
+                var data = new FormData(form);
+
+                let id = $('#hazard_id').val();
+                let url = `{{ route('hazard.close-hazard', ['id' => 'ID_REPLACE']) }}`.replace('ID_REPLACE', id);
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function() {
+                        $("#l_close_canvas").removeClass('hidden');
+                    },
+                    success: function(msg) {
+                        $("#l_close_canvas").addClass('hidden');
+                        if (!msg.success) {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'data belum lengkap',
+                                icon: 'error',
+                                confirmButtonText: 'Oke'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'success',
+                                text: msg.message,
+                                icon: 'success',
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                table.draw();
+                                $("#e_close_canvas").click();
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $("#l_close_canvas").addClass('hidden');
+
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Internal Error',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    },
+                });
+            });
+
+            $(document).on('change', "input[type=file]", function() {
+                var fileName = this.files[0].name;
+                $(this).siblings('span').find('.fileName').html(fileName);
             })
         </script>
     @endpush

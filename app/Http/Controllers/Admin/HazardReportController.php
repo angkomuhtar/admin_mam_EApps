@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ResponseHelper;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Profile;
@@ -215,12 +216,22 @@ class HazardReportController extends Controller
 
     public function setPic($id, Request $request)
     {
-        Hazard_action::create([
-            'hazard_id' => $id,
-            'pic' => $request->pic,
-            'status' => 'WORKING',
-            'supervised_by' => $request->user()->id,
-        ]);
+
+        $cekHazard = Hazard_action::where('hazard_id', $id)->first();
+
+        if ($cekHazard) {
+            $cekHazard->update([
+                'pic' => $request->pic
+            ]);
+        }else{
+            Hazard_action::create([
+                'hazard_id' => $id,
+                'pic' => $request->pic,
+                'status' => 'WORKING',
+                'supervised_by' => $request->user()->id,
+            ]);
+        }
+
 
         $update = Hazard_Report::where('id', $id)->update([
             'status' => 'ONPROGRESS'
@@ -236,6 +247,73 @@ class HazardReportController extends Controller
                 'success' => true,
                 'message' => 'Data Gagal Disimpan'
             ]);
+        }
+    }
+
+    public function closeHazard(String $id, Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'action_attachment' => 'required',
+                'action_status' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $validator->errors(),
+                    'message' => 'Data Gagal Disimpan'
+                ]);
+            }
+
+            if (!$request->hasFile('action_attachment')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'File Not Found',
+                    'message' => 'Data Gagal Disimpan'
+                ]);
+            }
+
+            $hazard_action = Hazard_action::find($id);
+            // return ResponseHelper::jsonError( $request->id_action, 500);
+            $hazard_report_number = $hazard_action->hazard->hazard_report_number;
+            $file = $request->file('action_attachment');
+            $fileName = $hazard_report_number.now()->format('His');
+            $url = cloudinary()->upload($file->getRealPath(), [
+                "public_id" => $fileName,
+                "folder"    => "hazard_action",
+                'transformation' => [
+                    'quality' => "auto",
+                    'fetch_format' => "auto"
+                    ]
+                    ])->getSecurePath();
+
+            $update = $hazard_action->update([
+                'attachment' => $url,
+                'status' => $request->action_status,
+                'notes' => $request->action_note
+            ]);
+            $update_report = $hazard_action->hazard->update([
+                'status' => $request->action_status == 'DONE' ? 'CLOSED' : 'ONPROGRESS'
+            ]);
+
+
+            if ($update_report) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Berhasil Disimpan'
+                ]);
+            }else{
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data Gagal Disimpan'
+                ]);
+            }
+        } catch (\Exception $err) {
+            return response()->json([
+                    'success' => false,
+                    'error' => $err,
+                    'message' => 'Data Gagal Disimpan'
+                ]);
         }
     }
 }

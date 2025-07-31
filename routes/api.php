@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\InspectionController;
 use App\Http\Controllers\Api\SleepController;
 use App\Http\Controllers\Api\LeaveApiController;
 use App\Http\Controllers\Api\MasterController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OldClockController;
 
 Route::prefix('v1')->group(function(){
@@ -26,7 +27,6 @@ Route::prefix('v1')->group(function(){
         Route::get('/', function(){
             return 'losee';
         });
-
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/team', [AuthController::class, 'team']);
         Route::get('/version', [AuthController::class, 'version']);
@@ -85,6 +85,15 @@ Route::prefix('v2')->group(function(){
     Route::middleware('jwt')->group(function () {
         Route::get('/', function(){
             return 'losee';
+        });
+
+        Route::group([
+            'prefix'=>'notification',
+            'controller'=>NotificationController::class
+        ],function () {
+            Route::post('/', 'sendNotif');
+            Route::post('/broadcast', 'sendBroadcast');
+            Route::post('/register', 'register_token');
         });
 
         Route::get('/me', [AuthController::class, 'me']);
