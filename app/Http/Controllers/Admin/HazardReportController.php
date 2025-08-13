@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\FirebaseHelper;
 use App\Helpers\ResponseHelper;
 use Carbon\Carbon;
 use App\Models\User;
@@ -236,6 +237,17 @@ class HazardReportController extends Controller
         $update = Hazard_Report::where('id', $id)->update([
             'status' => 'ONPROGRESS'
         ]);
+
+        $pic = User::find($request->pic);
+
+        if ($pic->fcm_token != null) {
+            $report = FirebaseHelper::sendByToken('Hazard Report', 'Anda di tunjuk sebagai PIC Hazard Report', [$pic->fcm_token], 'hazard-action', $id);
+            // if ($report->hasFailures()) {
+            //     foreach ($report->failures()->getItems() as $failure) {
+            //         return $failure;
+            //     }
+            // }
+        }
 
         if ($update) {
             return response()->json([

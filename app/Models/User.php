@@ -60,6 +60,7 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
+        // return $this->username;
     }
 
     /**
@@ -69,7 +70,10 @@ class User extends Authenticatable implements JWTSubject
     */
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'origin' => 'emp-app',
+            'username' => $this->username
+        ];
     }
 
     public function getAvatarUrlAttribute()
