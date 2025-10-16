@@ -23,356 +23,392 @@ class SleepController extends Controller
     public function index(Request $request)
     {
 
-      $user = Auth::guard('web')->user();
-      $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
-      $today = $request->tanggal ?? Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
-      $shift = Shift::select('name')->groupBy('name')->get();
-      $company = $user->employee->division_id == 8 || $user->user_roles == 'ALL' ? Company::all() : Company::where('id', $user->employee->company_id)->get();
+        $user = Auth::guard('web')->user();
+        $dept = $user->user_roles == 'ALL' ? Division::all() : Division::where('company_id', $user->employee->company_id)->get();
+        $today = $request->tanggal ?? Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
+        $shift = Shift::select('name')->groupBy('name')->get();
+        $company = $user->employee->division_id == 8 || $user->user_roles == 'ALL' ? Company::all() : Company::where('id', $user->employee->company_id)->get();
 
-      if ($request->ajax()) {
-        $data = User::with('employee','absen.shift', 'profile', 'employee.company', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
-          ->whereHas('profile', function ($query) use ($request){
-            $query->where('name', 'LIKE', '%'.$request->name.'%');
-          })
-          ->whereHas('employee', function ($query) use($user){
-            if ($user->employee->division_id == 8 || $user->user_roles == 'ALL') {
-              $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
-            }else{
-              $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+        if ($request->ajax()) {
+            $data = User::with('employee', 'absen.shift', 'profile', 'employee.company', 'employee.division', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+                ->whereHas('profile', function ($query) use ($request) {
+                    $query->where('name', 'LIKE', '%' . $request->name . '%');
+                })
+                ->whereHas('employee', function ($query) use ($user) {
+                    if ($user->employee->division_id == 8 || $user->user_roles == 'ALL') {
+                        $query->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+                    } else {
+                        $query->ofLevel()->where('contract_status', 'ACTIVE')->where('division_id', '<>', 11)->where('division_id', '<', 100);
+                    }
+                })
+                ->whereHas('smartwatch', function ($query) {
+                    $query->where('status', 'Y');
+                })
+                ->with('absen', function ($query) use ($request, $today) {
+                    $query->where('date', $today);
+                })
+                ->with(['sleep' => function ($query) use ($request, $today) {
+                    $query->where('date', $today);
+                }]);
+
+            if ($request->division != null || $request->division != '') {
+                $data->whereHas('employee', function ($query) use ($request) {
+                    $query->where('division_id', $request->division);
+                });
             }
-          })
-          ->whereHas('smartwatch', function($query){
-            $query->where('status', 'Y');
-          })
-          ->with('absen', function ($query) use ($request, $today) {
-            $query->where('date', $today);
-          })
-          ->with(['sleep'=> function ($query) use ($request, $today){
-            $query->where('date', $today);
-          }]);
 
-          if ($request->division != null || $request->division != '') {
-            $data->whereHas('employee', function ($query) use ($request){
-              $query->where('division_id', $request->division);
-            });
-          }
-
-          if ($request->comapny != null || $request->company != '') {
-            $data->whereHas('employee', function ($query) use ($request){
-              $query->where('company_id', $request->company);
-            });
-          }
-
-          if ($request->shift) {
-            $shift = Shift::select('id')->where('name', $request->shift)->get();
-            $shiftArray = [];
-            $num=0;
-            foreach ($shift as $key => $value) {
-              $shiftArray[$num++] = $value->id;
+            if ($request->comapny != null || $request->company != '') {
+                $data->whereHas('employee', function ($query) use ($request) {
+                    $query->where('company_id', $request->company);
+                });
             }
-            $datafilter = $data->get()->filter(function($item) use($shiftArray){
-              if ($item->absen->isNotEmpty()) {
-                if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
-                  return $item;
+
+            if ($request->shift) {
+                $shift = Shift::select('id')->where('name', $request->shift)->get();
+                $shiftArray = [];
+                $num = 0;
+                foreach ($shift as $key => $value) {
+                    $shiftArray[$num++] = $value->id;
                 }
-              }
-            });
-            $dt = DataTables::of($datafilter);
-            return $dt->make(true);
-          }else{
-            $dt = DataTables::of($data->get());
-            return $dt->make(true);
-          }
-      }
+                $datafilter = $data->get()->filter(function ($item) use ($shiftArray) {
+                    if ($item->absen->isNotEmpty()) {
+                        if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
+                            return $item;
+                        }
+                    }
+                });
+                $dt = DataTables::of($datafilter);
+                return $dt->make(true);
+            } else {
+                $dt = DataTables::of($data->get());
+                return $dt->make(true);
+            }
+        }
 
-      return view('pages.dashboard.hse.sleep.index', [
-        'pageTitle' => 'Data Tidur karyawan',
-        'dept' => $dept,
-        'shift' => $shift,
-        'company' => $company 
-      ]);
+        return view('pages.dashboard.hse.sleep.index', [
+            'pageTitle' => 'Data Tidur karyawan',
+            'dept' => $dept,
+            'shift' => $shift,
+            'company' => $company
+        ]);
     }
 
     public function export(Request $request)
     {
-      ini_set('max_execution_time', '300');
-      $date = $request->tanggal;
-      $dt = '';
-      $data = User::with('employee','absen.shift', 'profile', 'employee.division', 'employee.company', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
-          ->whereHas('profile', function ($query) use ($request){
-            $query->where('name', 'LIKE', '%'.$request->name.'%');
-          })
-          ->whereHas('employee', function ($query) use($request){
-            $query->where('contract_status', 'ACTIVE')->where('company_id', $request->company)->where('division_id', '<>', 11)->where('division_id', '<', 100);
-          })
-          ->whereHas('smartwatch', function($query){
-            $query->where('status', 'Y');
-          })
-          ->with('absen', function ($query) use ($request) {
-            $query->where('date', $request->tanggal);
-          })
-          ->with(['sleep'=> function ($query) use ($request){
-            $query->where('date', $request->tanggal);
-          }]);
+        ini_set('max_execution_time', '300');
+        $date = $request->tanggal;
+        $dt = '';
+        $data = User::with('employee', 'absen.shift', 'profile', 'employee.division', 'employee.company', 'employee.position', 'employee.category', 'employee.work_schedule', 'sleep')
+            ->whereHas('profile', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->name . '%');
+            })
+            ->whereHas('employee', function ($query) use ($request) {
+                $query->where('contract_status', 'ACTIVE')->where('company_id', $request->company)->where('division_id', '<>', 11)->where('division_id', '<', 100);
+            })
+            ->whereHas('smartwatch', function ($query) {
+                $query->where('status', 'Y');
+            })
+            ->with('absen', function ($query) use ($request) {
+                $query->where('date', $request->tanggal);
+            })
+            ->with(['sleep' => function ($query) use ($request) {
+                $query->where('date', $request->tanggal);
+            }]);
 
-          if ($request->division != null || $request->departement != '') {
-            $data->whereHas('employee', function ($query) use ($request){
-              $query->where('division_id', $request->division);
+        if ($request->division != null || $request->departement != '') {
+            $data->whereHas('employee', function ($query) use ($request) {
+                $query->where('division_id', $request->division);
             });
-          }
-      if ($request->shift_filter != 'All Shift') {
-        $shift = Shift::select('id')->where('name', $request->shift_filter)->get();
-        $shiftArray = [];
-        $num=0;
-        foreach ($shift as $key => $value) {
-          $shiftArray[$num++] = $value->id;
         }
-        $datafilter = $data->get()->filter(function($item) use($shiftArray){
-          if ($item->absen->isNotEmpty()) {
-            if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
-              return $item;
+        if ($request->shift_filter != 'All Shift') {
+            $shift = Shift::select('id')->where('name', $request->shift_filter)->get();
+            $shiftArray = [];
+            $num = 0;
+            foreach ($shift as $key => $value) {
+                $shiftArray[$num++] = $value->id;
             }
-          }
-        });
-        $dt = $datafilter;
-      }else{
-        $dt = $data->get();
-      }
+            $datafilter = $data->get()->filter(function ($item) use ($shiftArray) {
+                if ($item->absen->isNotEmpty()) {
+                    if (in_array($item->absen[0]->work_hours_id, $shiftArray)) {
+                        return $item;
+                    }
+                }
+            });
+            $dt = $datafilter;
+        } else {
+            $dt = $data->get();
+        }
 
-      // return $dt;
-      $HeaderStyle = [
-        'font' => [
-            'bold' => true,
-            'size' => 14
-        ],
-        'alignment' => [
-            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-        ],
-      ];
+        // return $dt;
+        $HeaderStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 14
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+        ];
 
-      $SubStyle = [
-          'font' => [
-              'bold' => true,
-              'size' => 14
-          ]
-      ];
+        $SubStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 14
+            ]
+        ];
 
-      $spreadsheet = new Spreadsheet();
-      $activeWorksheet = $spreadsheet->getActiveSheet();
+        $spreadsheet = new Spreadsheet();
+        $activeWorksheet = $spreadsheet->getActiveSheet();
 
-      // HEADER
-      $activeWorksheet->setCellValue('A2', 'REKAP DATA TIDUR OPERATOR');
-      $activeWorksheet->getStyle('A2')->applyFromArray($HeaderStyle);
-      $activeWorksheet->mergeCells('A2:I2');
-
-
-      $activeWorksheet->setCellValue('B4', 'Tanggal : ' .$date);
-      $activeWorksheet->setCellValue('B5', 'Dokumen : Data Tidur Karyawan');
-      $activeWorksheet->setCellValue('B6', 'Shift : ' .$request->shift_filter);
-      $activeWorksheet->getStyle('B4:B6')->applyFromArray($SubStyle);
-
-      $num=7;
-      $num++;
-      $rowStart = $num;
-
-      $activeWorksheet->setCellValue('A'.$num, 'No')->getStyle('A'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('B'.$num, 'Nama')->getStyle('B'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('C'.$num, 'NRP')->getStyle('C'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('D'.$num, 'Perusahaan')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('E'.$num, 'Departement')->getStyle('D'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('F'.$num, 'Position')->getStyle('E'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('G'.$num, 'Shift')->getStyle('F'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('H'.$num, 'Jumlah Jam Tidur')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->setCellValue('I'.$num, 'Kesiapan Kerja')->getStyle('G'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->getStyle('A'.$num.':I'.$num)->applyFromArray($HeaderStyle);
-      $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
-
-      
-      $activeWorksheet->getStyle('A'.$num.':I'.$num)->applyFromArray([
-          'font' => [
-              'size' => 12
-          ],
-          'alignment' => [
-              'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-              'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-              'wrapText' => true,
-          ],
-          'borders' => [
-              'allBorders' => [
-                  'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                  'color' => ['argb' => 'FF000000'],
-              ],
-          ]
-      ]);
+        // HEADER
+        $activeWorksheet->setCellValue('A2', 'REKAP DATA TIDUR OPERATOR');
+        $activeWorksheet->getStyle('A2')->applyFromArray($HeaderStyle);
+        $activeWorksheet->mergeCells('A2:I2');
 
 
-      // Data
+        $activeWorksheet->setCellValue('B4', 'Tanggal : ' . $date);
+        $activeWorksheet->setCellValue('B5', 'Dokumen : Data Tidur Karyawan');
+        $activeWorksheet->setCellValue('B6', 'Shift : ' . $request->shift_filter);
+        $activeWorksheet->getStyle('B4:B6')->applyFromArray($SubStyle);
 
-      foreach ($dt as $key => $value) {
+        $num = 7;
         $num++;
-        $activeWorksheet->setCellValue('A'.$num, $num - $rowStart);
-        $activeWorksheet->setCellValue('B'.$num, $value->profile->name);
-        $activeWorksheet->setCellValue('C'.$num, $value->employee->nip);
-        $activeWorksheet->setCellValue('D'.$num, $value->employee->company->company);
-        $activeWorksheet->setCellValue('E'.$num, $value->employee->division->division);
-        $activeWorksheet->setCellValue('F'.$num, $value->employee->position->position);
-        if (count($value->absen) > 0) {
-          $activeWorksheet->setCellValue('G'.$num, $value->absen[0]->shift->name);
-        }else{
-          $activeWorksheet->setCellValue('H'.$num, '-');
-        }
-        if (count($value->sleep) > 0) {
-          $duration = 0;
-          foreach ($value->sleep as $key => $sleep) {
-            $duration += Carbon::parse($sleep->end)->diffInMinutes(Carbon::parse($sleep->start));
-          }
-          $activeWorksheet->setCellValue('H'.$num, floor($duration / 60) . ' Jam '. $duration % 60 . ' Menit');
-          if ($duration < 5*60) {
-              $activeWorksheet->setCellValue('I'.$num, 'Tidak Boleh Bekerja');
-              $activeWorksheet->getStyle('H'.$num.':I'.$num)
-                ->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFF0000');
-          }elseif ($duration < 6*60) {
-            $activeWorksheet->setCellValue('I'.$num, 'Bekerja Dalam Pengawasan');
-              $activeWorksheet->getStyle('H'.$num.':I'.$num)
-                ->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFFFF00');
-          }else{
-            $activeWorksheet->setCellValue('I'.$num, 'Fit To Work');
-              $activeWorksheet->getStyle('H'.$num.':I'.$num)
-                ->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FF00FF00');
-          }
-        }else{
-          $activeWorksheet->setCellValue('H'.$num, '-');
-          $activeWorksheet->setCellValue('I'.$num, 'Data Tidur Kosong');
-          $activeWorksheet->getStyle('H'.$num.':I'.$num)
-                ->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFF0000');
+        $rowStart = $num;
+
+        $activeWorksheet->setCellValue('A' . $num, 'No')->getStyle('A' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('B' . $num, 'Nama')->getStyle('B' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('C' . $num, 'NRP')->getStyle('C' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('D' . $num, 'Perusahaan')->getStyle('D' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('E' . $num, 'Departement')->getStyle('D' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('F' . $num, 'Position')->getStyle('E' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('G' . $num, 'Shift')->getStyle('F' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('H' . $num, 'Jumlah Jam Tidur')->getStyle('G' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->setCellValue('I' . $num, 'Kesiapan Kerja')->getStyle('G' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->getStyle('A' . $num . ':I' . $num)->applyFromArray($HeaderStyle);
+        $activeWorksheet->getRowDimension($num)->setRowHeight(40, 'pt');
+
+
+        $activeWorksheet->getStyle('A' . $num . ':I' . $num)->applyFromArray([
+            'font' => [
+                'size' => 12
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'],
+                ],
+            ]
+        ]);
+
+
+        // Data
+
+        foreach ($dt as $key => $value) {
+            $num++;
+            $activeWorksheet->setCellValue('A' . $num, $num - $rowStart);
+            $activeWorksheet->setCellValue('B' . $num, $value->profile->name);
+            $activeWorksheet->setCellValue('C' . $num, $value->employee->nip);
+            $activeWorksheet->setCellValue('D' . $num, $value->employee->company->company);
+            $activeWorksheet->setCellValue('E' . $num, $value->employee->division->division);
+            $activeWorksheet->setCellValue('F' . $num, $value->employee->position->position);
+            if (count($value->absen) > 0) {
+                $activeWorksheet->setCellValue('G' . $num, $value->absen[0]->shift->name);
+            } else {
+                $activeWorksheet->setCellValue('H' . $num, '-');
+            }
+            if (count($value->sleep) > 0) {
+                $duration = 0;
+                foreach ($value->sleep as $key => $sleep) {
+                    $duration += Carbon::parse($sleep->end)->diffInMinutes(Carbon::parse($sleep->start));
+                }
+                $activeWorksheet->setCellValue('H' . $num, floor($duration / 60) . ' Jam ' . $duration % 60 . ' Menit');
+                if ($duration < 5 * 60) {
+                    $activeWorksheet->setCellValue('I' . $num, 'Tidak Boleh Bekerja');
+                    $activeWorksheet->getStyle('H' . $num . ':I' . $num)
+                        ->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFF0000');
+                } elseif ($duration < 6 * 60) {
+                    $activeWorksheet->setCellValue('I' . $num, 'Bekerja Dalam Pengawasan');
+                    $activeWorksheet->getStyle('H' . $num . ':I' . $num)
+                        ->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFFF00');
+                } else {
+                    $activeWorksheet->setCellValue('I' . $num, 'Fit To Work');
+                    $activeWorksheet->getStyle('H' . $num . ':I' . $num)
+                        ->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FF00FF00');
+                }
+            } else {
+                $activeWorksheet->setCellValue('H' . $num, '-');
+                $activeWorksheet->setCellValue('I' . $num, 'Data Tidur Kosong');
+                $activeWorksheet->getStyle('H' . $num . ':I' . $num)
+                    ->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFFF0000');
+            }
+
+            $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
+            $activeWorksheet->getStyle('A' . $rowStart . ':I' . $num)->applyFromArray([
+                'font' => [
+                    'size' => 12
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    'wrapText' => true,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => 'FF000000'],
+                    ],
+                ]
+            ]);
+            // $num++;
+        };
+
+        foreach (range('A', 'I') as $columnID) {
+            $activeWorksheet->getColumnDimension($columnID)
+                ->setAutoSize(true);
         }
 
-        $activeWorksheet->getRowDimension($num)->setRowHeight(30, 'pt');
-         $activeWorksheet->getStyle('A'.$rowStart.':I'.$num)->applyFromArray([
-             'font' => [
-                 'size' => 12
-             ],
-             'alignment' => [
-                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                 'wrapText' => true,
-             ],
-             'borders' => [
-              'allBorders' => [
-                  'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                  'color' => ['argb' => 'FF000000'],
-              ],
-          ]
-         ]);
-         // $num++;
-     };
-
-     foreach(range('A','I') as $columnID) {
-      $activeWorksheet->getColumnDimension($columnID)
-          ->setAutoSize(true);
-      }
-      
-      header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      header('Content-Disposition: attachment;filename="Sleep Duration ('.$date.').xlsx"');
-      header('Cache-Control: max-age=0');
-      $writer = new Xlsx($spreadsheet);
-      $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-      $writer->save('php://output');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Sleep Duration (' . $date . ').xlsx"');
+        header('Cache-Control: max-age=0');
+        $writer = new Xlsx($spreadsheet);
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
     }
 
-    public function edit($id){
-      $data = Sleep::find($id);
-      return response()->json([
-          'success' => true,
-          'data' => $data
-      ]);
+    public function edit($id)
+    {
+        $data = Sleep::find($id);
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
     }
 
-    public function update(Request $request, String $id){
-      $validator = Validator::make($request->all(), [
-        'jam'     => 'numeric|max:23',
-        'menit'  => 'numeric|max:59',
-      ],[
-        'numeric' => 'hanya boleh diisi angka',
-        'max' => 'hanya boleh diisi maksimal :max'
-      ]);
-      if ($validator->fails()) {
+    public function update(Request $request, string $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'jam'   => 'required|integer|min:0|max:23',
+            'menit' => 'required|integer|min:0|max:59',
+        ], [
+            'required' => 'wajib diisi',
+            'integer'  => 'hanya boleh diisi angka',
+            'min'      => 'minimal :min',
+            'max'      => 'maksimal :max',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors(),
+            ]);
+        }
+
+        $data = Sleep::find($id);
+        if (!$data) {
+            return response()->json([
+                'success' => false,
+                'message' => ['global' => ['Data tidak ditemukan']],
+            ], 404);
+        }
+
+        $jam   = (int) $request->input('jam', 0);
+        $menit = (int) $request->input('menit', 0);
+        $durationMinutes = ($jam * 60) + $menit;
+
+        $end   = Carbon::parse($data->tgl . ' 05:30:00');
+        $start = (clone $end)->subMinutes($durationMinutes);
+
+        $thresholdMinutes = (int) round(4.9 * 60);
+        $newStatus = ($durationMinutes < $thresholdMinutes) ? 'r' : 'v';
+
+        if ($data->status !== 'r') {
+            SleepHistory::create([
+                'sleep_id' => $data->id,
+                'start'    => $data->start,
+                'end'      => $data->end,
+                'stage'    => $data->stage,
+            ]);
+        }
+
+        $data->start  = $start->format('Y-m-d H:i:s');
+        $data->end    = $end->format('Y-m-d H:i:s');
+        $data->status = $newStatus;
+
+        if ($data->save()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Update',
+                'data'    => [
+                    'status'   => $data->status,
+                    'duration' => [
+                        'minutes' => $durationMinutes,
+                        'hours'   => round($durationMinutes / 60, 2),
+                    ],
+                    'start'    => $data->start,
+                    'end'      => $data->end,
+                ],
+            ]);
+        }
+
         return response()->json([
             'success' => false,
-            'message' => $validator->errors()
-        ]);
-      }
-
-      $data = Sleep::find($id);
-      $start = Carbon::parse($data->tgl.' 05:30:00')->subMinutes(($request->jam * 60) + $request->menit)->format('Y-m-d H:i:s');
-      $end = Carbon::parse($data->tgl.' 05:30:00')->format('Y-m-d H:i:s');
-      if($data->status != 'r'){
-        SleepHistory::create([
-          'sleep_id' => $data->id,
-          'start' => $data->start,
-          'end' => $data->end,
-          'stage' => $data->stage
-        ]);
-      }
-      $data->status = 'r';
-      $data->start = $start;
-      $data->end = $end;
-      if($data->save()){
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Berhasil Update'
-        ]);
-      }
-    }
-    
-    public function accept($id){
-      $update = Sleep::find($id);
-      $update->status = 'v';
-      if($update->save()){
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Berhasil Update'
-        ]);
-      }
+            'message' => ['global' => ['Gagal menyimpan data']],
+        ], 500);
     }
 
-    public function hitung(Request $request){
-      
-    }
-    public function update_watchdist(Request $request, String $id){
-
-      $watchdist = Watchdist::where('user_id', $id)->exists();
-      $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
-
-      if ($watchdist) {
-        Watchdist::where('user_id', $id)->update([
-          'status' => $request->value
-        ]);
-          return response()->json([
-            'success' => true,
-            'data' => 'sucess'
-          ]);
-      }else{
-        $insert = Watchdist::insert([
-          'user_id' => $id,
-          'tgl_terima' => $today,
-          'ket' => 'smartwatch',
-          'status' => 'Y',
-        ]);
-        if ($insert) {
-          return response()->json([
-            'success' => true,
-            'data' => 'sucess'
-          ]);
+    public function accept($id)
+    {
+        $update = Sleep::find($id);
+        $update->status = 'v';
+        if ($update->save()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Update'
+            ]);
         }
-      }
+    }
+
+    public function hitung(Request $request) {}
+    public function update_watchdist(Request $request, String $id)
+    {
+
+        $watchdist = Watchdist::where('user_id', $id)->exists();
+        $today = Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
+
+        if ($watchdist) {
+            Watchdist::where('user_id', $id)->update([
+                'status' => $request->value
+            ]);
+            return response()->json([
+                'success' => true,
+                'data' => 'sucess'
+            ]);
+        } else {
+            $insert = Watchdist::insert([
+                'user_id' => $id,
+                'tgl_terima' => $today,
+                'ket' => 'smartwatch',
+                'status' => 'Y',
+            ]);
+            if ($insert) {
+                return response()->json([
+                    'success' => true,
+                    'data' => 'sucess'
+                ]);
+            }
+        }
     }
 }

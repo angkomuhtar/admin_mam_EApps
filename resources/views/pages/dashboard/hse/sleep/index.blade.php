@@ -391,13 +391,25 @@
                         }
                     },
                     {
-                        data: 'iamge',
+                        data: null,
                         render: (data, type, row, meta) => {
-                            if (row?.sleep[0]?.attachment) {
-                                return `<img src="${row?.sleep[0]?.attachment}" style="width:80px; aspect-ratio:2/3; border-radius:10px; object-fit:contain; background:black" id="view_image" data-id="${row?.sleep[0]?.attachment}" data-bs-toggle="modal" data-src="${row?.sleep[0]?.attachment}"/>`;
-                            } else {
-                                return '<div style="width:80px; aspect-ratio:2/3; display:flex; justify-content:center; align-items:center">-</div>';
+                            const attachment = row?.sleep?.[0]?.attachment;
+                            const sleepId    = row?.sleep?.[0]?.id;
+
+                            if (attachment) {
+                            return `
+                                <img
+                                src="${attachment}"
+                                style="width:80px; aspect-ratio:2/3; border-radius:10px; object-fit:contain; background:black"
+                                class="view-image"
+                                data-id="${sleepId ?? ''}"
+                                data-src="${attachment}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#form_modal"
+                                />
+                            `;
                             }
+                            return '<div style="width:80px; aspect-ratio:2/3; display:flex; justify-content:center; align-items:center">-</div>';
                         },
                         orderable: false,
                         searchable: false
@@ -407,16 +419,15 @@
 
                             if (row.sleep.length > 0) {
                                 if (row.sleep[0].status == 'r') {
-                                    return '<span class="badge bg-red-500 text-white capitalize">direvisi</span>';
+                                    return '<span class="badge bg-red-500 text-white capitalize">Reject</span>';
                                 } else if (row.sleep[0].status == 'p') {
                                     return '<span class="badge bg-yellow-500 text-white capitalize">Pending</span>';
                                 } else {
-                                    return '<span class="badge bg-green-500 text-white capitalize">diterima</span>'
+                                    return '<span class="badge bg-green-500 text-white capitalize">Accept</span>'
                                 }
                             } else {
                                 return '-';
                             }
-
                         }
                     },
                     {
@@ -449,41 +460,41 @@
                 defaultDate: 'today'
             });
 
-            $(document).on("click", "#view_image", function() {
-                let id = $(this).data('id');
-                var url = '{!! route('hse.sleep.edit', ['id' => ':id']) !!}';
-                url = url.replace(':id', id);
+            $(document).on("click", ".view-image", function () {
+                const sleepId = $(this).data('id');
+                const imgSrc  = $(this).data('src');
+                if (imgSrc) $("#img_preview").attr('src', imgSrc);
+                var url = '{!! route('hse.sleep.edit', ['id' => ':id']) !!}'.replace(':id', sleepId);
+
                 $.ajax({
                     type: 'GET',
                     url: url,
-                    beforeSend: function() {
-                        // alert('sabar');
-                    },
                     success: (res) => {
-                        if (res?.data?.attachment) {
-                            if (String(res.data.attachment).startsWith('http')) {
-                                $("#img_preview").attr('src', res.data.attachment);
-                            } else {
-                                $("#img_preview").attr('src', '{!! asset('storage') !!}' + '/' + res.data
-                                    .attachment);
-                            }
-                        }
-                        let duration = moment(res.data.end).diff(moment(res.data.start),
-                            'minutes')
-                        let hours = Math.floor(duration / 60)
-                        $("#user_input").html(duration > 0 ?
-                            `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit` :
-                            '-')
-                        $("#accept_data").data('id', id);
-                        $("#update_sleep").data('id', id);
-                        $("#jam").val('');
-                        $("#menit").val('');
-                    },
-                    error: () => {
-                        $('select[name="division_id"]').html(dataOption)
+                    if (res?.data?.attachment) {
+                        const src = String(res.data.attachment).startsWith('http')
+                        ? res.data.attachment
+                        : '{!! asset('storage') !!}' + '/' + res.data.attachment;
+                        $("#img_preview").attr('src', src);
                     }
-                })
-            })
+
+                    const duration = moment(res?.data?.end).diff(moment(res?.data?.start), 'minutes');
+                    const hours    = Math.floor((duration || 0) / 60);
+                    $("#user_input").html(duration > 0
+                        ? `${hours.toString().padStart(2, "0")} jam, ${(duration % 60).toString().padStart(2, "0")} menit`
+                        : '-');
+
+                    $("#accept_data").data('id', sleepId);
+                    $("#update_sleep").data('id', sleepId);
+                    $("#jam").val('');
+                    $("#menit").val('');
+
+                    const modalEl = document.getElementById('form_modal');
+                        if (modalEl && window.bootstrap) {
+                            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        }
+                    }
+                });
+            });
 
             $(document).on('click', "#accept_data", function() {
                 let id = $(this).data('id');
