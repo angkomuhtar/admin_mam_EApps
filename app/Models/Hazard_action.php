@@ -40,4 +40,14 @@ class Hazard_action extends Model
     {
         return $this->belongsTo(UserProfileView::class, 'supervised_by');
     }
+
+     public function getReportAttachmentAttribute($value)
+    {
+        if (!$value) return null;
+
+        // Menghapus https://
+        $path = str_replace('https://res.cloudinary.com/empapps/image/upload/', '', $value);
+
+        return url('/api/v2/cdn/' . $path);
+    }
 }
