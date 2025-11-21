@@ -45,25 +45,27 @@ class AuthController extends Controller
             return ResponseHelper::jsonError('password not match', 401);
         }else{
             $user = Auth::guard('api')->user()->load(['employee', 'non_employee', 'profile', 'employee.division', 'employee.position', 'employee.position.position_class']);
-            $phoneID = User::where('phone_id', $request->phone_id)->where('id','!=', $user->id)->get();
-            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps')) {
 
-                if ($user->status != 'Y') {
-                    return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
-                }
+            if ($user->status != 'Y') {
+                return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
+            }
+
+            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps') || env('APP_ENV') == 'local') {
+                
                 if ($user->user_roles != 'superadmin') {
                     $db = User::find($user->id);
                     $db->phone_id = $request->phone_id;
                     $db->save();
                 }
+                
                 return response()->json([
-                        'status' => 'success',
-                        'user' => $user,
-                        'authorisation' => [
-                            'token' => $token,
-                            'type' => 'bearer',
-                        ]
-                    ])->withCookie(cookie('jwt', $token, 60));
+                    'status' => 'success',
+                    'user' => $user,
+                    'authorisation' => [
+                        'token' => $token,
+                        'type' => 'bearer',
+                    ]
+                ])->withCookie(cookie('jwt', $token, 60));
             }else{
                 Auth::guard('api')->logout();
                 return ResponseHelper::jsonError('maaf, akun telah terintgrasi dengan device lain', 401);

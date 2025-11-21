@@ -72,6 +72,19 @@ Route::prefix('v1')->group(function(){
 });
 
 Route::prefix('v2')->group(function(){
+   Route::get('/cdn/{path}', function ($path) {
+        $url = "https://res.cloudinary.com/empapps/image/upload/" . $path;
+
+        try {
+            $image = file_get_contents($url);
+            return response($image, 200)
+                ->header('Content-Type', 'image/jpeg')
+                ->header('Cache-Control', 'public,max-age=31536000');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'File not found '. $url], 404);
+        }
+    })->where('path', '.*');
+
     Route::group([
         'prefix'=>'auth',
         'controller'=>AuthController::class
