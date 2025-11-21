@@ -48,4 +48,14 @@ class Sleep extends Model
         }
     }
 
+    public function getAttachmentAttribute($value)
+    {
+        if (!$value) return null;
+
+        // Menghapus https://
+        $path = str_replace('https://res.cloudinary.com/empapps/image/upload/', '', $value);
+
+        return url('/api/v2/cdn/' . $path);
+    }
+
 }
