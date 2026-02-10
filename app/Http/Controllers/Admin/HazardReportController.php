@@ -32,16 +32,16 @@ class HazardReportController extends Controller
         $query->where('contract_status', 'ACTIVE')->where('company_id', 1)->whereIn('division_id', [3, 4, 5, 6, 7, 8, 9, 10])->orderBy('division_id');
       })->orderBy('name')->get();
 
-      
+
       if ($request->ajax()) {
           $data = Hazard_Report::with(
               'hazardAction',
               'hazardAction.picProfile',
               'hazardAction.supProfile',
-              'location', 
-              'company', 
-              'project', 
-              'division', 
+              'location',
+              'company',
+              'project',
+              'division',
               'creator');
 
         if ($request->division != null || $request->departement != '')
@@ -58,8 +58,11 @@ class HazardReportController extends Controller
         if($request->month != null || $request->month != '')
             $data->whereMonth('created_at', $request->month);
 
-            $dt = DataTables::of($data->orderBy('date_time', 'DESC')->get());
-            return $dt->make(true);
+        if($request->year != null || $request->year != '')
+            $data->whereYear('created_at', $request->year);
+
+        $dt = DataTables::of($data->orderBy('date_time', 'DESC')->get());
+        return $dt->make(true);
       }
 
       return view('pages.dashboard.hazard.index', [

@@ -258,6 +258,19 @@
                 <div class="card-body px-6 pb-6">
                     <div class="grid grid-cols-4 gap-3 ">
                         <div class="input-area">
+                            <label for="year" class="form-label">Tahun</label>
+                            <select class="form-control" id="year" name="year">
+                                @php
+                                    $currentYear = Carbon\Carbon::now()->year;
+                                    $years = range($currentYear, $currentYear - 5);
+                                @endphp
+                                <option value="">Semua Tahun</option>
+                                @foreach ($years as $year)
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="input-area">
                             <label for="tanggal" class="form-label">Bulan</label>
                             <select class="form-control" id="month" name="month">
                                 <option value="">Semua Bulan</option>
@@ -535,6 +548,7 @@
                             location: $('#location').val(),
                             name: $('#name').val(),
                             month: $('#month').val(),
+                            year: $('#year').val(),
                         })
                     },
                 },
@@ -681,7 +695,7 @@
             table.tables().body().to$().addClass(
                 'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700');
 
-            $('#name, #division_id, #location, #month').bind('change', function() {
+            $('#name, #division_id, #location, #month, #year').bind('change', function() {
                 table.draw()
             })
 
