@@ -12,6 +12,7 @@ use App\Models\Position;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\UserProfileView;
+use App\Models\WorkSchedule;
 use Illuminate\Http\Request;
 
 class MasterController extends Controller
@@ -95,6 +96,16 @@ class MasterController extends Controller
     {
         try {
             $data = Hazard_Report::where('status', 'open')->count();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function work_schedule()
+    {
+        try {
+            $data = WorkSchedule::with('shift')->get();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);

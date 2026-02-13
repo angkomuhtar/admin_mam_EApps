@@ -161,6 +161,7 @@ Route::prefix('v2')->group(function(){
             Route::GET('/division/{id}', 'division');
             Route::GET('/position/{id}', 'position');
             Route::GET('/user/{id}', 'user');
+            Route::GET('/work_schedule', 'work_schedule');
         });
 
         Route::group([
