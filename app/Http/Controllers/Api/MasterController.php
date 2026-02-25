@@ -9,6 +9,7 @@ use App\Models\Division;
 use App\Models\Hazard_location;
 use App\Models\Hazard_Report;
 use App\Models\Position;
+use App\Models\PositionClass;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\UserProfileView;
@@ -106,6 +107,16 @@ class MasterController extends Controller
     {
         try {
             $data = WorkSchedule::with('shift')->get();
+            return ResponseHelper::jsonSuccess('success get data', $data);
+        } catch (\Exception $err) {
+            return ResponseHelper::jsonError($err->getMessage(), 500);
+        }
+    }
+
+    public function position_class()
+    {
+        try {
+            $data = PositionClass::get();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
