@@ -183,8 +183,8 @@ class ClockController extends Controller
 
             // Open On Sunday
             if ($request->version < $versionCheck->version) {
-                $validator->errors()->add('jam_tidur', 'versi aplikasi tidak sesuai, segera melakukan update');
-                return ResponseHelper::jsonError($validator->errors(), 422);
+                $validator->errors()->add('version', 'versi aplikasi tidak sesuai, segera melakukan update');
+                return ResponseHelper::jsonError($validator->errors()->first('version'), 422);
             }
 
             if ($request->type == 'in') {
