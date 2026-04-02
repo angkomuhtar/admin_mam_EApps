@@ -193,7 +193,7 @@ class ClockController extends Controller
 
                 if ($inlist && !$sleep) {
                     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
-                    return ResponseHelper::jsonError($validator->errors(), 422);
+                    return ResponseHelper::jsonError($validator->errors()->first('jam_tidur'), 422);
                 }
                 $exist = Clock::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
                 if ($exist) {

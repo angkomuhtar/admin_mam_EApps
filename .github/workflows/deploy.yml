@@ -1,0 +1,25 @@
+name: Deploy Prod
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy ke Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd /var/www/empapps
+            git pull origin main
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            export NODE_OPTIONS="--max-old-space-size=4096"
+            npm install
+            npm run build
