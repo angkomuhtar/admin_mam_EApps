@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use Carbon\Carbon;
-use App\Models\Clock;
-use App\Models\Shift;
-use App\Models\Sleep;
-use App\Models\Employee;
-use App\Models\Watchdist;
-use App\Models\WorkSchedule;
-use Illuminate\Http\Request;
-use App\Models\ClockLocation;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Clock;
+use App\Models\Employee;
+use App\Models\ReportOperation;
+use App\Models\ReportParam;
+use App\Models\Shift;
+use App\Models\Sleep;
 use App\Models\Version;
+use App\Models\Watchdist;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ClockController extends Controller
@@ -73,10 +75,10 @@ class ClockController extends Controller
                 'hadir'=>$hadir,
                 'alpa'=> 0,
                 'izin' => 0,
-                'start' => $startDay, 
-                'end' => $endDay, 
+                'start' => $startDay,
+                'end' => $endDay,
             ];
-            
+
             $work_hours = Shift::whereColumn('start', '>', 'end')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
@@ -110,10 +112,10 @@ class ClockController extends Controller
                 'hadir'=>$hadir,
                 'alpa'=> $alpha,
                 'izin' => $izin,
-                'start' => $startDay, 
-                'end' => $endDay, 
+                'start' => $startDay,
+                'end' => $endDay,
             ];
-            
+
             $data = collect(['rekap'=>$rekap]);
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
@@ -123,7 +125,7 @@ class ClockController extends Controller
 
     public function today(Request $request){
         try {
-            $date_today =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d'); 
+            $date_today =Carbon::now()->setTimeZone('Asia/Makassar')->format('Y-m-d');
             $work_hours = Shift::whereColumn('start', '>', 'end')->orWhere('start', '<=', '03:00:00')->get();
             $wh_id = $work_hours->pluck('id')->toArray();
             $today = Clock::where(function($query) use($request) {
@@ -173,7 +175,6 @@ class ClockController extends Controller
             ],[
                 'required' => ':attribute tidak boleh kosong'
               ]);
-              
 
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
@@ -199,23 +200,85 @@ class ClockController extends Controller
                 if ($exist) {
                     return ResponseHelper::jsonSuccess('Berhasil Absen Masuk');
                 }
-                $insert = Clock::insert([
-                    'user_id'=> Auth::guard('api')->user()->id,
-                    'clock_location_id'=> $request->location,
-                    'date' => $this->today->format('Y-m-d'),
-                    'clock_in'=>$this->today->format('Y-m-d H:i:s'),
-                    'work_hours_id'=> $request->shift,
-                    'status' => 'H'
-                ]);
+
+                return DB::transaction(function() use($request){
+                    $insert = Clock::insert([
+                        'user_id'=> Auth::guard('api')->user()->id,
+                        'clock_location_id'=> $request->location,
+                        'date' => $this->today->format('Y-m-d'),
+                        'clock_in'=>$this->today->format('Y-m-d H:i:s'),
+                        'work_hours_id'=> $request->shift,
+                        'status' => 'H'
+                    ]);
+
+                    $employee = Auth::guard('api')->user()?->employee;
+
+                    $attendance = [
+                        'check_in' => $this->today->format('Y-m-d H:i:s')
+                    ];
+
+                    $parameters = ReportParam::query()
+                        ->with('report_param_details')
+                        ->where('division_id', $employee->division_id)
+                        ->get();
+
+                    if(count($parameters) > 0){
+                        $score = $this->calculateScore($attendance, $parameters, $request->shift, 'check_in');
+
+                        if(count($score['details']) > 0)
+                            foreach($score['details'] as $detail){
+                                ReportOperation::create([
+                                    'report_param_id' => $detail['parameter_id'],
+                                    'report_param_detail_id' => $detail['parameter_detail_id'],
+                                    'employee_id' => $employee->id,
+                                    'point' => $detail['score'],
+                                    'date' => $this->today->format('Y-m-d'),
+                                ]);
+                            }
+                    }
+
+                    return $insert;
+                });
+
                 if ($insert) {
                     return ResponseHelper::jsonSuccess('Berhasil Absen Masuk', $insert);
                 }else{
                     return ResponseHelper::jsonError('error absen', 400);
                 }
             }elseif ($request->type == 'out'){
-                $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
-                    ->where('date', $request->date)
-                    ->update(['clock_out' => $this->today->format('Y-m-d H:i:s')]);
+                return DB::transaction(function() use($request){
+                    $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
+                        ->where('date', $request->date)
+                        ->update(['clock_out' => $this->today->format('Y-m-d H:i:s')]);
+
+                    $employee = Auth::guard('api')->user()?->employee;
+
+                    $attendance = [
+                        'check_out' => $this->today->format('Y-m-d H:i:s')
+                    ];
+
+                    $parameters = ReportParam::query()
+                        ->with('report_param_details')
+                        ->where('division_id', $employee->division_id)
+                        ->get();
+
+                    if(count($parameters) > 0){
+                        $score = $this->calculateScore($attendance, $parameters, $request->shift, 'check_out');
+
+                        if(count($score['details']) > 0)
+                            foreach($score['details'] as $detail){
+                                ReportOperation::create([
+                                    'report_param_id' => $detail['parameter_id'],
+                                    'report_param_detail_id' => $detail['parameter_detail_id'],
+                                    'employee_id' => $employee->id,
+                                    'point' => $detail['score'],
+                                    'date' => $this->today->format('Y-m-d'),
+                                ]);
+                            }
+                    }
+
+                    return $clock;
+                });
                 if ($clock) {
                     return ResponseHelper::jsonSuccess('Berhasil Absen Pulang', $clock);
                 }else{
@@ -237,8 +300,114 @@ class ClockController extends Controller
         }
     }
 
+    private function calculateScore($attendance, $parameters, $shiftId, $type)
+    {
+        Log::info('Calculating Score', [
+            'attendance' => $attendance,
+            'shiftId' => $shiftId,
+            'type' => $type
+        ]);
 
+        $totalScore = 0;
+        $results = [];
 
+        foreach ($parameters as $parameter) {
+            foreach ($parameter->report_param_details as $detail) {
+                if (!is_null($detail->shift_id) && $detail->shift_id != $shiftId) {
+                    continue;
+                }
 
-    
+                if (!is_null($detail->type) && strtolower(trim($detail->type)) !== strtolower(trim($type))) {
+                    continue;
+                }
+
+                $key = trim($detail->key);
+                $value = $attendance[$key] ?? null;
+
+                Log::info('Evaluating detail', [
+                    'detail_id' => $detail->id,
+                    'key' => $key,
+                    'value' => $value,
+                    'operator' => $detail->operator,
+                    'expected' => $detail->value,
+                    'score' => $detail->score
+                ]);
+
+                $isPassed = $this->evaluate($value, $detail->operator, $detail->value);
+
+                Log::info('Evaluation result: ' . ($isPassed ? 'PASSED' : 'FAILED'));
+
+                if ($isPassed) {
+                    $totalScore += $detail->score;
+
+                    $results[] = [
+                        'parameter' => $parameter->name,
+                        'description' => $detail->description,
+                        'passed' => $isPassed,
+                        'score' => $isPassed ? $detail->score : 0,
+                        'parameter_id' => $parameter->id,
+                        'parameter_detail_id' => $detail->id,
+                        'shift_id' => $detail->shift_id
+                    ];
+                }
+            }
+        }
+
+        Log::info('Total Score: ' . $totalScore);
+
+        return [
+            'total_score' => $totalScore,
+            'details' => $results,
+        ];
+    }
+
+    private function evaluate($actual, $operator, $expected)
+    {
+        $operator = trim($operator);
+
+        $isExpectedNull = is_null($expected) || trim($expected) === '' || strtolower(trim($expected)) === 'null';
+
+        if ($operator === '!=') {
+            if ($isExpectedNull) {
+                return !is_null($actual) && $actual !== '' && $actual !== null;
+            }
+            return $actual != $expected;
+        }
+
+        if ($operator === '=') {
+            if ($isExpectedNull) {
+                return is_null($actual) || $actual === '' || $actual === null;
+            }
+            return $actual == $expected;
+        }
+
+        if (!is_null($actual) && !is_null($expected) && $actual !== '' && $expected !== '') {
+            try {
+                $actualTime = Carbon::parse($actual);
+                $expectedTime = Carbon::parse($expected);
+
+                switch ($operator) {
+                    case '<=':
+                        return $actualTime->lte($expectedTime);
+                    case '>=':
+                        return $actualTime->gte($expectedTime);
+                    case '<':
+                        return $actualTime->lt($expectedTime);
+                    case '>':
+                        return $actualTime->gt($expectedTime);
+                    default:
+                        return false;
+                }
+            } catch (\Exception $e) {
+                Log::error('Error parsing time: ' . $e->getMessage(), [
+                    'actual' => $actual,
+                    'expected' => $expected,
+                    'operator' => $operator
+                ]);
+                return false;
+            }
+        }
+
+        return false;
+    }
 }
