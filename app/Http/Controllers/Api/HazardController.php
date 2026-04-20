@@ -126,9 +126,9 @@ class HazardController extends Controller
                 'company', 
                 'project', 
                 'division', 
-                'createdBy', 'createdBy.profile', 'createdBy.employee.division', 
-                'hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee.position',
-                'hazardAction', 'hazardAction.supervisedBy', 'hazardAction.supervisedBy.profile', 'hazardAction.supervisedBy.employee.position',
+                'createdBy', 'createdBy.profile', 'createdBy.employee.division', 'createdBy.employee.position', 
+                'hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee.position', 'hazardAction.pic.division',
+                'hazardAction.supervisedBy', 'hazardAction.supervisedBy.profile', 'hazardAction.supervisedBy.employee.position', 'hazardAction.supervisedBy.division'
                 ])->where('id', $id)->first();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
