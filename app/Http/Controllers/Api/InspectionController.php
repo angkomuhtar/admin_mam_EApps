@@ -28,7 +28,7 @@ class InspectionController extends Controller
 
     public function index()
     {
-        $data = Inspection::where('status', 'Y')->get();
+        $data = Inspection::where('status', 'Y')->orderBy('inspection_date', 'desc')->get();
 
         if ($data) {
             return ResponseHelper::jsonSuccess('Berhasil', $data);
@@ -131,7 +131,7 @@ class InspectionController extends Controller
         $user =  Auth::guard('api')->user();
         $data  = InspectionCard::with('location', 'inspection')->where('created_by', $user->id)
         ->where('status', 'LIKE', '%'.$status.'%')
-        ->orderBy('created_at', 'desc')
+        ->orderBy('inspection_date', 'desc')
         ->paginate(15, ['*'], 'page', $page);
         
         if ($data){
