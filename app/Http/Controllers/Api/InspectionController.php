@@ -175,6 +175,24 @@ class InspectionController extends Controller
         try {
             $data = InspectionCard::with('location', 'inspection', 'answer', 'answer.question.sub_inspection', 'creator', 'supervisor')->find($id);
             if ($data) {
+                $grouped = $data->answer->groupBy(function($item){
+                     return $item->question->sub_inspection_id;
+                })->map(function($group){
+                    return [
+                        'sub_inspection_name' => $group->first()->question->sub_inspection->sub_inspection_name ?? "sub inspection tidak ditemukan",
+                        'items' => $group->map(function($item){
+                            return [
+                                'answer' => $item->answer,
+                                'note' => $item->note,
+                                'due_date' => $item->due_date,
+                                'question_slug' => $item->question_slug,
+                                'question' => $item->question->question,
+                                'status' => $item->question->status,
+                            ];
+                        })->values()
+                    ];
+                })->values();
+                $data->grouped_answer = $grouped;
                 return ResponseHelper::jsonSuccess('Berhasil', $data);
             }else{
                 return ResponseHelper::jsonError('error', 400);
