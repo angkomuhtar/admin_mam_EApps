@@ -44,7 +44,7 @@ class AuthController extends Controller
         if (!$token) {
             return ResponseHelper::jsonError('password not match', 401);
         }else{
-            $user = Auth::guard('api')->user()->load(['employee', 'non_employee', 'profile', 'employee.division', 'employee.position', 'employee.position.position_class']);
+            $user = Auth::guard('api')->user()->load(['employee', 'non_employee', 'profile', 'employee.division', 'employee.position', 'employee.position.position_class', 'signature']);
 
             if ($user->status != 'Y') {
                 return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
