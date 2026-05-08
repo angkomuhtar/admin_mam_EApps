@@ -365,36 +365,55 @@ class ClockController extends Controller
     {
         $operator = trim($operator);
 
-        $isExpectedNull = is_null($expected) || trim($expected) === '' || strtolower(trim($expected)) === 'null';
+        $isExpectedNull = is_null($expected)
+            || trim($expected) === ''
+            || strtolower(trim($expected)) === 'null';
 
         if ($operator === '!=') {
             if ($isExpectedNull) {
-                return !is_null($actual) && $actual !== '' && $actual !== null;
+                return !is_null($actual) && $actual !== '';
             }
+
             return $actual != $expected;
         }
 
         if ($operator === '=') {
             if ($isExpectedNull) {
-                return is_null($actual) || $actual === '' || $actual === null;
+                return is_null($actual) || $actual === '';
             }
+
             return $actual == $expected;
         }
 
         if (!is_null($actual) && !is_null($expected) && $actual !== '' && $expected !== '') {
             try {
                 $actualTime = Carbon::parse($actual);
-                $expectedTime = Carbon::parse($expected);
+
+                if (preg_match('/^\d{2}:\d{2}$/', $expected)) {
+                    $expectedTime = $actualTime->copy()->setTimeFromTimeString($expected);
+                } else {
+                    $expectedTime = Carbon::parse($expected);
+                }
+
+                Log::info('Comparing time', [
+                    'actual' => $actualTime->format('Y-m-d H:i:s'),
+                    'expected' => $expectedTime->format('Y-m-d H:i:s'),
+                    'operator' => $operator,
+                ]);
 
                 switch ($operator) {
                     case '<=':
                         return $actualTime->lte($expectedTime);
+
                     case '>=':
                         return $actualTime->gte($expectedTime);
+
                     case '<':
                         return $actualTime->lt($expectedTime);
+
                     case '>':
                         return $actualTime->gt($expectedTime);
+
                     default:
                         return false;
                 }
@@ -404,6 +423,7 @@ class ClockController extends Controller
                     'expected' => $expected,
                     'operator' => $operator
                 ]);
+
                 return false;
             }
         }
