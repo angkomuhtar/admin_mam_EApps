@@ -202,7 +202,7 @@ class ClockController extends Controller
                 }
 
                 return DB::transaction(function() use($request){
-                    $clock = Clock::insert([
+                    $clock = Clock::create([
                         'user_id'=> Auth::guard('api')->user()->id,
                         'clock_location_id'=> $request->location,
                         'date' => $this->today->format('Y-m-d'),
