@@ -317,13 +317,10 @@ class ClockController extends Controller
         ]);
 
         $totalScore = 0;
-
         $results = [];
 
         foreach ($parameters as $parameter) {
-
             foreach ($parameter->report_param_details as $detail) {
-
                 if (!is_null($detail->shift_id) && $detail->shift_id != $shiftId) {
                     continue;
                 }
@@ -336,7 +333,6 @@ class ClockController extends Controller
                 }
 
                 $key = trim($detail->key);
-
                 $value = $attendance[$key] ?? null;
 
                 Log::info('Evaluating detail', [
@@ -357,7 +353,6 @@ class ClockController extends Controller
                 Log::info('Evaluation result: ' . ($isPassed ? 'PASSED' : 'FAILED'));
 
                 if ($isPassed) {
-
                     $totalScore += $detail->score;
 
                     $results[] = [
@@ -389,55 +384,36 @@ class ClockController extends Controller
     {
         $operator = trim($operator);
 
-        $isExpectedNull = is_null($expected)
-            || trim($expected) === ''
-            || strtolower(trim($expected)) === 'null';
+        $isExpectedNull = is_null($expected) || trim($expected) === '' || strtolower(trim($expected)) === 'null';
 
         if ($operator === '!=') {
             if ($isExpectedNull) {
-                return !is_null($actual) && $actual !== '';
+                return !is_null($actual) && $actual !== '' && $actual !== null;
             }
-
             return $actual != $expected;
         }
 
         if ($operator === '=') {
             if ($isExpectedNull) {
-                return is_null($actual) || $actual === '';
+                return is_null($actual) || $actual === '' || $actual === null;
             }
-
             return $actual == $expected;
         }
 
         if (!is_null($actual) && !is_null($expected) && $actual !== '' && $expected !== '') {
             try {
                 $actualTime = Carbon::parse($actual);
-
-                if (preg_match('/^\d{2}:\d{2}$/', $expected)) {
-                    $expectedTime = $actualTime->copy()->setTimeFromTimeString($expected);
-                } else {
-                    $expectedTime = Carbon::parse($expected);
-                }
-
-                Log::info('Comparing time', [
-                    'actual' => $actualTime->format('Y-m-d H:i:s'),
-                    'expected' => $expectedTime->format('Y-m-d H:i:s'),
-                    'operator' => $operator,
-                ]);
+                $expectedTime = Carbon::parse($expected);
 
                 switch ($operator) {
                     case '<=':
                         return $actualTime->lte($expectedTime);
-
                     case '>=':
                         return $actualTime->gte($expectedTime);
-
                     case '<':
                         return $actualTime->lt($expectedTime);
-
                     case '>':
                         return $actualTime->gt($expectedTime);
-
                     default:
                         return false;
                 }
@@ -447,7 +423,6 @@ class ClockController extends Controller
                     'expected' => $expected,
                     'operator' => $operator
                 ]);
-
                 return false;
             }
         }
