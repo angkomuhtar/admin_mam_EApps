@@ -251,8 +251,9 @@ class ClockController extends Controller
             }elseif ($request->type == 'out'){
                 return DB::transaction(function() use($request){
                     $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
-                        ->where('date', $request->date)
-                        ->update(['clock_out' => $this->today->format('Y-m-d H:i:s')]);
+                        ->where('date', $request->date)->first();
+
+                    $clock->update(['clock_out' => $this->today->format('Y-m-d H:i:s')]);
 
                     $employee = Auth::guard('api')->user()?->employee;
 

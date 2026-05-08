@@ -12,6 +12,10 @@ class Clock extends Model
 
     protected $table = 'clocks';
 
+    protected $fillable = [
+        'user_id', 'clock_location_id', 'date', 'clock_in', 'clock_out', 'work_hours_id', 'status'
+    ];
+
     public function user(){
         return $this->hasOne(User::class, 'id', 'user_id');
     }
