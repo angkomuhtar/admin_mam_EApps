@@ -11,7 +11,7 @@ class ReportOperation extends Model
 
     protected $table = 'report_operations';
 
-    protected $fillable = ['report_param_id', 'report_param_detail_id', 'employee_id', 'point', 'date'];
+    protected $fillable = ['report_param_id', 'report_param_detail_id', 'employee_id', 'source_type', 'source_id', 'description', 'point', 'date'];
 
     public function report_param()
     {
@@ -21,5 +21,10 @@ class ReportOperation extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function source()
+    {
+        return $this->morphTo();
     }
 }

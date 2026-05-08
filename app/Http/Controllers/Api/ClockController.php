@@ -202,7 +202,7 @@ class ClockController extends Controller
                 }
 
                 return DB::transaction(function() use($request){
-                    $insert = Clock::insert([
+                    $clock = Clock::insert([
                         'user_id'=> Auth::guard('api')->user()->id,
                         'clock_location_id'=> $request->location,
                         'date' => $this->today->format('Y-m-d'),
@@ -233,18 +233,21 @@ class ClockController extends Controller
                                     'employee_id' => $employee->id,
                                     'point' => $detail['score'],
                                     'date' => $this->today->format('Y-m-d'),
+                                    'source_type' => Clock::class,
+                                    'source_id' => $clock->id,
+                                    'description' =>  $detail['description'] .
+                                    ' | Actual: ' . $detail['actual_value'] .
+                                    ' | Target: ' . $detail['expected_value'] .
+                                    ' | Operator: ' . $detail['operator'],
                                 ]);
                             }
                     }
 
-                    return $insert;
+                    return ResponseHelper::jsonSuccess(
+                        'Berhasil Absen Masuk',
+                        $clock
+                    );
                 });
-
-                if ($insert) {
-                    return ResponseHelper::jsonSuccess('Berhasil Absen Masuk', $insert);
-                }else{
-                    return ResponseHelper::jsonError('error absen', 400);
-                }
             }elseif ($request->type == 'out'){
                 return DB::transaction(function() use($request){
                     $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
@@ -273,17 +276,22 @@ class ClockController extends Controller
                                     'employee_id' => $employee->id,
                                     'point' => $detail['score'],
                                     'date' => $this->today->format('Y-m-d'),
-                                ]);
+                                    'source_type' => Clock::class,
+                                    'source_id' => $clock->id,
+                                    'description' =>
+                                        $detail['description'] .
+                                        ' | Actual: ' . $detail['actual_value'] .
+                                        ' | Target: ' . $detail['expected_value'] .
+                                        ' | Operator: ' . $detail['operator'],
+                                            ]);
                             }
                     }
 
-                    return $clock;
+                    return ResponseHelper::jsonSuccess(
+                        'Berhasil Absen Pulang',
+                        $clock
+                    );
                 });
-                if ($clock) {
-                    return ResponseHelper::jsonSuccess('Berhasil Absen Pulang', $clock);
-                }else{
-                    return ResponseHelper::jsonError('error on update', 400);
-                }
             }
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
@@ -309,19 +317,26 @@ class ClockController extends Controller
         ]);
 
         $totalScore = 0;
+
         $results = [];
 
         foreach ($parameters as $parameter) {
+
             foreach ($parameter->report_param_details as $detail) {
+
                 if (!is_null($detail->shift_id) && $detail->shift_id != $shiftId) {
                     continue;
                 }
 
-                if (!is_null($detail->type) && strtolower(trim($detail->type)) !== strtolower(trim($type))) {
+                if (
+                    !is_null($detail->type) &&
+                    strtolower(trim($detail->type)) !== strtolower(trim($type))
+                ) {
                     continue;
                 }
 
                 $key = trim($detail->key);
+
                 $value = $attendance[$key] ?? null;
 
                 Log::info('Evaluating detail', [
@@ -333,21 +348,30 @@ class ClockController extends Controller
                     'score' => $detail->score
                 ]);
 
-                $isPassed = $this->evaluate($value, $detail->operator, $detail->value);
+                $isPassed = $this->evaluate(
+                    $value,
+                    $detail->operator,
+                    $detail->value
+                );
 
                 Log::info('Evaluation result: ' . ($isPassed ? 'PASSED' : 'FAILED'));
 
                 if ($isPassed) {
+
                     $totalScore += $detail->score;
 
                     $results[] = [
                         'parameter' => $parameter->name,
                         'description' => $detail->description,
                         'passed' => $isPassed,
-                        'score' => $isPassed ? $detail->score : 0,
+                        'score' => $detail->score,
                         'parameter_id' => $parameter->id,
                         'parameter_detail_id' => $detail->id,
-                        'shift_id' => $detail->shift_id
+                        'shift_id' => $detail->shift_id,
+                        'key' => $detail->key,
+                        'operator' => $detail->operator,
+                        'expected_value' => $detail->value,
+                        'actual_value' => $value,
                     ];
                 }
             }
