@@ -403,8 +403,15 @@ class ClockController extends Controller
 
         if (!is_null($actual) && !is_null($expected) && $actual !== '' && $expected !== '') {
             try {
-                $actualTime = Carbon::parse($actual);
-                $expectedTime = Carbon::parse($expected);
+                $actualTime = Carbon::createFromFormat(
+                    'H:i',
+                    Carbon::parse($actual)->format('H:i')
+                );
+
+                $expectedTime = Carbon::createFromFormat(
+                    'H:i',
+                    Carbon::parse($expected)->format('H:i')
+                );
 
                 switch ($operator) {
                     case '<=':
