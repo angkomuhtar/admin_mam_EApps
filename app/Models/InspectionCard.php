@@ -12,6 +12,26 @@ class InspectionCard extends Model
     use HasFactory;
     protected $table = 'inspection_card';
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('active', function ($builder) {
+            // $builder->where('is_active', true);
+            $builder->where('inspection_date', '>=', '2026-05-01');
+            $user = Auth::guard('api')->user();
+            $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
+            if (!$allowed) {
+                $builder->where('departement_id', $user->employee->division_id)
+                ->whereHas('creator', function($query) use ($user){
+                    $query->where('class', '<', $user->employee->position->position_class->class);   
+                });
+                // if ($user->employee->position->position_class->class < 4) {
+                //     $query->where('departement_id', '');
+                // }
+            }
+
+        });
+    }
+
     protected $fillable = [
         'id_location',
         'other_location',
@@ -50,18 +70,18 @@ class InspectionCard extends Model
         return $this->belongsTo(UserProfileView::class, 'supervised_by', 'id');  
     }
 
-    public function scopeByDept(Builder $query): void
-    {
-        $user = Auth::guard('api')->user();
-        $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
-        if (!$allowed) {
-            $query->where('departement_id', $user->employee->division_id)
-            ->whereHas('creator', function($query) use ($user){
-                $query->where('class', '<', $user->employee->position->position_class->class);   
-            });
-            // if ($user->employee->position->position_class->class < 4) {
-            //     $query->where('departement_id', '');
-            // }
-        }
-    }
+    // public function scopeByDept(Builder $query): void
+    // {
+    //     // $user = Auth::guard('api')->user();
+    //     // $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
+    //     // if (!$allowed) {
+    //     //     $query->where('departement_id', $user->employee->division_id)
+    //     //     ->whereHas('creator', function($query) use ($user){
+    //     //         $query->where('class', '<', $user->employee->position->position_class->class);   
+    //     //     });
+    //     //     // if ($user->employee->position->position_class->class < 4) {
+    //     //     //     $query->where('departement_id', '');
+    //     //     // }
+    //     // }
+    // }
 }

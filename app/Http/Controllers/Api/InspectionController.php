@@ -159,7 +159,6 @@ class InspectionController extends Controller
                   ->whereYear('inspection_date', Carbon::parse($month)->format('Y'));
             }
         })
-        ->ByDept()
         ->orderBy('inspection_date', 'desc')
         ->paginate(15, ['*'], 'page', $page);
         
@@ -206,7 +205,7 @@ class InspectionController extends Controller
     {
         try {
             $user =  Auth::guard('api')->user();
-            $data = InspectionCard::where('status', 'created')->ByDept()->count();
+            $data = InspectionCard::where('status', 'created')->count();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
