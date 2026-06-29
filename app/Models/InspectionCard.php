@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InspectionCard extends Model
@@ -22,7 +21,7 @@ class InspectionCard extends Model
             if (!$allowed) {
                 $builder->where('departement_id', $user->employee->division_id)
                 ->whereHas('creator', function($query) use ($user){
-                    $query->where('class', '<', $user->employee->position->position_class->class);   
+                    $query->where('class', '<', $user->employee->position?->position_class?->class);   
                 });
                 // if ($user->employee->position->position_class->class < 4) {
                 //     $query->where('departement_id', '');
