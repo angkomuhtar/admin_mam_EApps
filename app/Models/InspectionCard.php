@@ -15,17 +15,15 @@ class InspectionCard extends Model
     {
         static::addGlobalScope('active', function ($builder) {
             // $builder->where('is_active', true);
+            $class = $user->employee->position?->position_class?->class ?? 0;
             $builder->where('inspection_date', '>=', '2026-05-01');
             $user = Auth::guard('api')->user();
             $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
             if (!$allowed) {
                 $builder->where('departement_id', $user->employee->division_id)
-                ->whereHas('creator', function($query) use ($user){
-                    $query->where('class', '<', $user->employee->position?->position_class?->class);   
+                ->whereHas('creator', function($query) use ($class){
+                    $query->where('class', '<', $class);   
                 });
-                // if ($user->employee->position->position_class->class < 4) {
-                //     $query->where('departement_id', '');
-                // }
             }
 
         });
