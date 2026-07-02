@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
@@ -15,17 +16,7 @@ class InspectionCard extends Model
     {
         static::addGlobalScope('active', function ($builder) {
             // $builder->where('is_active', true);
-            $user = Auth::guard('api')->user();
-            $class = $user->employee->position?->position_class?->class ?? 0;
             $builder->where('inspection_date', '>=', '2026-05-01');
-            $allowed = ($user->employee->division_id == '8' && $class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
-            if (!$allowed) {
-                $builder->where('departement_id', $user->employee->division_id)
-                ->whereHas('creator', function($query) use ($class){
-                    $query->where('class', '<', $class);   
-                });
-            }
-
         });
     }
 
@@ -67,18 +58,18 @@ class InspectionCard extends Model
         return $this->belongsTo(UserProfileView::class, 'supervised_by', 'id');  
     }
 
-    // public function scopeByDept(Builder $query): void
-    // {
-    //     // $user = Auth::guard('api')->user();
-    //     // $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
-    //     // if (!$allowed) {
-    //     //     $query->where('departement_id', $user->employee->division_id)
-    //     //     ->whereHas('creator', function($query) use ($user){
-    //     //         $query->where('class', '<', $user->employee->position->position_class->class);   
-    //     //     });
-    //     //     // if ($user->employee->position->position_class->class < 4) {
-    //     //     //     $query->where('departement_id', '');
-    //     //     // }
-    //     // }
-    // }
+    public function scopeByDept(Builder $query): void
+    {
+        $user = Auth::guard('api')->user();
+        $allowed = ($user->employee->division_id == '8' && $user->employee->position->position_class->class >= 4) || $user->id == '4' || $user->id == '4482'  || $user->id == '6071' ;
+        if (!$allowed) {
+            $query->where('departement_id', $user->employee->division_id)
+            ->whereHas('creator', function($query) use ($user){
+                $query->where('class', '<', $user->employee->position->position_class->class);   
+            });
+            if ($user->employee->position->position_class->class < 4) {
+                $query->where('departement_id', '');
+            }
+        }
+    }
 }

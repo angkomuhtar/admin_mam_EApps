@@ -69,7 +69,7 @@ class HazardController extends Controller
             })
             ->whereHas('createdBy.profile', function($q) use ($search){
                 $q->where('name', 'like', '%'.$search.'%');
-            })->orderBy('date_time', 'desc')
+            })->byDept()->orderBy('date_time', 'desc')
             ->paginate(15, ['*'], 'page', $page);
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
@@ -80,7 +80,7 @@ class HazardController extends Controller
     public function count_report(){
         try {
             $user =  Auth::guard('api')->user();
-            $data = Hazard_Report::where('status','like', '%OPEN%')->count();
+            $data = Hazard_Report::where('status','like', '%OPEN%')->byDept()->count();
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);

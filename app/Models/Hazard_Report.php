@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -16,15 +17,6 @@ class Hazard_Report extends Model
         static::addGlobalScope('active', function ($builder) {
             // $builder->where('is_active', true);
             $builder->where('date_time', '>=', '2026-05-01 00:00:00');
-            $user = Auth::guard('api')->user();
-            $allowed = $user->employee->division_id == '8' || $user->id == '4' || $user->id == '4482' || $user->id == '6071' ;
-            if (!$allowed) {
-                $builder->where('dept_id', $user->employee->division_id);
-                if ($user->employee->position?->position_class?->class < 4) {
-                    $builder->where('dept_id', '');
-                }
-            }
-
         });
     }
 
@@ -83,18 +75,18 @@ class Hazard_Report extends Model
         return $this->hasOne(Hazard_action::class, 'hazard_id', 'id');
     }
 
-    // public function scopeByDept(Builder $query): void
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     $allowed = $user->employee->division_id == '8' || $user->id == '4' || $user->id == '4482' || $user->id == '6071' ;
-    //     if (!$allowed) {
-    //         $query->where('dept_id', $user->employee->division_id);
-    //         if ($user->employee->position->position_class->class < 4) {
-    //             $query->where('dept_id', '');
-    //         }
-    //     }
+    public function scopeByDept(Builder $query): void
+    {
+        $user = Auth::guard('api')->user();
+        $allowed = $user->employee->division_id == '8' || $user->id == '4' || $user->id == '4482' || $user->id == '6071' ;
+        if (!$allowed) {
+            $query->where('dept_id', $user->employee->division_id);
+            if ($user->employee->position->position_class->class < 4) {
+                $query->where('dept_id', '');
+            }
+        }
 
-    // }
+    }
 
     public function getReportAttachmentAttribute($value)
     {
