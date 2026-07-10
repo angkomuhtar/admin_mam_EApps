@@ -162,19 +162,19 @@ class ClockController extends Controller
         }
     }
 
-
-    public function clock(Request $request){
+    public function clock(Request $request)
+    {
         try {
             $validator = Validator::make($request->all(), [
                 'shift'     => 'required',
-                'date'  => 'required',
-                'time' => 'required',
-                'location' => 'required',
-                'version' => 'required',
-                'platform' => 'required',
-            ],[
+                'date'      => 'required',
+                'time'      => 'required',
+                'location'  => 'required',
+                'version'   => 'required',
+                'platform'  => 'required',
+            ], [
                 'required' => ':attribute tidak boleh kosong'
-              ]);
+            ]);
 
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
@@ -182,84 +182,115 @@ class ClockController extends Controller
 
             $versionCheck = Version::where('device', $request->platform)->first();
 
-            // Open On Sunday
             if ($request->version < $versionCheck->version) {
                 $validator->errors()->add('version', 'versi aplikasi tidak sesuai, segera melakukan update');
                 return ResponseHelper::jsonError($validator->errors()->first('version'), 422);
             }
 
+            $userId = Auth::guard('api')->user()->id;
+
             if ($request->type == 'in') {
-                $inlist = Watchdist::where('user_id', Auth::guard('api')->user()->id)->where('status', 'Y')->exists();
-                $sleep = Sleep::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
+
+                $inlist = Watchdist::where('user_id', $userId)->where('status', 'Y')->exists();
+                $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
 
                 if ($inlist && !$sleep) {
                     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
                     return ResponseHelper::jsonError($validator->errors()->first('jam_tidur'), 422);
                 }
-                $exist = Clock::where('user_id', Auth::guard('api')->user()->id)->where('date', $request->date)->exists();
-                if ($exist) {
-                    return ResponseHelper::jsonSuccess('Berhasil Absen Masuk');
+
+                try {
+                    return DB::transaction(function () use ($request, $userId) {
+                        $existing = Clock::where('user_id', $userId)
+                            ->where('date', $request->date)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($existing) {
+                            return ResponseHelper::jsonSuccess('Berhasil Absen Masuk', $existing);
+                        }
+
+                        $clock = Clock::create([
+                            'user_id'           => $userId,
+                            'clock_location_id' => $request->location,
+                            'date'              => $this->today->format('Y-m-d'),
+                            'clock_in'          => $this->today->format('Y-m-d H:i:s'),
+                            'work_hours_id'     => $request->shift,
+                            'status'            => 'H',
+                        ]);
+
+                        $employee = Auth::guard('api')->user()?->employee;
+
+                        $attendance = [
+                            'check_in' => $this->today->format('Y-m-d H:i:s'),
+                        ];
+
+                        $parameters = ReportParam::query()
+                            ->with('report_param_details')
+                            ->where('division_id', $employee->division_id)
+                            ->whereIn('name', ['Jam Kehadiran', 'Kehadiran'])
+                            ->get();
+
+                        if (count($parameters) > 0) {
+                            $score = $this->calculateScore($attendance, $parameters, $request->shift, 'check_in');
+
+                            if (count($score['details']) > 0) {
+                                foreach ($score['details'] as $detail) {
+                                    ReportOperation::updateOrCreate(
+                                        [
+                                            'source_type'             => Clock::class,
+                                            'source_id'               => $clock->id,
+                                            'report_param_detail_id' => $detail['parameter_detail_id'],
+                                        ],
+                                        [
+                                            'report_param_id' => $detail['parameter_id'],
+                                            'employee_id'      => $employee->id,
+                                            'point'            => $detail['score'],
+                                            'date'             => $this->today->format('Y-m-d'),
+                                            'description'      => $detail['description'] .
+                                                ' | Actual: ' . $detail['actual_value'] .
+                                                ' | Target: ' . $detail['expected_value'] .
+                                                ' | Operator: ' . $detail['operator'],
+                                        ]
+                                    );
+                                }
+                            }
+                        }
+
+                        return ResponseHelper::jsonSuccess('Berhasil Absen Masuk', $clock);
+
+                    });
+                } catch (\Illuminate\Database\QueryException $qe) {
+                    if ($qe->getCode() == 23000) {
+                        $existing = Clock::where('user_id', $userId)
+                            ->where('date', $request->date)
+                            ->first();
+                        return ResponseHelper::jsonSuccess('Berhasil Absen Masuk', $existing);
+                    }
+                    throw $qe;
                 }
 
-                return DB::transaction(function() use($request){
-                    $clock = Clock::create([
-                        'user_id'=> Auth::guard('api')->user()->id,
-                        'clock_location_id'=> $request->location,
-                        'date' => $this->today->format('Y-m-d'),
-                        'clock_in'=>$this->today->format('Y-m-d H:i:s'),
-                        'work_hours_id'=> $request->shift,
-                        'status' => 'H'
-                    ]);
+            } elseif ($request->type == 'out') {
+                return DB::transaction(function () use ($request, $userId) {
+                    $clock = Clock::where('user_id', $userId)
+                        ->where('date', $request->date)
+                        ->lockForUpdate()
+                        ->first();
 
-                    $employee = Auth::guard('api')->user()?->employee;
-
-                    $attendance = [
-                        'check_in' => $this->today->format('Y-m-d H:i:s')
-                    ];
-
-                    $parameters = ReportParam::query()
-                        ->with('report_param_details')
-                        ->where('division_id', $employee->division_id)
-                        ->whereIn('name', ['Jam Kehadiran', 'Kehadiran'])
-                        ->get();
-
-                    if(count($parameters) > 0){
-                        $score = $this->calculateScore($attendance, $parameters, $request->shift, 'check_in');
-
-                        if(count($score['details']) > 0)
-                            foreach($score['details'] as $detail){
-                                ReportOperation::create([
-                                    'report_param_id' => $detail['parameter_id'],
-                                    'report_param_detail_id' => $detail['parameter_detail_id'],
-                                    'employee_id' => $employee->id,
-                                    'point' => $detail['score'],
-                                    'date' => $this->today->format('Y-m-d'),
-                                    'source_type' => Clock::class,
-                                    'source_id' => $clock->id,
-                                    'description' =>  $detail['description'] .
-                                    ' | Actual: ' . $detail['actual_value'] .
-                                    ' | Target: ' . $detail['expected_value'] .
-                                    ' | Operator: ' . $detail['operator'],
-                                ]);
-                            }
+                    if (!$clock) {
+                        return ResponseHelper::jsonError('Data absen masuk tidak ditemukan', 422);
                     }
 
-                    return ResponseHelper::jsonSuccess(
-                        'Berhasil Absen Masuk',
-                        $clock
-                    );
-                });
-            }elseif ($request->type == 'out'){
-                return DB::transaction(function() use($request){
-                    $clock = Clock::where('user_id', Auth::guard('api')->user()->id)
-                        ->where('date', $request->date)->first();
+                    if ($clock->clock_out) {
+                        return ResponseHelper::jsonSuccess('Berhasil Absen Pulang', $clock);
+                    }
 
                     $clock->update(['clock_out' => $this->today->format('Y-m-d H:i:s')]);
 
                     $employee = Auth::guard('api')->user()?->employee;
 
                     $attendance = [
-                        'check_out' => $this->today->format('Y-m-d H:i:s')
+                        'check_out' => $this->today->format('Y-m-d H:i:s'),
                     ];
 
                     $parameters = ReportParam::query()
@@ -267,34 +298,36 @@ class ClockController extends Controller
                         ->where('division_id', $employee->division_id)
                         ->get();
 
-                    if(count($parameters) > 0){
+                    if (count($parameters) > 0) {
                         $score = $this->calculateScore($attendance, $parameters, $request->shift, 'check_out');
 
-                        if(count($score['details']) > 0)
-                            foreach($score['details'] as $detail){
-                                ReportOperation::create([
-                                    'report_param_id' => $detail['parameter_id'],
-                                    'report_param_detail_id' => $detail['parameter_detail_id'],
-                                    'employee_id' => $employee->id,
-                                    'point' => $detail['score'],
-                                    'date' => $this->today->format('Y-m-d'),
-                                    'source_type' => Clock::class,
-                                    'source_id' => $clock->id,
-                                    'description' =>
-                                        $detail['description'] .
-                                        ' | Actual: ' . $detail['actual_value'] .
-                                        ' | Target: ' . $detail['expected_value'] .
-                                        ' | Operator: ' . $detail['operator'],
-                                            ]);
+                        if (count($score['details']) > 0) {
+                            foreach ($score['details'] as $detail) {
+                                ReportOperation::updateOrCreate(
+                                    [
+                                        'source_type'             => Clock::class,
+                                        'source_id'               => $clock->id,
+                                        'report_param_detail_id' => $detail['parameter_detail_id'],
+                                    ],
+                                    [
+                                        'report_param_id' => $detail['parameter_id'],
+                                        'employee_id'      => $employee->id,
+                                        'point'            => $detail['score'],
+                                        'date'             => $this->today->format('Y-m-d'),
+                                        'description'      => $detail['description'] .
+                                            ' | Actual: ' . $detail['actual_value'] .
+                                            ' | Target: ' . $detail['expected_value'] .
+                                            ' | Operator: ' . $detail['operator'],
+                                    ]
+                                );
                             }
+                        }
                     }
 
-                    return ResponseHelper::jsonSuccess(
-                        'Berhasil Absen Pulang',
-                        $clock
-                    );
+                    return ResponseHelper::jsonSuccess('Berhasil Absen Pulang', $clock);
                 });
             }
+            return ResponseHelper::jsonError('type tidak valid', 422);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
