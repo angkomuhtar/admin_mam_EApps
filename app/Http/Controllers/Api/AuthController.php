@@ -166,14 +166,21 @@ class AuthController extends Controller
 
     public function version(Request $request){
 
-        if ($request->has('device')) {
-            $data = Version::where('device', $request->device)->first();
-            return response()->json([
-                'status' => 'success',
-                'data' => $data
-            ]);
+        $validator = Validator::make($request->all(), [
+            'device' => 'required'
+        ],[
+            'device.required' => 'Device Tidak terdeteksi'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
-        return 'halo';
+
+        $data = Version::where('device', $request->device)->first();
+        return response()->json([
+            'status' => 'success',
+            'data' => $data
+        ]);
     }
 
     public function change_password(Request $request)

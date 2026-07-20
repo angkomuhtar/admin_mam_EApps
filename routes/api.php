@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClockController;
+use App\Http\Controllers\Api\DailyActivityController;
 use App\Http\Controllers\Api\HazardController;
 use App\Http\Controllers\Api\InspectionController;
 use App\Http\Controllers\Api\SleepController;
@@ -194,6 +195,15 @@ Route::prefix('v2')->group(function(){
             Route::POST('/{id}/verified', 'verified');
             // Route::GET('/{id}/export_pdf', 'pdf');
         });
+
+        Route::group([
+            'prefix' => 'daily_activity',
+            'controller' => DailyActivityController::class
+        ], function (){
+            Route::GET('/', 'index');
+            Route::POST('/', 'store');
+        }
+        );
     });
 
     Route::get('/inspection/{id}/export_pdf', [InspectionController::class, 'pdf'])->name('api.inspection.pdf');
