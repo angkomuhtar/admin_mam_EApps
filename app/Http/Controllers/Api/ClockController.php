@@ -194,11 +194,14 @@ class ClockController extends Controller
 
                 $inlist = Watchdist::where('user_id', $userId)->where('status', 'Y')->exists();
                 $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
-                $contract = Contract::where('user_id', $userId)->latest('id')->first();
+                $contracts = Contract::where('user_id', $userId)->get();
 
-                if($contract && $contract->status !== 'success'){
-                    $validator->errors()->add('kontrak', "Anda tidak memiliki kontrak yang aktif");
-                    return ResponseHelper::jsonError($validator->errors()->first('kontrak'), 422);
+                if ($contracts->isNotEmpty() && !$contracts->contains('status', 'success')) {
+                    $validator->errors()->add('kontrak', 'Anda tidak memiliki kontrak yang aktif');
+                    return ResponseHelper::jsonError(
+                        $validator->errors()->first('kontrak'),
+                        422
+                    );
                 }
 
                 if ($inlist && !$sleep) {
