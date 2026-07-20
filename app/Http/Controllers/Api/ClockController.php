@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Clock;
+use App\Models\Contract;
 use App\Models\Employee;
 use App\Models\ReportOperation;
 use App\Models\ReportParam;
@@ -193,6 +194,12 @@ class ClockController extends Controller
 
                 $inlist = Watchdist::where('user_id', $userId)->where('status', 'Y')->exists();
                 $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
+                $contract = Contract::where('user_id', $userId)->latest('id')->first();
+
+                if($contract->status !== 'success'){
+                    $validator->errors()->add('kontrak', "Anda tidak memiliki kontrak yang aktif");
+                    return ResponseHelper::jsonError($validator->errors()->first('kontrak'), 422);
+                }
 
                 if ($inlist && !$sleep) {
                     $validator->errors()->add('jam_tidur', 'Anda belum menginput jam tidur');
