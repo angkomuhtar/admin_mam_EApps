@@ -196,7 +196,7 @@ class ClockController extends Controller
                 $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
                 $contract = Contract::where('user_id', $userId)->latest('id')->first();
 
-                if($contract->status !== 'success'){
+                if($contract && $contract->status !== 'success'){
                     $validator->errors()->add('kontrak', "Anda tidak memiliki kontrak yang aktif");
                     return ResponseHelper::jsonError($validator->errors()->first('kontrak'), 422);
                 }
