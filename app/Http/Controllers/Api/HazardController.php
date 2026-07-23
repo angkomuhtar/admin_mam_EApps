@@ -25,10 +25,10 @@ class HazardController extends Controller
             $page = $request->page ?? 1;
             $status = $request->status ?? '';
             $data = Hazard_Report::with([
-                'location', 
-                'company', 
-                'project', 
-                'division', 
+                'location',
+                'company',
+                'project',
+                'division',
                 ])
             ->where('status','like', '%'.$status.'%')
             ->where('created_by', $user->id)
@@ -50,15 +50,15 @@ class HazardController extends Controller
             $month = $request->month ?? '';
 
             $data = Hazard_Report::with([
-                'location', 
-                'company', 
-                'project', 
-                'division', 
-                'createdBy', 
-                'createdBy.profile', 
-                'createdBy.employee.division', 
-                'hazardAction', 
-                'hazardAction.pic', 
+                'location',
+                'company',
+                'project',
+                'division',
+                'createdBy',
+                'createdBy.profile',
+                'createdBy.employee.division',
+                'hazardAction',
+                'hazardAction.pic',
                 'hazardAction.pic.profile'])
             ->where('status','like', '%'.$status.'%')
             ->where(function($q) use ($month){
@@ -94,15 +94,15 @@ class HazardController extends Controller
             $page = $request->page ?? 1;
             $status = $request->status ?? '';
             $data = Hazard_Report::with([
-                'location', 
-                'company', 
-                'project', 
-                'division', 
-                'createdBy', 
-                'createdBy.profile', 
-                'createdBy.employee.division', 
-                'hazardAction', 
-                'hazardAction.pic', 
+                'location',
+                'company',
+                'project',
+                'division',
+                'createdBy',
+                'createdBy.profile',
+                'createdBy.employee.division',
+                'hazardAction',
+                'hazardAction.pic',
                 'hazardAction.pic.profile'
                 ])
             ->whereHas('hazardAction', function($q) use ($user){
@@ -121,11 +121,11 @@ class HazardController extends Controller
     {
         try {
            $data = Hazard_Report::with([
-                'location', 
-                'company', 
-                'project', 
-                'division', 
-                'createdBy', 'createdBy.profile', 'createdBy.employee.division', 'createdBy.employee.position', 
+                'location',
+                'company',
+                'project',
+                'division',
+                'createdBy', 'createdBy.profile', 'createdBy.employee.division', 'createdBy.employee.position',
                 'hazardAction', 'hazardAction.pic', 'hazardAction.pic.profile', 'hazardAction.pic.employee.position', 'hazardAction.pic.employee.division',
                 'hazardAction.supervisedBy', 'hazardAction.supervisedBy.profile', 'hazardAction.supervisedBy.employee.position', 'hazardAction.supervisedBy.employee.division'
                 ])->where('id', $id)->first();
@@ -242,46 +242,53 @@ class HazardController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'id_action' => 'required',
-                'action_attachment' => 'required',
-                'action_status' => 'required',
+                'id_action'         => 'required',
+                'action_status'     => 'required',
+                'action_attachment' => 'required_if:action_status,DONE|file',
             ]);
+
             if ($validator->fails()) {
                 return ResponseHelper::jsonError($validator->errors(), 422);
             }
-            if (!$request->hasFile('action_attachment')) {
-                return ResponseHelper::jsonError('file upload Not found', 422);
-            }
 
             $hazard_action = Hazard_action::find($request->id_action);
-            // return ResponseHelper::jsonError( $request->id_action, 500);
-            $hazard_report_number = $hazard_action->hazard->hazard_report_number;
-            $file = $request->file('action_attachment');
-            $fileName = $hazard_report_number.now()->format('His');
-            $url = cloudinary()->upload($file->getRealPath(), [
-                "public_id" => $fileName,
-                "folder"    => "hazard_action",
-                'transformation' => [
-                    'quality' => "auto",
-                    'fetch_format' => "auto"
-                    ]
-                    ])->getSecurePath();
 
-            $update = $hazard_action->update([
-                'attachment' => $url,
-                'status' => $request->action_status,
-                'notes' => $request->action_note
-            ]);
-            $update_report = $hazard_action->hazard->update([
-                'status' => $request->action_status == 'DONE' ? 'CLOSED' : 'ONPROGRESS'
-            ]);
-
-
-            if ($update_report) {
-                return ResponseHelper::jsonSuccess('Berhasil', $update_report);
-            }else{
-                return ResponseHelper::jsonError('error', 400);
+            if (!$hazard_action) {
+                return ResponseHelper::jsonError('Hazard Action tidak ditemukan.', 404);
             }
+
+            $attachment = $hazard_action->attachment;
+
+            if ($request->hasFile('action_attachment')) {
+                $hazard_report_number = $hazard_action->hazard->hazard_report_number;
+
+                $file = $request->file('action_attachment');
+                $fileName = $hazard_report_number . now()->format('His');
+
+                $attachment = cloudinary()->upload($file->getRealPath(), [
+                    'public_id' => $fileName,
+                    'folder' => 'hazard_action',
+                    'transformation' => [
+                        'quality' => 'auto',
+                        'fetch_format' => 'auto',
+                    ]
+                ])->getSecurePath();
+            }
+
+            $hazard_action->update([
+                'attachment' => $attachment,
+                'status'     => $request->action_status,
+                'notes'      => $request->action_note,
+            ]);
+
+            $hazard_action->hazard->update([
+                'status' => $request->action_status == 'DONE'
+                    ? 'CLOSED'
+                    : 'ONPROGRESS',
+            ]);
+
+            return ResponseHelper::jsonSuccess('Berhasil', $hazard_action->fresh());
+
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
