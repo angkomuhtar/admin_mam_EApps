@@ -189,6 +189,7 @@ class ClockController extends Controller
             }
 
             $userId = Auth::guard('api')->user()->id;
+            $user = Auth::guard('api')->user()->load('employee');
 
             if ($request->type == 'in') {
 
@@ -196,7 +197,7 @@ class ClockController extends Controller
                 $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
                 $contracts = Contract::where('user_id', $userId)->get();
 
-                if ($contracts->isNotEmpty() && !$contracts->contains('status', 'success')) {
+                if ($contracts->isNotEmpty() && !$contracts->contains('status', 'success') && $user->employee?->site_id === 1) {
                     $validator->errors()->add('kontrak', 'Anda tidak memiliki kontrak yang aktif');
                     return ResponseHelper::jsonError(
                         $validator->errors()->first('kontrak'),
