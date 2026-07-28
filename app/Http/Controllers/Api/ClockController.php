@@ -191,13 +191,15 @@ class ClockController extends Controller
             $userId = Auth::guard('api')->user()->id;
             $user = Auth::guard('api')->user()->load('employee');
 
+            $arrayNip = ['MAM25022562', 'MAM2102528', 'MAM1812067', 'MAM1904181'];
+
             if ($request->type == 'in') {
 
                 $inlist = Watchdist::where('user_id', $userId)->where('status', 'Y')->exists();
                 $sleep  = Sleep::where('user_id', $userId)->where('date', $request->date)->exists();
                 $contracts = Contract::where('user_id', $userId)->get();
 
-                if ($contracts->isNotEmpty() && !$contracts->contains('status', 'success') && $user->employee?->site_id === 1) {
+                if ($contracts->isNotEmpty() && !$contracts->contains('status', 'success') && $user->employee?->site_id === 1 && !in_array($user->employee?->nip, $arrayNip, true)) {
                     $validator->errors()->add('kontrak', 'Anda tidak memiliki kontrak yang aktif');
                     return ResponseHelper::jsonError(
                         $validator->errors()->first('kontrak'),
