@@ -46,12 +46,12 @@ class DailyActivityController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'id_location' => 'required',
-                'detail_location' => 'required',
                 'job_type' => 'required|in:NON UNIT,UNIT',
                 'sts_unit' => 'required_if:job_type,UNIT',
                 'id_unit' => 'required_if:job_type,UNIT',
                 'unit_code' => 'required_if:job_type,UNIT',
-                'area' => 'required_if:job_type,NON UNIT',
+                'activity' => 'required',
+                'desc' => 'required',
                 'end_time' => 'required',
                 'duration' => 'required',
             ]);
@@ -81,12 +81,11 @@ class DailyActivityController extends Controller
             DB::table('daily_activity')->insert([
                 'id_location' => $request->id_location,
                 'other_location' => $request->other_location,
-                'detail_location' => $request->detail_location,
                 'creator' => $user->id,
                 'job_type' => $request->job_type,
                 'unit' => $id_unit,
                 'sts_unit' => $request->sts_unit,
-                'area' => $request->area,
+                'activity' => $request->activity,
                 'start_time' => $request->start_time,
                 'end_time' => $request->end_time,
                 'duration' => $request->duration,
