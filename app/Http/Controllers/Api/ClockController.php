@@ -241,7 +241,7 @@ class ClockController extends Controller
                         $parameters = ReportParam::query()
                             ->with('report_param_details')
                             ->where('division_id', $employee->division_id)
-                            ->whereIn('name', ['Jam Kehadiran', 'Kehadiran'])
+                            ->whereIn('name', ['Jam Kerja', 'Kehadiran'])
                             ->get();
 
                         if (count($parameters) > 0) {
@@ -309,6 +309,7 @@ class ClockController extends Controller
                     $parameters = ReportParam::query()
                         ->with('report_param_details')
                         ->where('division_id', $employee->division_id)
+                        ->where('name', 'Kehadiran')
                         ->get();
 
                     if (count($parameters) > 0) {
