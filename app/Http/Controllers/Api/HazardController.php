@@ -217,12 +217,12 @@ class HazardController extends Controller
     public function set_pic(Request $request, string $id)
     {
         try {
-            $store = Hazard_action::create([
+            $store = Hazard_action::updateOrCreate([
+                'hazard_id' => $id
+            ],[
                 'hazard_id' => $id,
                 'pic' => $request->pic,
                 'status' => 'WORKING',
-                // 'notes' => $request->notes,
-                // 'attachment' => $request->attachment,
                 'supervised_by' => Auth::guard('api')->user()->id
             ]);
             $update = Hazard_Report::where('id', $id)->update([
@@ -257,7 +257,7 @@ class HazardController extends Controller
                 return ResponseHelper::jsonError('Hazard Action tidak ditemukan.', 404);
             }
 
-            $attachment = $hazard_action->attachment;
+            $attachment = null;
 
             if ($request->hasFile('action_attachment')) {
                 $hazard_report_number = $hazard_action->hazard->hazard_report_number;
@@ -282,9 +282,7 @@ class HazardController extends Controller
             ]);
 
             $hazard_action->hazard->update([
-                'status' => $request->action_status == 'DONE'
-                    ? 'CLOSED'
-                    : 'ONPROGRESS',
+                'status' => 'CLOSED',
             ]);
 
             return ResponseHelper::jsonSuccess('Berhasil', $hazard_action->fresh());
