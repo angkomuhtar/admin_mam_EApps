@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Models\Version;
-use App\Models\Employee;
-use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Employee;
+use App\Models\User;
+use App\Models\Version;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
@@ -50,14 +51,25 @@ class AuthController extends Controller
                 return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
             }
 
+            Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->post(
+                'https://p2h.mitraabadimahakam.id/api/v1/sso-login',
+                [
+                    'email' => $credentials['email'],
+                    'password' => $credentials['password'],
+                ]
+            );
+
             if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps') || env('APP_ENV') == 'local') {
-                
+
                 if ($user->user_roles != 'superadmin') {
                     $db = User::find($user->id);
                     $db->phone_id = $request->phone_id;
                     $db->save();
                 }
-                
+
                 return response()->json([
                     'status' => 'success',
                     'user' => $user,
