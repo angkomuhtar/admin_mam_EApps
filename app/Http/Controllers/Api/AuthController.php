@@ -51,16 +51,26 @@ class AuthController extends Controller
                 return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
             }
 
-            Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])->post(
-                'https://p2h.mitraabadimahakam.id/api/v1/sso-login',
-                [
-                    'email' => $credentials['email'],
-                    'password' => $credentials['password'],
-                ]
-            );
+            if (!$request->has('apps')) {
+                $p2hResponse = Http::timeout(10)->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])->post(
+                    'https://p2h.mitraabadimahakam.id/api/v1/sso-login',
+                    [
+                        'email' => $credentials['email'],
+                        'password' => $credentials['password'],
+                    ]
+                );
+
+                if ($p2hResponse->failed()) {
+                    \Log::error('P2H SSO login failed', [
+                        'status' => $p2hResponse->status(),
+                        'body' => $p2hResponse->body(),
+                        'email' => $credentials['email'],
+                    ]);
+                }
+            }
 
             if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps') || env('APP_ENV') == 'local') {
 
