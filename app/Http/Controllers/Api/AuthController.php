@@ -58,7 +58,7 @@ class AuthController extends Controller
                 ])->post(
                     'https://p2h.mitraabadimahakam.id/api/v1/sso-login',
                     [
-                        'email' => $credentials['email'],
+                        'email' => $credentials[$field],
                         'password' => $credentials['password'],
                     ]
                 );
