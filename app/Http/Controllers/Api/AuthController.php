@@ -67,7 +67,7 @@ class AuthController extends Controller
                     \Log::error('P2H SSO login failed', [
                         'status' => $p2hResponse->status(),
                         'body' => $p2hResponse->body(),
-                        'email' => $credentials['email'],
+                        'email' => $credentials[$field],
                     ]);
                 }
             }
