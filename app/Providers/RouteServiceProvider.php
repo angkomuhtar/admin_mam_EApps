@@ -33,6 +33,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
+            // Route OAuth2 (Passport) untuk aplikasi internal "plant".
+            // Dipisah dari routes/api.php agar route JWT mobile tidak berubah.
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/oauth.php'));
+
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });

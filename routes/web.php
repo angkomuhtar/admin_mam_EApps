@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\HazardReportController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\InspectionController;
+use App\Http\Controllers\Admin\OAuthClientController;
 use Illuminate\Routing\RouteGroup;
 
 /*
@@ -209,6 +210,12 @@ Route::middleware('auth')->prefix('admin')->group(function()
         });
     });
 
+    Route::controller(OAuthClientController::class)->prefix('oauth')->group(function()
+    {
+        Route::get('/client','index')->name('masters.oauth.client');
+        Route::post('/client','store')->name('masters.oauth.client.store');
+        Route::delete('/client/{id}','destroy')->name('masters.oauth.client.destroy');
+    });
 
     Route::middleware('role_or_permission:developer|sleep_view')->group(function () {
         Route::controller(SleepController::class)->prefix('sleep')->group(function()

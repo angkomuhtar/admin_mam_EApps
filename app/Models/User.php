@@ -76,6 +76,21 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    /**
+     * Token OAuth2 yang sedang dipakai untuk request ini (diisi oleh guard Passport).
+     *
+     * Method ini diperlukan oleh middleware scope milik Passport
+     * (Laravel\Passport\Http\Middleware\CheckForAnyScope).
+     *
+     * Perhatikan: trait HasApiTokens yang dipakai model ini berasal dari Sanctum,
+     * bukan Passport, jadi method token() belum tersedia. Kita definisikan manual
+     * tanpa mengubah sanctum.createToken() yang dipakai API lama.
+     */
+    public function token()
+    {
+        return $this->accessToken;
+    }
+
     public function getAvatarUrlAttribute()
     {
         if($this->avatar !== null){

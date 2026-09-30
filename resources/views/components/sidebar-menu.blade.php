@@ -148,6 +148,10 @@
                                 <a href={{ route('masters.company') }}
                                     class="navItem {{ stripos(\Request::route()->getName(), 'masters.company') !== false ? 'active' : '' }}">Company</a>
                             </li>
+                            <li>
+                                <a href={{ route('masters.oauth.client') }}
+                                    class="navItem {{ stripos(\Request::route()->getName(), 'masters.oauth') !== false ? 'active' : '' }}">OAuth Client</a>
+                            </li>
                         @endrole
                         @can('master_option')
                             <li>

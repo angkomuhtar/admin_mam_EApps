@@ -36,19 +36,13 @@ class LoginController extends Controller
         if(Auth::guard('web')->attempt($credentials))
         {
             $request->session()->regenerate();
-            return redirect()->route('dashboard')
+            
+            // Cek apakah ada intended URL (dari OAuth atau route tertentu)
+            // Jika tidak ada, default ke dashboard
+            $intendedUrl = session()->pull('url.intended', route('dashboard'));
+            
+            return redirect($intendedUrl)
                 ->withSuccess('You have successfully logged in!');
-            // $user = Auth::guard('web')->getLastAttempted();
-            // dd($user);
-            // if (in_array($user->user_roles, array('admin', 'superadmin', 'hrd', 'hse'))) {
-            // }else {
-            //     Auth::guard('web')->logout();
-            //     $request->session()->invalidate();
-            //     $request->session()->regenerateToken();
-            //     return back()->withErrors([
-            //         'email' => 'Your Roles not Permission',
-            //     ])->onlyInput('email', 'password');
-            // }
         }else {
             return back()->withErrors([
                 'email' => 'Username not found in crendential',

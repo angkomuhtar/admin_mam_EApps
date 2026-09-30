@@ -12,6 +12,14 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : route('login');
+        if ($request->expectsJson()) {
+            return null;
+        }
+
+        // Simpan current URL sebagai intended destination sebelum redirect ke login
+        // Ini memungkinkan redirect kembali ke OAuth atau intent URL setelah login
+        session()->put('url.intended', $request->getRequestUri());
+        
+        return route('login');
     }
 }
