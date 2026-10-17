@@ -73,7 +73,7 @@
                                     @foreach ($employees as $employee)
                                         <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer option-item text-left"
                                             data-id="{{ $employee->user_id }}">
-                                            {{ $employee->name }} - {{ $employee->user->employee->position->position }}
+                                            {{ $employee->name }} - {{ $employee->user?->employee?->position?->position }}
                                         </div>
                                     @endforeach
                                 </div>
