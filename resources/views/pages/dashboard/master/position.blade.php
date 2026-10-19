@@ -410,6 +410,12 @@
                                     ).then(() => {
                                         table.draw()
                                     })
+                                } else {
+                                    Swal.fire(
+                                        'Error!',
+                                        msg.message,
+                                        'error'
+                                    )
                                 }
                             }
                         })

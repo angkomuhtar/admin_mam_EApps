@@ -201,7 +201,9 @@
                         data: 'employee.division.division'
                     },
                     {
-                        data: 'employee.position.position'
+                        render: (data, type, row, meta) => {
+                            return `<span class="text-sm text-slate-600 dark:text-slate-300 lowercase">${row.employee?.position?.position ?? 'anomali'}</span>`;
+                        }
                     },
                     {
                         data: 'employee.category.value',

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Company;
+use App\Models\Employee;
 use App\Models\PositionClass;
 use Illuminate\Support\Facades\Auth;
 
@@ -75,6 +76,14 @@ class PositionsController extends Controller
 
     public function destroy($id) 
     {
+
+        $check = Employee::where('position_id', $id)->count();
+        if ($check > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat menghapus posisi karena masih ada karyawan yang terkait'
+            ]);
+        }
         $delete = Position::destroy($id);
         if ($delete){
             return response()->json([
