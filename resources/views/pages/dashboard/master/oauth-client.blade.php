@@ -169,13 +169,22 @@ OAUTH_GRANT_TYPE={{ session('oauth_client_created')['grant_type'] }}
             <div class="card">
                 <header class="card-header noborder">
                     <h4 class="card-title">OAuth Clients</h4>
-                    <button data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas"
-                        class="btn btn-sm inline-flex justify-center btn-primary">
-                        <span class="flex items-center">
-                            <iconify-icon class="text-lg ltr:mr-2 rtl:ml-2" icon="mdi:plus"></iconify-icon>
-                            <span>Tambah Client</span>
-                        </span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('docs.client-credentials.index') }}"
+                            class="btn btn-sm inline-flex justify-center btn-outline-dark">
+                            <span class="flex items-center">
+                                <iconify-icon class="text-lg ltr:mr-2 rtl:ml-2" icon="mdi:file-document-outline"></iconify-icon>
+                                <span>Dokumentasi</span>
+                            </span>
+                        </a>
+                        <button data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas"
+                            class="btn btn-sm inline-flex justify-center btn-primary">
+                            <span class="flex items-center">
+                                <iconify-icon class="text-lg ltr:mr-2 rtl:ml-2" icon="mdi:plus"></iconify-icon>
+                                <span>Tambah Client</span>
+                            </span>
+                        </button>
+                    </div>
                 </header>
                 <div class="card-body px-6 pb-6">
                     <div class="overflow-x-auto -mx-6 dashcode-data-table">

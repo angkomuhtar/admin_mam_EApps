@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\InspectionController;
 use App\Http\Controllers\Admin\OAuthClientController;
+use App\Http\Controllers\Documentation\ClientCredentialsDocumentationController;
 use Illuminate\Routing\RouteGroup;
 
 /*
@@ -38,6 +39,15 @@ Route::controller(LoginController::class)->group(function() {
     Route::post('/login', 'authenticate')->name('authenticate');
     Route::post('/logout', 'logout')->name('logout');
 });
+
+Route::middleware('auth')
+    ->prefix('docs/client-credentials')
+    ->name('docs.client-credentials.')
+    ->controller(ClientCredentialsDocumentationController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/openapi.json', 'specification')->name('openapi');
+    });
 
 Route::middleware('auth')->prefix('admin')->group(function()
 {
