@@ -20,3 +20,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:passport', 'scope:profile:read'])->group(function () {
     Route::get('/oauth/user', [OAuthUserController::class, 'show'])->name('oauth.user');
 });
+
+Route::middleware('client:plant:read')->get('/oauth/client/ping', function () {
+    return response()->json([
+        'authenticated' => true,
+        'service' => config('app.name'),
+    ]);
+})->name('oauth.client.ping');

@@ -36,6 +36,7 @@ class OAuthPlantTest extends TestCase
         $client->personal_access_client = false;
         $client->password_client = false;
         $client->revoked = false;
+        $client->scopes = ['profile:read'];
         $client->save();
 
         return $client;

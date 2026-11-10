@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "a374cd161b6c9e55a2ab3f8289ae8f97973ce22d",
+    "indexed_at": "2026-11-09T02:09:15Z",
+    "project": "Users-mam-MAM_Dev-empapps-api",
+    "nodes": 5362,
+    "edges": 22750,
+    "original_size": 25362432,
+    "compressed_size": 4508245,
+    "compression_level": 3
+}

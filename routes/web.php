@@ -214,6 +214,8 @@ Route::middleware('auth')->prefix('admin')->group(function()
     {
         Route::get('/client','index')->name('masters.oauth.client');
         Route::post('/client','store')->name('masters.oauth.client.store');
+        Route::patch('/client/{id}/scopes','updateScopes')->name('masters.oauth.client.scopes.update');
+        Route::patch('/client/{id}/secret','regenerateSecret')->name('masters.oauth.client.secret.regenerate');
         Route::delete('/client/{id}','destroy')->name('masters.oauth.client.destroy');
     });
 

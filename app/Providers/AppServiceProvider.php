@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\OAuthClient;
+use App\OAuth\ScopeRepository;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Bridge\ScopeRepository as PassportScopeRepository;
 use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PassportScopeRepository::class, ScopeRepository::class);
     }
 
     /**
@@ -20,9 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
         if (config('app.env') == 'production') {
-            # code...
             \URL::forceScheme('https');
         }
 
@@ -37,18 +38,20 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configurePassport(): void
     {
-        // Hanya "authorization code grant" (+ refresh token) yang diizinkan.
-        // Password grant & implicit grant dimatikan karena tidak dipakai plant
-        // dan keduanya melemahkan keamanan (password client-side, token di URL).
+        Passport::useClientModel(OAuthClient::class);
+
+        // Password grant dan implicit grant tidak digunakan.
         Passport::$passwordGrantEnabled = false;
         Passport::$implicitGrantEnabled = false;
 
         // Scope yang boleh diminta oleh client OAuth2.
         Passport::tokensCan([
             'profile:read' => 'Membaca data profil dasar pengguna (id, nama, email, jabatan, status aktif)',
+            'plant:read' => 'Membaca data dari server Plant',
+            'plant:edit' => 'Mengubah data di server Plant',
         ]);
 
-        Passport::setDefaultScope(['profile:read']);
+        Passport::setDefaultScope([]);
 
         // Masa berlaku token, diatur lewat .env agar bisa berbeda per environment.
         Passport::tokensExpireIn(

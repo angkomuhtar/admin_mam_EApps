@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Admin\OAuthClientController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Passport\Passport;
 use Tests\Concerns\InteractsWithSeededSchema;
 use Tests\TestCase;
@@ -14,9 +17,11 @@ class OAuthClientManagementTest extends TestCase
     {
         // Just verify routes are registered
         $routes = collect(\Route::getRoutes())->map->getName();
-        
+
         $this->assertContains('masters.oauth.client', $routes);
         $this->assertContains('masters.oauth.client.store', $routes);
+        $this->assertContains('masters.oauth.client.scopes.update', $routes);
+        $this->assertContains('masters.oauth.client.secret.regenerate', $routes);
         $this->assertContains('masters.oauth.client.destroy', $routes);
     }
 
@@ -25,6 +30,26 @@ class OAuthClientManagementTest extends TestCase
         // Controller should instantiate without errors
         $controller = app(\App\Http\Controllers\Admin\OAuthClientController::class);
         $this->assertNotNull($controller);
+    }
+
+    public function test_oauth_clients_table_has_scopes_column()
+    {
+        $this->assertTrue(Schema::hasColumn('oauth_clients', 'scopes'));
+    }
+
+    public function test_controller_stores_selected_client_scopes()
+    {
+        $response = app(OAuthClientController::class)->store(Request::create('/', 'POST', [
+            'name' => 'Plant Integration',
+            'grant_type' => 'client_credentials',
+            'scopes' => ['plant:read', 'plant:edit'],
+        ]));
+
+        $this->assertSame(route('masters.oauth.client'), $response->getTargetUrl());
+
+        $client = Passport::client()->where('name', 'Plant Integration')->firstOrFail();
+        $this->assertSame(['plant:read', 'plant:edit'], $client->scopes);
+        $this->assertSame('', $client->redirect);
     }
 
     public function test_can_create_oauth_client_in_database()
@@ -59,9 +84,9 @@ class OAuthClientManagementTest extends TestCase
         ]);
 
         $clientId = $client->id;
-        
+
         $client->update(['revoked' => true]);
-        
+
         $client->refresh();
         $this->assertTrue($client->revoked);
     }
