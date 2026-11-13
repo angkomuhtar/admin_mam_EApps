@@ -49,7 +49,7 @@ class OAuthMasterController extends Controller
 
     public function userDetail(string $id)
     {
-        return $this->respond(fn () => User::with('profile', 'employee.company', 'employee.division', 'employee.position')->where('id', $id)->get());
+        return $this->respond(fn () => User::with('profile', 'employee.company', 'employee.division', 'employee.position', 'employee.project')->where('id', $id)->get());
     }
 
     protected function respond(callable $query)
