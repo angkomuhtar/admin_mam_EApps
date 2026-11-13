@@ -32,6 +32,8 @@ class OAuthUserResource extends JsonResource
 
             'email' => $this->email,
 
+            'avatar' => $this->avatar,
+
             // `job_title` = nama jabatan (dari tabel positions).
             'job_title' => $this->employee?->position?->position,
 
