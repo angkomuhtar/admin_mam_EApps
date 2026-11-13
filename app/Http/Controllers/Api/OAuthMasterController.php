@@ -10,6 +10,7 @@ use App\Models\Position;
 use App\Models\PositionClass;
 use App\Models\Project;
 use App\Models\Site;
+use App\Models\User;
 
 /**
  * Endpoint data master untuk aplikasi OAuth2 client.
@@ -36,7 +37,7 @@ class OAuthMasterController extends Controller
         return $this->respond(fn () => Position::where('company_id', $id)->get());
     }
 
-    public function position_class()
+    public function positionClass()
     {
         return $this->respond(fn () => PositionClass::get());
     }
@@ -44,6 +45,11 @@ class OAuthMasterController extends Controller
     public function site(string $id)
     {
         return $this->respond(fn () => Site::with('project_sites')->where('company_id', $id)->get());
+    }
+
+    public function userDetail(string $id)
+    {
+        return $this->respond(fn () => User::with('profile', 'employee.company', 'employee.division', 'employee.position')->where('id', $id)->get());
     }
 
     protected function respond(callable $query)

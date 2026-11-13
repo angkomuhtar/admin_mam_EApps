@@ -27,8 +27,9 @@ Route::middleware(['auth:passport', 'scope:profile:read'])->group(function () {
         Route::get('/project/{id}', 'project')->name('oauth.master.project');
         Route::get('/division/{id}', 'division')->name('oauth.master.division');
         Route::get('/position/{id}', 'position')->name('oauth.master.position');
-        Route::get('/position_class', 'position_class')->name('oauth.master.position_class');
+        Route::get('/position-class', 'positionClass')->name('oauth.master.position-class');
         Route::get('/site/{id}', 'site')->name('oauth.master.site');
+        Route::get('/user/{id}', 'userDetail')->name('oauth.master.user-detail');
     });
 });
 
