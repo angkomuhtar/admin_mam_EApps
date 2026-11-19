@@ -36,8 +36,10 @@ Route::middleware(['auth:passport', 'scope:profile:read'])->group(function () {
 
 Route::middleware(['client:employee:read'])
     ->prefix('oauth/client/master')
-    ->get('/employees', [OAuthEmployeeController::class, 'index'])
-    ->name('oauth.client.master.employees');
+    ->group(function () {
+        Route::get('/employees', [OAuthEmployeeController::class, 'index'])
+            ->name('oauth.client.master.employees');
+    });
 
 Route::middleware('client:plant:read')->get('/oauth/client/ping', function () {
     return response()->json([
