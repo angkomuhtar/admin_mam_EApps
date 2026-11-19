@@ -140,6 +140,10 @@ OAUTH_GRANT_TYPE={{ session('oauth_client_created')['grant_type'] }}
                                 <input type="checkbox" name="scopes[]" value="plant:edit" @checked(in_array('plant:edit', (array) old('scopes', []), true))>
                                 <span>plant:edit</span>
                             </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="scopes[]" value="employee:read" @checked(in_array('employee:read', (array) old('scopes', []), true))>
+                                <span>employee:read</span>
+                            </label>
                         </div>
                         @error('scopes')
                             <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
@@ -249,6 +253,10 @@ OAUTH_GRANT_TYPE={{ session('oauth_client_created')['grant_type'] }}
                                                             <label class="flex items-center gap-2">
                                                                 <input type="checkbox" name="scopes[]" value="plant:edit" @checked(in_array('plant:edit', $client->scopes ?? [], true))>
                                                                 <span>plant:edit</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-2">
+                                                                <input type="checkbox" name="scopes[]" value="employee:read" @checked(in_array('employee:read', $client->scopes ?? [], true))>
+                                                                <span>employee:read</span>
                                                             </label>
                                                             <button type="submit" class="text-blue-600 dark:text-blue-400 hover:underline">Simpan scope</button>
                                                         </form>

@@ -49,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
             'profile:read' => 'Membaca data profil dasar pengguna (id, nama, email, jabatan, status aktif)',
             'plant:read' => 'Membaca data dari server Plant',
             'plant:edit' => 'Mengubah data di server Plant',
+            'employee:read' => 'Membaca data karyawan untuk sinkronisasi aplikasi internal',
         ]);
 
         Passport::setDefaultScope([]);

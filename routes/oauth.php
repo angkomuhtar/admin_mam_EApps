@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\OAuthEmployeeController;
 use App\Http\Controllers\Api\OAuthMasterController;
 use App\Http\Controllers\Api\OAuthUserController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,11 @@ Route::middleware(['auth:passport', 'scope:profile:read'])->group(function () {
         Route::get('/user/{id}', 'userDetail')->name('oauth.master.user-detail');
     });
 });
+
+Route::middleware(['client:employee:read'])
+    ->prefix('oauth/client/master')
+    ->get('/employees', [OAuthEmployeeController::class, 'index'])
+    ->name('oauth.client.master.employees');
 
 Route::middleware('client:plant:read')->get('/oauth/client/ping', function () {
     return response()->json([
