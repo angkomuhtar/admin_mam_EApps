@@ -28,10 +28,7 @@ class OAuthEmployeeController extends Controller
                     $query->where('status', 'Y');
                 })
             ->where('company_id', 1)
-            ->whereIn('division_id', [
-                1, 2, 3, 4, 5, 6, 7,
-                8, 9, 10, 11, 12, 14,
-            ])
+            ->where('division_id', 5)
             ->whereIn('contract_status', ['ACTIVE', 'LAID OFF'])
             ->when($request->filled('updated_since'), function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
