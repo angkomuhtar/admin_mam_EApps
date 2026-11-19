@@ -24,7 +24,15 @@ class OAuthEmployeeController extends Controller
 
         $employees = Employee::query()
             ->with(['user.profile', 'company', 'division', 'position.position_class', 'project'])
-            ->whereHas('user')
+            ->whereHas('user', function ($query) {
+                    $query->where('status', 'Y');
+                })
+            ->where('company_id', 1)
+            ->whereIn('division_id', [
+                1, 2, 3, 4, 5, 6, 7,
+                8, 9, 10, 11, 12, 14,
+            ])
+            ->whereIn('contract_status', ['ACTIVE', 'LAID OFF'])
             ->when($request->filled('updated_since'), function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $since = $request->date('updated_since');
