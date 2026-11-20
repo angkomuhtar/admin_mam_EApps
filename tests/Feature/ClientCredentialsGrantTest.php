@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Http\Controllers\Admin\OAuthClientController;
 use App\Models\OAuthClient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Passport\Token;
 use Tests\Concerns\InteractsWithSeededSchema;
 use Tests\TestCase;
@@ -53,6 +55,77 @@ class ClientCredentialsGrantTest extends TestCase
         $token = Token::where('client_id', $client->getKey())->latest('id')->firstOrFail();
         $this->assertNull($token->user_id);
         $this->assertSame(['plant:read'], $token->scopes);
+    }
+
+    public function test_service_client_with_hrm_read_can_access_filtered_daily_activities(): void
+    {
+        $client = $this->client('', ['hrm:read']);
+        $tokenResponse = $this->postJson('/oauth/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => $client->getKey(),
+            'client_secret' => 'internal-test-secret',
+        ])->assertOk();
+
+        if (! Schema::hasTable('daily_activity') || ! Schema::hasTable('hazard_location')) {
+            $this->markTestSkipped('Test schema requires daily_activity and hazard_location tables.');
+        }
+
+        $creator = DB::table('users')->value('id');
+        $location = DB::table('hazard_location')->value('id');
+
+        if (! $creator || ! $location) {
+            $this->markTestSkipped('Test schema requires one user and one hazard location.');
+        }
+
+        $activityId = DB::table('daily_activity')->insertGetId([
+            'id_location' => $location,
+            'creator' => $creator,
+            'job_type' => 'NON UNIT',
+            'activity' => 'Inspection',
+            'start_time' => '2026-11-18 08:00:00',
+            'end_time' => '2026-11-18 09:00:00',
+            'duration' => 60,
+            'desc' => 'Test activity',
+            'status' => 'ACTIVE',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->getJson('/api/oauth/client/daily-activities?start_date=2026-11-18&end_date=2026-11-18&job_type=NON%20UNIT&per_page=10', [
+            'Authorization' => 'Bearer '.$tokenResponse->json('access_token'),
+        ])->assertOk()
+            ->assertJsonPath('data.data.0.id', $activityId)
+            ->assertJsonPath('data.per_page', 10)
+            ->assertJsonMissing(['password', 'remember_token', 'fcm_token']);
+    }
+
+    public function test_daily_activities_requires_hrm_read_scope(): void
+    {
+        $client = $this->client('', ['plant:read']);
+        $tokenResponse = $this->postJson('/oauth/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => $client->getKey(),
+            'client_secret' => 'internal-test-secret',
+        ])->assertOk();
+
+        $this->getJson('/api/oauth/client/daily-activities', [
+            'Authorization' => 'Bearer '.$tokenResponse->json('access_token'),
+        ])->assertForbidden();
+    }
+
+    public function test_daily_activities_rejects_invalid_filters(): void
+    {
+        $client = $this->client('', ['hrm:read']);
+        $tokenResponse = $this->postJson('/oauth/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => $client->getKey(),
+            'client_secret' => 'internal-test-secret',
+        ])->assertOk();
+
+        $this->getJson('/api/oauth/client/daily-activities?per_page=101&job_type=OTHER', [
+            'Authorization' => 'Bearer '.$tokenResponse->json('access_token'),
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['per_page', 'job_type']);
     }
 
     public function test_service_client_cannot_request_unassigned_scope(): void

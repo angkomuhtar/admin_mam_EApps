@@ -78,6 +78,29 @@ class ClientCredentialsSpecification
                         ],
                     ],
                 ],
+                '/api/oauth/client/daily-activities' => [
+                    'get' => [
+                        'tags' => ['Client Credentials'],
+                        'summary' => 'Mendapatkan daftar Daily Activity HRM',
+                        'security' => [['clientCredentials' => ['hrm:read']]],
+                        'parameters' => [
+                            ['name' => 'page', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1]],
+                            ['name' => 'per_page', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20]],
+                            ['name' => 'start_date', 'in' => 'query', 'schema' => ['type' => 'string', 'format' => 'date']],
+                            ['name' => 'end_date', 'in' => 'query', 'schema' => ['type' => 'string', 'format' => 'date']],
+                            ['name' => 'creator_id', 'in' => 'query', 'schema' => ['type' => 'integer']],
+                            ['name' => 'location_id', 'in' => 'query', 'schema' => ['type' => 'integer']],
+                            ['name' => 'status', 'in' => 'query', 'schema' => ['type' => 'string']],
+                            ['name' => 'job_type', 'in' => 'query', 'schema' => ['type' => 'string', 'enum' => ['UNIT', 'NON UNIT']]],
+                        ],
+                        'responses' => [
+                            '200' => ['description' => 'Daftar Daily Activity dengan pagination.'],
+                            '401' => ['description' => 'Token tidak ada, tidak valid, dicabut, atau kedaluwarsa.'],
+                            '403' => ['description' => 'Token tidak memiliki scope hrm:read.'],
+                            '422' => ['description' => 'Parameter filter tidak valid.'],
+                        ],
+                    ],
+                ],
                 '/api/oauth/client/ping' => [
                     'get' => [
                         'tags' => ['Client Credentials'],
@@ -115,6 +138,7 @@ class ClientCredentialsSpecification
                             'clientCredentials' => [
                                 'tokenUrl' => $baseUrl.'/oauth/token',
                                 'scopes' => [
+                                    'hrm:read' => 'Membaca data dari server HRM.',
                                     'plant:read' => 'Membaca data dari server Plant.',
                                     'plant:edit' => 'Mengubah data di server Plant.',
                                 ],

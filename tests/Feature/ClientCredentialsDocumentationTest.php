@@ -32,11 +32,12 @@ class ClientCredentialsDocumentationTest extends TestCase
             ->getJson('/docs/client-credentials/openapi.json')
             ->assertOk()
             ->assertJsonPath('openapi', '3.0.3')
+            ->assertJsonPath('components.securitySchemes.clientCredentials.flows.clientCredentials.scopes.hrm:read', 'Membaca data dari server HRM.')
             ->assertJsonPath('components.securitySchemes.clientCredentials.flows.clientCredentials.scopes.plant:read', 'Membaca data dari server Plant.')
             ->assertJsonPath('paths./oauth/token.post.requestBody.content.application/x-www-form-urlencoded.schema.properties.grant_type.example', 'client_credentials');
 
         $this->assertSame(
-            ['/oauth/token', '/api/oauth/client/ping'],
+            ['/oauth/token', '/api/oauth/client/daily-activities', '/api/oauth/client/ping'],
             array_keys($response->json('paths')),
         );
     }

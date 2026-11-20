@@ -133,6 +133,10 @@ OAUTH_GRANT_TYPE={{ session('oauth_client_created')['grant_type'] }}
                         <label class="form-label">Scope Client</label>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2">
+                                <input type="checkbox" name="scopes[]" value="hrm:read" @checked(in_array('hrm:read', (array) old('scopes', []), true))>
+                                <span>hrm:read</span>
+                            </label>
+                            <label class="flex items-center gap-2">
                                 <input type="checkbox" name="scopes[]" value="plant:read" @checked(in_array('plant:read', (array) old('scopes', ['plant:read']), true))>
                                 <span>plant:read</span>
                             </label>
@@ -246,6 +250,10 @@ OAUTH_GRANT_TYPE={{ session('oauth_client_created')['grant_type'] }}
                                                         <form action="{{ route('masters.oauth.client.scopes.update', $client->id) }}" method="POST" class="space-y-2">
                                                             @csrf
                                                             @method('PATCH')
+                                                            <label class="flex items-center gap-2">
+                                                                <input type="checkbox" name="scopes[]" value="hrm:read" @checked(in_array('hrm:read', $client->scopes ?? [], true))>
+                                                                <span>hrm:read</span>
+                                                            </label>
                                                             <label class="flex items-center gap-2">
                                                                 <input type="checkbox" name="scopes[]" value="plant:read" @checked(in_array('plant:read', $client->scopes ?? [], true))>
                                                                 <span>plant:read</span>

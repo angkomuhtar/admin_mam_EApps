@@ -100,6 +100,7 @@
             <table>
                 <thead><tr><th>Scope</th><th>Kegunaan</th></tr></thead>
                 <tbody>
+                    <tr><td><code class="inline">hrm:read</code></td><td>Membaca data dari API HRM, termasuk Daily Activity.</td></tr>
                     <tr><td><code class="inline">plant:read</code></td><td>Membaca data dari API Plant, termasuk daftar unit dan HM.</td></tr>
                     <tr><td><code class="inline">plant:edit</code></td><td>Mengubah data Plant. Jangan diberikan untuk integrasi read-only.</td></tr>
                 </tbody>
@@ -134,10 +135,12 @@
 <pre>curl '{{ $baseUrl }}/api/oauth/client/ping' \
   --header 'Accept: application/json' \
   --header 'Authorization: Bearer ACCESS_TOKEN'</pre>
-            <p>Untuk API Plant, kirim header yang sama ke endpoint internal Plant:</p>
-<pre>curl 'https://plant.internal/api/internal/units' \
-  --header 'Accept: application/json' \
-  --header 'Authorization: Bearer ACCESS_TOKEN'</pre>
+            <p>Untuk membaca Daily Activity HRM, gunakan token dengan scope <code class="inline">hrm:read</code>:</p>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/oauth/client/daily-activities</span></div>
+<pre>curl '{{ $baseUrl }}/api/oauth/client/daily-activities?start_date=2026-11-01&amp;end_date=2026-11-30&amp;per_page=20' \
+   --header 'Accept: application/json' \
+   --header 'Authorization: Bearer ACCESS_TOKEN'</pre>
+            <p>Filter tersedia: <code class="inline">start_date</code>, <code class="inline">end_date</code>, <code class="inline">creator_id</code>, <code class="inline">location_id</code>, <code class="inline">status</code>, dan <code class="inline">job_type</code>.</p>
         </section>
 
         <section id="laravel">

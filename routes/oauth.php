@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\OAuthEmployeeController;
+use App\Http\Controllers\Api\DailyActivityController;
 use App\Http\Controllers\Api\OAuthMasterController;
 use App\Http\Controllers\Api\OAuthUserController;
 use Illuminate\Support\Facades\Route;
@@ -47,3 +48,7 @@ Route::middleware('client:plant:read')->get('/oauth/client/ping', function () {
         'service' => config('app.name'),
     ]);
 })->name('oauth.client.ping');
+
+Route::middleware('client:hrm:read')
+    ->get('/oauth/client/daily-activities', [DailyActivityController::class, 'serviceIndex'])
+    ->name('oauth.client.daily-activities');

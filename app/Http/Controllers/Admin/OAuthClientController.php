@@ -41,7 +41,7 @@ class OAuthClientController extends Controller
             'grant_type' => 'required|in:authorization_code,client_credentials',
             'redirect' => 'nullable|required_if:grant_type,authorization_code|url',
             'scopes' => 'required_if:grant_type,client_credentials|array|min:1',
-            'scopes.*' => 'in:plant:read,plant:edit,employee:read',
+            'scopes.*' => 'in:hrm:read,plant:read,plant:edit,employee:read',
         ], [
             'name.required' => 'Nama client harus diisi',
             'name.max' => 'Nama client maksimal 191 karakter',
@@ -138,7 +138,7 @@ class OAuthClientController extends Controller
 
         $validator = Validator::make($request->all(), [
             'scopes' => 'required|array|min:1',
-            'scopes.*' => 'in:plant:read,plant:edit,employee:read',
+            'scopes.*' => 'in:hrm:read,plant:read,plant:edit,employee:read',
         ], [
             'scopes.required' => 'Pilih minimal satu scope',
             'scopes.min' => 'Pilih minimal satu scope',

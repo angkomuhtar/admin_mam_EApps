@@ -18,7 +18,7 @@ class DailyActivityController extends Controller
     public function index(Request $request)
     {
         try {
-            $user =  Auth::guard('api')->user();
+            $user = Auth::guard('api')->user();
             $page = $request->page ?? 1;
             $data = DailyActivity::with([
                 'unit_detail',
@@ -26,14 +26,75 @@ class DailyActivityController extends Controller
                 'created_by.profile',
                 'created_by.employee.division',
                 'created_by.employee.position',
-                ])
-            ->where('creator', $user->id)
-            ->orderBy('start_time', 'desc')
-            ->paginate(6, ['*'], 'page', $page);
+            ])
+                ->where('creator', $user->id)
+                ->orderBy('start_time', 'desc')
+                ->paginate(6, ['*'], 'page', $page);
+
             return ResponseHelper::jsonSuccess('success get data', $data);
         } catch (\Exception $err) {
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
+    }
+
+    public function serviceIndex(Request $request)
+    {
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'start_date' => 'sometimes|date_format:Y-m-d',
+            'end_date' => 'sometimes|date_format:Y-m-d|after_or_equal:start_date',
+            'creator_id' => 'sometimes|integer|min:1',
+            'location_id' => 'sometimes|integer|min:1',
+            'status' => 'sometimes|string|max:50',
+            'job_type' => 'sometimes|in:UNIT,NON UNIT',
+        ]);
+
+        $query = DailyActivity::with([
+            'unit_detail',
+            'location',
+            'created_by.profile',
+            'created_by.employee.division',
+            'created_by.employee.position',
+        ])->orderByDesc('start_time');
+
+        $query->when($validated['start_date'] ?? null, fn ($query, $date) => $query->whereDate('start_time', '>=', $date));
+        $query->when($validated['end_date'] ?? null, fn ($query, $date) => $query->whereDate('start_time', '<=', $date));
+        $query->when($validated['creator_id'] ?? null, fn ($query, $id) => $query->where('creator', $id));
+        $query->when($validated['location_id'] ?? null, fn ($query, $id) => $query->where('id_location', $id));
+        $query->when($validated['status'] ?? null, fn ($query, $status) => $query->where('status', $status));
+        $query->when($validated['job_type'] ?? null, fn ($query, $jobType) => $query->where('job_type', $jobType));
+
+        $data = $query
+            ->paginate($validated['per_page'] ?? 20, ['*'], 'page', $validated['page'] ?? 1)
+            ->through(fn (DailyActivity $activity) => [
+                'id' => $activity->id,
+                'location' => $activity->location ? [
+                    'id' => $activity->location->id,
+                    'name' => $activity->location->location,
+                ] : null,
+                'other_location' => $activity->other_location,
+                'creator' => $activity->created_by ? [
+                    'id' => $activity->created_by->id,
+                    'name' => $activity->created_by->profile?->name,
+                    'nrp' => $activity->created_by->employee?->nip,
+                    'division' => $activity->created_by->employee?->division?->division,
+                    'position' => $activity->created_by->employee?->position?->position,
+                ] : null,
+                'job_type' => $activity->job_type,
+                'unit' => $activity->unit_detail,
+                'unit_status' => $activity->sts_unit,
+                'activity' => $activity->activity,
+                'start_time' => $activity->start_time,
+                'end_time' => $activity->end_time,
+                'duration' => $activity->duration,
+                'description' => $activity->desc,
+                'status' => $activity->status,
+                'created_at' => $activity->created_at,
+                'updated_at' => $activity->updated_at,
+            ]);
+
+        return ResponseHelper::jsonSuccess('success get data', $data);
     }
 
     /**
@@ -42,7 +103,7 @@ class DailyActivityController extends Controller
     public function store(Request $request)
     {
         try {
-            $user =  Auth::guard('api')->user();
+            $user = Auth::guard('api')->user();
 
             $validator = Validator::make($request->all(), [
                 'id_location' => 'required',
@@ -93,9 +154,11 @@ class DailyActivityController extends Controller
                 'status' => 'ACTIVE',
             ]);
             DB::commit();
+
             return ResponseHelper::jsonSuccess('Berhasil');
         } catch (\Throwable $err) {
             DB::rollBack();
+
             return ResponseHelper::jsonError($err->getMessage(), 500);
         }
     }

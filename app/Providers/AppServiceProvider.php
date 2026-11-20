@@ -47,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         // Scope yang boleh diminta oleh client OAuth2.
         Passport::tokensCan([
             'profile:read' => 'Membaca data profil dasar pengguna (id, nama, email, jabatan, status aktif)',
+            'hrm:read' => 'Membaca data dari server HRM',
             'plant:read' => 'Membaca data dari server Plant',
             'plant:edit' => 'Mengubah data di server Plant',
             'employee:read' => 'Membaca data karyawan untuk sinkronisasi aplikasi internal',
