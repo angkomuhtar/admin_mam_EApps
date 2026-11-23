@@ -51,6 +51,16 @@ class AuthController extends Controller
                 return ResponseHelper::jsonError('Maaf, akun telah di nonaktifkan', 401);
             }
 
+            $isAllowedDevice = $user->phone_id == null
+                || hash_equals((string) $user->phone_id, (string) $request->phone_id)
+                || $user->user_roles == 'superadmin'
+                || $request->has('apps');
+
+            if (!$isAllowedDevice) {
+                Auth::guard('api')->logout();
+                return ResponseHelper::jsonError('maaf, akun telah terintegrasi dengan device lain', 401);
+            }
+
             if (!$request->has('apps')) {
                 $p2hResponse = Http::timeout(10)->withHeaders([
                     'Content-Type' => 'application/json',
@@ -72,26 +82,20 @@ class AuthController extends Controller
                 }
             }
 
-            if ($user->phone_id == null || $user->phone_id == $request->phone_id || $user->user_roles == 'superadmin' || $request->has('apps') || env('APP_ENV') == 'local') {
-
-                if ($user->user_roles != 'superadmin') {
-                    $db = User::find($user->id);
-                    $db->phone_id = $request->phone_id;
-                    $db->save();
-                }
-
-                return response()->json([
-                    'status' => 'success',
-                    'user' => $user,
-                    'authorisation' => [
-                        'token' => $token,
-                        'type' => 'bearer',
-                    ]
-                ])->withCookie(cookie('jwt', $token, 60));
-            }else{
-                Auth::guard('api')->logout();
-                return ResponseHelper::jsonError('maaf, akun telah terintgrasi dengan device lain', 401);
+            if ($user->user_roles != 'superadmin' && !$request->has('apps')) {
+                $db = User::find($user->id);
+                $db->phone_id = $request->phone_id;
+                $db->save();
             }
+
+            return response()->json([
+                'status' => 'success',
+                'user' => $user,
+                'authorisation' => [
+                    'token' => $token,
+                    'type' => 'bearer',
+                ]
+            ])->withCookie(cookie('jwt', $token, 60));
         }
     }
 
