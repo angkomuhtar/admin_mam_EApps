@@ -72,6 +72,16 @@
             <div class="card">
                 <header class=" card-header noborder">
                     <h4 class="card-title">{{ $pageTitle }}</h4>
+                        <div class="flex gap-2">
+                            <button type="button" id="force_logout_selected"
+                                class="btn btn-sm inline-flex justify-center btn-outline-danger">
+                                Logout Terpilih (<span id="selected_count">0</span>)
+                            </button>
+                            <button type="button" id="force_logout_all"
+                                class="btn btn-sm inline-flex justify-center btn-danger">
+                                Logout Semua User Aktif
+                            </button>
+                        </div>
                     {{-- <a href={{ route('masters.users.create') }}
                         class="btn btn-sm inline-flex justify-center btn-primary ">
                         <span class="flex items-center">
@@ -152,6 +162,9 @@
                                     <thead class=" bg-slate-200 dark:bg-slate-700">
                                         <tr>
                                             <th scope="col" class=" table-th ">
+                                                <input type="checkbox" id="check_all" title="Pilih semua di halaman ini">
+                                            </th>
+                                            <th scope="col" class=" table-th ">
                                                 Username
                                             </th>
                                             <th scope="col" class=" table-th ">
@@ -225,13 +238,16 @@
                     },
                     search: "Search:",
                 },
+                order: [
+                    [1, 'asc']
+                ],
                 "columnDefs": [{
                         "searchable": false,
-                        "targets": [3, 4]
+                        "targets": [0, 4, 5]
                     },
                     {
                         "orderable": false,
-                        "targets": [3, 4]
+                        "targets": [0, 4, 5]
                     },
                     {
                         'className': 'table-td',
@@ -239,6 +255,11 @@
                     }
                 ],
                 columns: [{
+                        data: 'id',
+                        name: 'select',
+                        render: (data) => `<input type="checkbox" class="row-check" value="${data}">`
+                    },
+                    {
                         data: 'username',
                         name: 'username',
                         render: (data, type, row, meta) => {
@@ -495,6 +516,66 @@
                         })
                     }
                 })
+            })
+
+            const updateSelected = () => $('#selected_count').text($('.row-check:checked').length);
+
+            $(document).on('change', '.row-check', updateSelected);
+            $(document).on('change', '#check_all', (e) => {
+                $('.row-check').prop('checked', e.currentTarget.checked);
+                updateSelected();
+            });
+            table.on('draw', () => {
+                $('#check_all').prop('checked', false);
+                updateSelected();
+            });
+
+            const forceLogout = (payload, title) => {
+                Swal.fire({
+                    title: title,
+                    html: 'Semua device akan keluar dan harus login ulang.<br>Binding device (phone_id) ikut direset.<br><b>Aksi ini tidak bisa dibatalkan.</b>',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, logout'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({
+                        url: '{!! route('masters.users.force_logout') !!}',
+                        type: 'POST',
+                        data: Object.assign({
+                            "_token": "{{ csrf_token() }}"
+                        }, payload),
+                        success: (msg) => {
+                            if (msg.success) {
+                                Swal.fire('Berhasil', msg.data, 'success').then(() => {
+                                    table.ajax.reload(null, false)
+                                })
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire('Gagal', xhr.responseJSON?.message ?? 'Terjadi kesalahan', 'error')
+                        }
+                    })
+                })
+            }
+
+            $(document).on('click', '#force_logout_selected', () => {
+                const ids = $('.row-check:checked').map((i, el) => el.value).get();
+                if (ids.length === 0) {
+                    Swal.fire('Pilih user', 'Centang minimal satu user.', 'info');
+                    return;
+                }
+                forceLogout({
+                    ids
+                }, `Logout ${ids.length} user dari semua device?`);
+            })
+
+            $(document).on('click', '#force_logout_all', () => {
+                forceLogout({
+                    all: 1
+                }, 'Logout SEMUA user aktif dari semua device?');
             })
 
             $(document).on('click', '.dropdown-jam li a', e => {

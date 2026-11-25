@@ -18,8 +18,13 @@ class JwtMiddleware
      */
     public function handle($request, Closure $next)
     {
-        // dd($request->cookie('jwt'));
-        if (Auth::guard('api')->check()) {
+        $guard = Auth::guard('api');
+
+        if ($guard->check()) {
+            // Token yang dicabut lewat force logout punya claim `tv` lebih kecil dari DB.
+            if (!$guard->user()->tokenVersionMatches($guard->payload()->get('tv'))) {
+                return ResponseHelper::jsonError('Unauthorized', 401);
+            }
             return $next($request);
         }
         return ResponseHelper::jsonError('Unauthorized', 401);

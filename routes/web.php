@@ -209,6 +209,7 @@ Route::middleware('auth')->prefix('admin')->group(function()
         Route::group(['middleware'=> 'role_or_permission:developer|user_update'], function (){
             Route::post('/{id}/status','status')->name('masters.users.status');
             Route::patch('/{id}/reset_phone','reset_phone')->name('masters.users.reset_phone');
+            Route::post('/force_logout','force_logout')->name('masters.users.force_logout');
             Route::post('/update_location/{id}','update_location')->name('masters.users.update_location');
         });
 

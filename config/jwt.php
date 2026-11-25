@@ -168,8 +168,8 @@ return [
     */
 
     'persistent_claims' => [
-        // 'foo',
-        // 'bar',
+        // versi token dipertahankan saat refresh (sudah divalidasi di AuthController::refresh)
+        'tv',
     ],
 
     /*

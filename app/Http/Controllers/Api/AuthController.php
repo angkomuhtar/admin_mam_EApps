@@ -140,8 +140,15 @@ class AuthController extends Controller
     public function refresh()
     {
         try {
+            $jwt = JWTAuth::parseToken();
+            $payload = $jwt->manager()->setRefreshFlow()->decode($jwt->getToken());
+            $owner = User::find($payload->get('sub'));
+            if (!$owner || !$owner->tokenVersionMatches($payload->get('tv'))) {
+                return response()->json(['error' => 'Token has been revoked'], 401);
+            }
+
             // Refresh the token
-            $newToken = JWTAuth::parseToken()->refresh();
+            $newToken = $jwt->refresh();
 
             // Get the authenticated user
             $user = JWTAuth::setToken($newToken)->toUser();

@@ -109,6 +109,33 @@ class UsersController extends Controller
           }
     }
 
+    public function force_logout(Request $request)
+    {
+        $request->validate([
+            'all' => 'sometimes|boolean',
+            'ids' => 'required_without:all|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $all = $request->boolean('all');
+        $ids = $all ? null : array_map('intval', $request->input('ids', []));
+
+        $affected = User::forceLogout($ids);
+
+        \Log::info('Force logout JWT', [
+            'by' => Auth::guard('web')->id(),
+            'all' => $all,
+            'ids' => $ids,
+            'affected' => $affected,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $affected.' user berhasil di-logout dari semua device',
+            'affected' => $affected,
+        ]);
+    }
+
     public function create()
     {
           return view('pages.dashboard.users.create', [

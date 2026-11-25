@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -28,7 +29,8 @@ class User extends Authenticatable implements JWTSubject
         'phone_id',
         'avatar',
         'status',
-        'fcm_token'
+        'fcm_token',
+        'token_version',
     ];
 
     protected $guard_name = ['web', 'api'];
@@ -72,8 +74,41 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'origin' => 'emp-app',
-            'username' => $this->username
+            'username' => $this->username,
+            // versi token; dinaikkan saat force logout agar token lama ditolak
+            'tv' => (int) $this->token_version,
         ];
+    }
+
+    /**
+     * Cek apakah claim `tv` di JWT masih sama dengan versi token user saat ini.
+     * Token lama tanpa claim `tv` dianggap versi 0.
+     */
+    public function tokenVersionMatches($claim): bool
+    {
+        return (int) ($claim ?? 0) === (int) $this->token_version;
+    }
+
+    /**
+     * Cabut semua token JWT user (semua device) dan lepas binding device.
+     *
+     * @param  array<int>|null  $ids  null = semua user aktif (status 'Y')
+     */
+    public static function forceLogout(?array $ids = null): int
+    {
+        $query = static::query();
+        if ($ids !== null) {
+            $query->whereIn('id', $ids);
+        } else {
+            // user nonaktif sudah ditolak saat login, tidak perlu disentuh
+            $query->where('status', 'Y');
+        }
+
+        return $query->update([
+            'token_version' => DB::raw('token_version + 1'),
+            'phone_id' => null,
+            'fcm_token' => null,
+        ]);
     }
 
     /**
