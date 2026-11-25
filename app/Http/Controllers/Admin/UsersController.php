@@ -93,9 +93,7 @@ class UsersController extends Controller
     
     public function reset_phone($id)
     {
-        $user = User::find($id)->update([
-            'phone_id' => NULL,
-          ]);
+        $user = User::forceLogout([$id]);
           if ($user) {
             return response()->json([
                 'success' => true,
